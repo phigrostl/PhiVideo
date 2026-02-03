@@ -17,7 +17,7 @@ namespace PGR {
     }
 
     void Application::Init() {
-        CLI::App app("PGR", "PGR");
+        CLI::App app("PhiVideo", "PhiVideo");
         app.add_option("File", m_Info.InfoPath, "The Path of the Chart file")->required(false);
         app.add_flag("-d,--debug", DEBUG, "Debug Mode");
         app.add_option("-v,--video", m_Info.RenderVideo, "Render Video");
