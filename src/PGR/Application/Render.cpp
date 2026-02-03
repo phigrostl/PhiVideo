@@ -294,7 +294,7 @@ namespace PGR {
 
         int combo = 0;
         const int numJudgeLines = (int)(m_Info.chart.data.judgeLines.size());
-        const float oh = m_Width * (0.00375f * size + 0.00375f);
+        const float oh = m_Width * (0.005f * size + 0.005f);
 
         for (size_t i = 0; i < numJudgeLines; i++) {
 
