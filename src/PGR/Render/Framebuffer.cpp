@@ -559,7 +559,7 @@ namespace PGR {
                 const int i = dstX - x;
 
                 float tx = i * cosAInvSx + baseTx;
-                float ty = texHeight - (i * negSinAInvSy + baseTy);
+                float ty = texHeight - (i * negSinAInvSy + baseTy) - 1;
 
                 if (tx >= 0.0f && tx < srcW && ty >= 0.0f && ty < srcH) {
                     const int texX = static_cast<int>(tx);
