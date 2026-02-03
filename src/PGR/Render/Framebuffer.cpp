@@ -157,90 +157,19 @@ namespace PGR {
     }
 
     void Framebuffer::DrawRotatedTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float rotation) {
-        if (text.empty() || fontSize <= 0.0f) return;
+        Texture* texture = TextToTexture(text, color, fontSize);
 
-        int textWidth, textHeight;
-        GetTextSize(text, fontSize, &textWidth, &textHeight, false);
+        int w = texture->GetWidth();
+        int h = texture->GetHeight();
 
-        if (textWidth <= 0 || textHeight <= 0) return;
+        float c = cos(rotation * PI_OVER_180);
+        float s = sin(rotation * PI_OVER_180);
 
-        float rad = rotation * PI_OVER_180;
-        float cosA = cos(rad);
-        float sinA = sin(rad);
+        x = (int)(x - w / 2.0f * c - h / 2.0f * s);
+        y = (int)(y - h / 2.0f * c + w / 2.0f * s);
 
-        float offsetX = -textWidth / 2.0f;
-        float offsetY = -textHeight / 2.0f;
-        float offsetRotatedX = offsetX * cosA - offsetY * sinA;
-        float offsetRotatedY = offsetX * sinA + offsetY * cosA;
-
-        std::wstring wstr = str2wstr(text);
-        float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
-        float DScale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
-        int xpos = 0;
-        int ascent, descent, lineGap, Dascent;
-        stbtt_GetFontVMetrics(m_FontInfo, &ascent, &descent, &lineGap);
-        stbtt_GetFontVMetrics(m_DefaultFontInfo, &Dascent, &descent, &lineGap);
-        int baseline = int(ascent * scale);
-        int Dbaseline = int(Dascent * DScale);
-
-        int minScreenX = 0;
-        int maxScreenX = m_Width - 1;
-        int minScreenY = 0;
-        int maxScreenY = m_Height - 1;
-
-        for (wchar_t c : wstr) {
-            int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
-            stbtt_fontinfo* fontToUse = m_FontInfo;
-            float currentScale = scale;
-            int currentBaseline = baseline;
-
-            if (glyphIndex == 0) {
-                fontToUse = m_DefaultFontInfo;
-                currentScale = DScale;
-                currentBaseline = Dbaseline;
-            }
-
-            int w, h, xoff, yoff;
-            unsigned char* bitmap = stbtt_GetCodepointBitmap(fontToUse, 0, currentScale, c, &w, &h, &xoff, &yoff);
-
-            if (bitmap != nullptr) {
-                int charBaseX = xpos + xoff;
-                int charBaseY = currentBaseline + yoff;
-
-                for (int j = 0; j < h; j++) {
-                    int charY = charBaseY + j;
-                    
-                    float rotatedYComponent = charY * sinA;
-                    float rotatedXComponent = charY * cosA;
-
-                    for (int i = 0; i < w; i++) {
-                        unsigned char alphaByte = bitmap[i + j * w];
-                        if (alphaByte == 0) continue;
-
-                        int charX = charBaseX + i;
-
-                        float rotatedX = charX * cosA - rotatedXComponent + offsetRotatedX;
-                        float rotatedY = charX * sinA + rotatedYComponent + offsetRotatedY;
-
-                        int screenX = x + (int)rotatedX;
-                        int screenY = y - (int)rotatedY;
-
-                        if (screenX >= minScreenX && screenX <= maxScreenX && 
-                            screenY >= minScreenY && screenY <= maxScreenY) {
-                            float alpha = alphaByte / 255.0f;
-                            Vec4 finalColor(color.X, color.Y, color.Z, alpha * color.W);
-                            SetColor(screenX, screenY, finalColor);
-                        }
-                    }
-                }
-                stbtt_FreeBitmap(bitmap, nullptr);
-            }
-
-            int ax, lsb;
-            stbtt_GetCodepointHMetrics(fontToUse, c, &ax, &lsb);
-            int kern = stbtt_GetCodepointKernAdvance(fontToUse, 0, c);
-            xpos += int(ax * currentScale) + kern;
-        }
+        DrawTexture(x, y, texture, -1, -1, rotation);
+        delete texture;
     }
 
     void Framebuffer::GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw, bool baseLine) {
@@ -437,37 +366,37 @@ namespace PGR {
     void Framebuffer::DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color) {
         float dx = (float)(x1 - x0);
         float dy = (float)(y1 - y0);
-        
+
         float length = sqrt(dx * dx + dy * dy);
         if (length == 0) return;
-        
+
         float ux = dx / length;
         float uy = dy / length;
-        
+
         float nx = -uy;
         float ny = ux;
-        
+
         float halfWidth = w / 2.0f;
-        
+
         int minX = static_cast<int>(floor(std::min<int>(x0, x1) - halfWidth));
         int maxX = static_cast<int>(ceil(std::max<int>(x0, x1) + halfWidth));
         int minY = static_cast<int>(floor(std::min<int>(y0, y1) - halfWidth));
         int maxY = static_cast<int>(ceil(std::max<int>(y0, y1) + halfWidth));
-        
+
         minX = std::max<int>(minX, 0);
         maxX = std::min<int>(maxX, m_Width - 1);
         minY = std::max<int>(minY, 0);
         maxY = std::min<int>(maxY, m_Height - 1);
-        
+
         for (int y = minY; y <= maxY; ++y) {
             for (int x = minX; x <= maxX; ++x) {
                 float px = (float)(x - x0);
                 float py = (float)(y - y0);
-                
+
                 float t = px * ux + py * uy;
-                
+
                 float n = fabs(px * nx + py * ny);
-                
+
                 if (t >= 0 && t <= length && n <= halfWidth) {
                     SetColor(x, y, color);
                 }
