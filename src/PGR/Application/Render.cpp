@@ -244,15 +244,6 @@ namespace PGR {
         std::string filename = m_Info.OutPath + ".mp4";
         str = "ffmpeg -y -hide_banner -loglevel info -i " + m_Info.ChartDir + "output.mp4 -i " + m_Info.ChartDir + "output_cut.wav -c:v libx264 -pix_fmt yuv420p -preset ultrafast -c:a aac -strict experimental -b:a 192k -shortest " + filename;
         system(str.c_str());
-
-        ToDir(m_Info.ChartDir);
-        remove("output.wav");
-        remove("output_cut.wav");
-        remove("output.mp4"); 
-        delete back.GetFontInfo();
-        delete back.GetDFontInfo();
-        ToDir(m_Info.ChartDir);
-        remove("blurred_output.png");
     }
 
     Texture* GetHoldTexture(const Texture* head, const int headH, const Texture* body, const int bodyH, const Texture* tail, const int tailH, const int w) {

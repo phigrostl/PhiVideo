@@ -125,7 +125,18 @@ namespace PGR {
         if (m_Info.RenderVideo) {
             MixMusic();
             RenderVideo();
+
+            ToDir(m_Info.ChartDir);
+            remove("output.wav");
+            remove("output_cut.wav");
+            remove("output.mp4");
         }
+        
+        delete m_Framebuffer->GetFontInfo();
+        delete m_Framebuffer->GetDFontInfo();
+
+        ToDir(m_Info.ChartDir);
+        remove("blurred_output.png");
 
     }
 
