@@ -683,7 +683,7 @@ namespace PGR {
                 NoteMap& nm = m_Info.chart.data.clickCollection[i];
                 JudgeLine& line = m_Info.chart.data.judgeLines[nm.note.line];
 
-                float p = (t - nm.note.secTime) / (30.0f / Max(m_Info.chart.data.judgeLines[nm.note.line].bpm, 15 * m_Info.FPS));
+                float p = (t - nm.note.secTime) / (30.0f / Min(m_Info.chart.data.judgeLines[nm.note.line].bpm, 15 * m_Info.FPS));
 
                 if (p < 0.0f) continue;
                 if (p > 1.0f) continue;
@@ -857,7 +857,7 @@ namespace PGR {
                 JudgeLine line = m_Info.chart.data.judgeLines[i];
                 for (const SpeedEvent& se : line.speedEvents) {
                     float secTime = line.beat2sec(se.startTime, m_Info.chart.data.offset);
-                    if (secTime + (30.0f / Max(m_Info.chart.data.judgeLines[i].bpm, 15 * m_Info.FPS)) > t && secTime <= t) {
+                    if (secTime + (30.0f / Min(m_Info.chart.data.judgeLines[i].bpm, 15 * m_Info.FPS)) > t && secTime <= t) {
                         vs.push_back(SpeedEventLine{ i, se.startTime, t - secTime, se.value });
                     }
                 }
@@ -874,7 +874,7 @@ namespace PGR {
             char bpmBuf[256];
 
             for (const SpeedEventLine& v : vs) {
-                float a = (1.0f - v.durtime / (30.0f / Max(m_Info.chart.data.judgeLines[v.line].bpm, 15 * m_Info.FPS)));
+                float a = (1.0f - v.durtime / (30.0f / Min(m_Info.chart.data.judgeLines[v.line].bpm, 15 * m_Info.FPS)));
 
                 sprintf(speedBuf, "%.2f", (double)(v.v));
                 sprintf(bpmBuf, "%.2f", (double)(m_Info.chart.data.judgeLines[v.line].bpm));
@@ -894,7 +894,7 @@ namespace PGR {
                 Sy += So;
             }
 
-            if (t <= 30.0f / ((m_Info.chart.data.judgeLines.size() != 0) ? Max(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS) : 120)) {
+            if (t <= 30.0f / ((m_Info.chart.data.judgeLines.size() != 0) ? Min(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS) : 120)) {
                 char Str[32];
                 if (m_Info.chart.data.oneBPM) {
                     sprintf(Str, "Offset: %.2f BPM: %.2f", m_Info.chart.data.offset, m_Info.chart.data.judgeLines[0].bpm);
@@ -907,7 +907,7 @@ namespace PGR {
                     m_Width,
                     (int)(76.0f * m_Height / 1080.0f),
                     Str,
-                    Vec4(1.0f, 0.5f * (1.0f - t / (30.0f / m_Info.chart.data.judgeLines.size() > 0 ? Max(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS) : 120))),
+                    Vec4(1.0f, 0.5f * (1.0f - t / (30.0f / m_Info.chart.data.judgeLines.size() > 0 ? Min(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS) : 120))),
                     m_Width * 0.01f,
                     1.0f
                 );
