@@ -37,10 +37,10 @@
     "hitFx": ["[x]", "[y]"],                // 打击特效长宽数量
     "holdAtlas": ["[head]", "[tail]"],      // Hold 音符头尾切割位置
     "holdAtlasMH": ["[head]", "[tail]"],    // Hold 双押音符头尾切割位置
-    "title": "Title",               // 标题文本
-    "title2": "DEBUGTitle",         // 调试标题文本
-    "combo": "Combo",               // 连击文本
-    "info": "Info"                  // 水印文本
+    "title": "Title",                       // 标题文本
+    "title2": "DEBUGTitle",                 // 调试标题文本
+    "combo": "Combo",                       // 连击文本
+    "info": "Info"                          // 水印文本
 }
 ```
 
