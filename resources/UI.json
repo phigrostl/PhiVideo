@@ -1,0 +1,12 @@
+{
+	"HitFx": [ 5, 6 ],
+	"HoldAtlas": [ 50, 50 ],
+	"HoldAtlasMH": [ 100, 100 ],
+
+	"Title": {
+		"Title": "谱面演示",
+		"Title2": "谱面揭秘",
+		"Info": "Code & File by たおりん on Bilibili | - Phigros - ",
+		"Combo": "AUTOPLAY"
+	}
+}
