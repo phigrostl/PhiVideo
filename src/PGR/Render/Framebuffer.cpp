@@ -168,7 +168,7 @@ namespace PGR {
         x = (int)(x - w / 2.0f * c - h / 2.0f * s);
         y = (int)(y - h / 2.0f * c + w / 2.0f * s);
 
-        DrawTexture(x, y, texture, -1, -1, rotation);
+        DrawTexture(x, y, texture, -1, -1, rotation - 0.5f);
         delete texture;
     }
 
