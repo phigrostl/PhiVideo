@@ -50,19 +50,19 @@
 
 ### 自行编译
 1. 安装 [`Visual Studio 2019`](https://visualstudio.microsoft.com/zh-hans/downloads/) 或更高版本
-2. 安装 [CMake 3.18](https://cmake.org/download/) 或更高版本
+2. 安装 [`CMake 3.18`](https://cmake.org/download/) 或更高版本
 3. 克隆或下载项目到本地
-4. 使用CMake生成Visual Studio解决方案
-5. 在Visual Studio中打开生成的解决方案并编译
+4. 使用 `CMake `生成 `Visual Studio` 解决方案
+5. 在 `Visual Studio` 中打开生成的解决方案并编译
 
 ## 技术栈
-- 语言：C++
-- 构建工具：CMake
-- 平台：Windows
+- 语言：`C++`
+- 构建工具：`CMake`
+- 平台：`Windows`
 - 依赖：
-  - [FFmpeg](https://ffmpeg.org/download.html)
-  - [CLI11](https://github.com/CLIUtils/CLI11)
-  - [cJSON](https://github.com/DaveGamble/cJSON)
+  - [`FFmpeg`](https://ffmpeg.org/download.html)
+  - [`CLI11`](https://github.com/CLIUtils/CLI11)
+  - [`cJSON`](https://github.com/DaveGamble/cJSON)
 
 ## Star History
 
