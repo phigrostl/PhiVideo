@@ -7,8 +7,6 @@ namespace PGR {
         std::string WorkDir, std::string ResDir) : argc(argc), argv(argv) {
         m_Info.WorkDir = WorkDir;
         m_Info.ResDir = ResDir;
-        puts(("Working Directory: " + m_Info.WorkDir).c_str());
-        puts(("Resource Directory: " + m_Info.ResDir).c_str());
         Init();
     }
 
