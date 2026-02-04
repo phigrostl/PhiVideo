@@ -52,29 +52,41 @@ namespace PGR {
         stbi_uc* data = nullptr;
         data = stbi_load(m_Path.c_str(), &width, &height, &channels, 0);
 
+        if (!data) {
+            m_Width = 1;
+            m_Height = 1;
+            m_Data = new Vec4[1];
+            m_Data[0] = Vec4(0.0f);
+            return;
+        }
+
         m_Height = height;
         m_Width = width;
         int size = width * height;
         m_Data = new Vec4[size];
 
+        const float inv255 = 1.0f / 255.0f;
+
         switch (channels) {
         case 4:
             for (int i = 0; i < size; i++) {
+                const int idx = i * 4;
                 m_Data[i] = Vec4(
-                    UChar2Float(data[i * 4]),
-                    UChar2Float(data[i * 4 + 1]),
-                    UChar2Float(data[i * 4 + 2]),
-                    UChar2Float(data[i * 4 + 3])
+                    data[idx] * inv255,
+                    data[idx + 1] * inv255,
+                    data[idx + 2] * inv255,
+                    data[idx + 3] * inv255
                 );
             }
             break;
 
         case 3:
             for (int i = 0; i < size; i++) {
+                const int idx = i * 3;
                 m_Data[i] = Vec4(
-                    UChar2Float(data[i * 3]),
-                    UChar2Float(data[i * 3 + 1]),
-                    UChar2Float(data[i * 3 + 2]),
+                    data[idx] * inv255,
+                    data[idx + 1] * inv255,
+                    data[idx + 2] * inv255,
                     1.0f
                 );
             }
@@ -82,9 +94,10 @@ namespace PGR {
 
         case 2:
             for (int i = 0; i < size; i++) {
+                const int idx = i * 2;
                 m_Data[i] = Vec4(
-                    UChar2Float(data[i * 2]),
-                    UChar2Float(data[i * 2 + 1]),
+                    data[idx] * inv255,
+                    data[idx + 1] * inv255,
                     0.0f,
                     0.0f
                 );
@@ -94,7 +107,7 @@ namespace PGR {
         case 1:
             for (int i = 0; i < size; i++) {
                 m_Data[i] = Vec4(
-                    UChar2Float(data[i]),
+                    data[i] * inv255,
                     0.0f,
                     0.0f,
                     0.0f
@@ -105,6 +118,8 @@ namespace PGR {
         default:
             break;
         }
+
+        stbi_image_free(data);
     }
 
 

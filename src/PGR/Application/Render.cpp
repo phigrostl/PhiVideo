@@ -102,7 +102,6 @@ namespace PGR {
                         if (useAA) {
                             const int aaScaleInt = static_cast<int>(m_Info.aas);
                             const float aaScale = m_Info.aas;
-                            const float invAaScale = 1.0f / aaScale;
                             const int sampleArea = aaScaleInt * aaScaleInt;
                             const float invSampleArea = 1.0f / sampleArea;
 
@@ -149,9 +148,9 @@ namespace PGR {
                                 for (size_t x = 0; x < dstWidth; ++x) {
                                     const Vec3& color = srcRow[x];
                                     size_t dstPixelOffset = x * 3;
-                                    dstRow[dstPixelOffset] = (unsigned char)(color.X * 255.0f);
-                                    dstRow[dstPixelOffset + 1] = (unsigned char)(color.Y * 255.0f);
-                                    dstRow[dstPixelOffset + 2] = (unsigned char)(color.Z * 255.0f);
+                                    dstRow[dstPixelOffset] = static_cast<unsigned char>(color.X * 255.0f);
+                                    dstRow[dstPixelOffset + 1] = static_cast<unsigned char>(color.Y * 255.0f);
+                                    dstRow[dstPixelOffset + 2] = static_cast<unsigned char>(color.Z * 255.0f);
                                 }
                             }
                         }
@@ -249,15 +248,28 @@ namespace PGR {
     Texture* GetHoldTexture(const Texture* head, const int headH, const Texture* body, const int bodyH, const Texture* tail, const int tailH, const int w) {
         const int h = headH + bodyH + tailH;
         Texture* tex = new Texture(w, h);
+        
+        const int headWidth = head->GetWidth();
+        const int headHeight = head->GetHeight();
+        const int bodyHeight = body->GetHeight();
+        const int tailHeight = tail->GetHeight();
+        
         for (int i = 0; i < w; i++) {
+            const int headX = (int)((float)i / w * headWidth);
+            
             for (int j = 0; j < headH; j++) {
-                tex->SetColor(i, j, head->GetColor((int)((float)i / w * head->GetWidth()), (int)((float)j / headH * head->GetHeight())));
+                const int headY = (int)((float)j / headH * headHeight);
+                tex->SetColor(i, j, head->GetColor(headX, headY));
             }
+            
             for (int j = headH; j < headH + bodyH; j++) {
-                tex->SetColor(i, j, body->GetColor((int)((float)i / w * head->GetWidth()), (int)((float)(j - headH) / bodyH * body->GetHeight())));
+                const int bodyY = (int)((float)(j - headH) / bodyH * bodyHeight);
+                tex->SetColor(i, j, body->GetColor(headX, bodyY));
             }
+            
             for (int j = headH + bodyH; j < h; j++) {
-                tex->SetColor(i, j, tail->GetColor((int)((float)i / w * head->GetWidth()), (int)((float)(j - headH - bodyH) / tailH * tail->GetHeight())));
+                const int tailY = (int)((float)(j - headH - bodyH) / tailH * tailHeight);
+                tex->SetColor(i, j, tail->GetColor(headX, tailY));
             }
         }
         return tex;

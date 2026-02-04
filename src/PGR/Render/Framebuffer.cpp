@@ -52,11 +52,7 @@ namespace PGR {
 
     void Framebuffer::Clear(const Vec3& color) {
         Vec3 clearColor = Clamp(color, 0.0f, 1.0f);
-        unsigned int clearValue =
-            ((unsigned char)(clearColor.Z * 255.0f) << 16) |
-            ((unsigned char)(clearColor.Y * 255.0f) << 8) |
-            (unsigned char)(clearColor.X * 255.0f);
-
+        memset(m_ColorBuffer, 0, sizeof(Vec3) * m_PixelSize);
         for (int i = 0; i < m_PixelSize; i++)
             m_ColorBuffer[i] = clearColor;
     }
@@ -221,21 +217,25 @@ namespace PGR {
         float invRad = -rad;
         float invCosR = cos(invRad);
         float invSinR = sin(invRad);
+        const float halfTextWidth = textWidth * 0.5f;
+        const float halfTextHeight = textHeight * 0.5f;
 
         for (int dy = -drawHeight / 2; dy <= drawHeight / 2; dy++) {
             for (int dx = -drawWidth / 2; dx <= drawWidth / 2; dx++) {
                 float srcX = dx * invCosR - dy * invSinR;
                 float srcY = dx * invSinR + dy * invCosR;
 
-                int texX = (int)(textWidth / 2.0f + srcX);
-                int texY = (int)(textHeight / 2.0f + srcY);
+                int texX = (int)(halfTextWidth + srcX);
+                int texY = (int)(halfTextHeight + srcY);
 
                 if (texX >= 0 && texX < textWidth && texY >= 0 && texY < textHeight) {
                     Vec4 texColor = tempTexture->GetColor(texX, texY);
-                    int screenX = x + dx;
-                    int screenY = y + dy;
-                    if (screenX >= 0 && screenX < m_Width && screenY >= 0 && screenY < m_Height) {
-                        SetColor(screenX, screenY, texColor);
+                    if (texColor.W > 0.0f) {
+                        int screenX = x + dx;
+                        int screenY = y + dy;
+                        if (screenX >= 0 && screenX < m_Width && screenY >= 0 && screenY < m_Height) {
+                            SetColor(screenX, screenY, texColor);
+                        }
                     }
                 }
             }
@@ -269,14 +269,10 @@ namespace PGR {
                 int ax, lsb;
                 stbtt_GetCodepointHMetrics(m_DefaultFontInfo, c, &ax, &lsb);
 
-                int w, h, xoff, yoff;
-                float scale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
-
-                unsigned char* bitmap = stbtt_GetCodepointBitmap(m_DefaultFontInfo, 0, scale, c, &w, &h, &xoff, &yoff);
-
-                int px = 0, py = 0;
-
                 if (draw) {
+                    int w, h, xoff, yoff;
+                    unsigned char* bitmap = stbtt_GetCodepointBitmap(m_DefaultFontInfo, 0, DScale, c, &w, &h, &xoff, &yoff);
+
                     for (int j = 0; j < h; j++) {
                         for (int i = 0; i < w; i++) {
                             float alpha = (float)bitmap[i + j * w] / 255.0f;
@@ -291,17 +287,25 @@ namespace PGR {
                             }
                         }
                     }
+
+                    stbtt_FreeBitmap(bitmap, nullptr);
                 }
                 else {
+                    int w, h, xoff, yoff;
+                    stbtt_GetCodepointBitmapBox(m_DefaultFontInfo, c, DScale, DScale, &xoff, &yoff, &w, &h);
+                    w = abs(w);
+                    h = abs(h);
+
                     int px = xpos + w + xoff;
-                    int py = h + yoff + baseline;
+                    int py = h + yoff + Dbaseline;
 
                     if (px > MaxX) MaxX = (float)px;
                     if (py > MaxY) MaxY = (float)py;
                     if (px < MinX) MinX = (float)px;
                     if (py < MinY) MinY = (float)py;
 
-                    px = xpos + xoff, py = yoff + baseline;
+                    px = xpos + xoff;
+                    py = yoff + Dbaseline;
                     if (px > MaxX) MaxX = (float)px;
                     if (py > MaxY) MaxY = (float)py;
                     if (px < MinX) MinX = (float)px;
@@ -310,21 +314,15 @@ namespace PGR {
 
                 int kern = stbtt_GetCodepointKernAdvance(m_DefaultFontInfo, 0, c);
                 xpos += int(ax * DScale) + kern;
-
-                delete[] bitmap;
             }
             else {
                 int ax, lsb;
                 stbtt_GetCodepointHMetrics(m_FontInfo, c, &ax, &lsb);
 
-                int w, h, xoff, yoff;
-                float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
-
-                unsigned char* bitmap = stbtt_GetCodepointBitmap(m_FontInfo, 0, scale, c, &w, &h, &xoff, &yoff);
-
-                int px = 0, py = 0;
-
                 if (draw) {
+                    int w, h, xoff, yoff;
+                    unsigned char* bitmap = stbtt_GetCodepointBitmap(m_FontInfo, 0, scale, c, &w, &h, &xoff, &yoff);
+
                     for (int j = 0; j < h; j++) {
                         for (int i = 0; i < w; i++) {
                             float alpha = (float)bitmap[i + j * w] / 255.0f;
@@ -336,12 +334,18 @@ namespace PGR {
                                 if (py > MaxY) MaxY = (float)py;
                                 if (px < MinX) MinX = (float)px;
                                 if (py < MinY) MinY = (float)py;
-
                             }
                         }
                     }
+
+                    stbtt_FreeBitmap(bitmap, nullptr);
                 }
                 else {
+                    int w, h, xoff, yoff;
+                    stbtt_GetCodepointBitmapBox(m_FontInfo, c, scale, scale, &xoff, &yoff, &w, &h);
+                    w = abs(w);
+                    h = abs(h);
+
                     int px = xpos + w + xoff;
                     int py = h + yoff + baseline;
 
@@ -350,7 +354,8 @@ namespace PGR {
                     if (px < MinX) MinX = (float)px;
                     if (py < MinY) MinY = (float)py;
 
-                    px = xpos + xoff, py = yoff + baseline;
+                    px = xpos + xoff;
+                    py = yoff + baseline;
                     if (px > MaxX) MaxX = (float)px;
                     if (py > MaxY) MaxY = (float)py;
                     if (px < MinX) MinX = (float)px;
@@ -359,8 +364,6 @@ namespace PGR {
 
                 int kern = stbtt_GetCodepointKernAdvance(m_FontInfo, 0, c);
                 xpos += int(ax * scale) + kern;
-
-                delete[] bitmap;
             }
         }
 
@@ -398,14 +401,23 @@ namespace PGR {
         minY = std::max<int>(minY, 0);
         maxY = std::min<int>(maxY, m_Height - 1);
 
+        const int width = m_Width;
+        const int height = m_Height;
+
         for (int y = minY; y <= maxY; ++y) {
+            if (y < 0 || y >= height) continue;
+            
+            const float py = (float)(y - y0);
+            const float py_uy = py * uy;
+            const float py_ny = py * ny;
+
             for (int x = minX; x <= maxX; ++x) {
-                float px = (float)(x - x0);
-                float py = (float)(y - y0);
+                if (x < 0 || x >= width) continue;
+                
+                const float px = (float)(x - x0);
+                const float t = px * ux + py_uy;
 
-                float t = px * ux + py * uy;
-
-                float n = fabs(px * nx + py * ny);
+                const float n = fabs(px * nx + py_ny);
 
                 if (t >= 0 && t <= length && n <= halfWidth) {
                     SetColor(x, y, color);
@@ -479,6 +491,7 @@ namespace PGR {
         const float sinAInvSx = sinA * invSx;
         const float negSinAInvSy = -sinA * invSy;
         const float cosAInvSy = cosA * invSy;
+        const float texHeightFloat = static_cast<float>(texHeight);
 
         const int yStart = y + startY;
         const int yEnd = y + endY;
@@ -498,7 +511,7 @@ namespace PGR {
                 const int i = dstX - x;
 
                 float tx = i * cosAInvSx + baseTx;
-                float ty = texHeight - (i * negSinAInvSy + baseTy) - 1;
+                float ty = texHeightFloat - (i * negSinAInvSy + baseTy) - 1.0f;
 
                 if (tx >= 0.0f && tx < srcW && ty >= 0.0f && ty < srcH) {
                     const int texX = static_cast<int>(tx);
@@ -506,8 +519,10 @@ namespace PGR {
 
                     const Vec4& texColor = texData[texX + texY * texWidth];
                     const float texAlpha = texColor.W * alpha;
-                    Vec4 finalColor(texColor.X, texColor.Y, texColor.Z, texAlpha);
-                    SetColor(dstX, dstY, finalColor);
+                    if (texAlpha > 0.0f) {
+                        Vec4 finalColor(texColor.X, texColor.Y, texColor.Z, texAlpha);
+                        SetColor(dstX, dstY, finalColor);
+                    }
                 }
             }
         }
