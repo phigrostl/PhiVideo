@@ -157,19 +157,91 @@ namespace PGR {
     }
 
     void Framebuffer::DrawRotatedTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float rotation) {
-        Texture* texture = TextToTexture(text, color, fontSize);
+        if (text.empty() || fontSize <= 0.0f) return;
 
-        int w = texture->GetWidth();
-        int h = texture->GetHeight();
+        int textWidth, textHeight;
+        GetTextSize(text, fontSize, &textWidth, &textHeight, false);
 
-        float c = cos(rotation * PI_OVER_180);
-        float s = sin(rotation * PI_OVER_180);
+        float rad = -rotation * PI_OVER_180;
+        float cosR = cos(rad);
+        float sinR = sin(rad);
+        float rotatedWidth = fabs(textWidth * cosR) + fabs(textHeight * sinR);
+        float rotatedHeight = fabs(textWidth * sinR) + fabs(textHeight * cosR);
+        int drawWidth = (int)ceil(rotatedWidth) + 4;
+        int drawHeight = (int)ceil(rotatedHeight) + 4;
 
-        x = (int)(x - w / 2.0f * c - h / 2.0f * s);
-        y = (int)(y - h / 2.0f * c + w / 2.0f * s);
+        Texture* tempTexture = new Texture(textWidth, textHeight);
+        std::wstring wstr = str2wstr(text);
+        float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
+        float DScale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
+        int ascent, descent, lineGap, Dascent;
+        stbtt_GetFontVMetrics(m_FontInfo, &ascent, &descent, &lineGap);
+        stbtt_GetFontVMetrics(m_DefaultFontInfo, &Dascent, &descent, &lineGap);
+        int baseline = int(ascent * scale);
+        int Dbaseline = int(Dascent * DScale);
 
-        DrawTexture(x, y, texture, -1, -1, rotation - 0.5f);
-        delete texture;
+        int xpos = 0;
+        for (wchar_t c : wstr) {
+            int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
+            stbtt_fontinfo* fontToUse = m_FontInfo;
+            float currentScale = scale;
+            int currentBaseline = baseline;
+
+            if (glyphIndex == 0) {
+                fontToUse = m_DefaultFontInfo;
+                currentScale = DScale;
+                currentBaseline = Dbaseline;
+            }
+
+            int w, h, xoff, yoff;
+            unsigned char* bitmap = stbtt_GetCodepointBitmap(fontToUse, 0, currentScale, c, &w, &h, &xoff, &yoff);
+
+            if (bitmap != nullptr) {
+                for (int j = 0; j < h; j++) {
+                    for (int i = 0; i < w; i++) {
+                        float alpha = (float)bitmap[i + j * w] / 255.0f;
+                        if (alpha > 0.01f) {
+                            int texX = xpos + i + xoff;
+                            int texY = currentBaseline + j + yoff;
+                            if (texX >= 0 && texX < textWidth && texY >= 0 && texY < textHeight) {
+                                tempTexture->SetColor(texX, texY, Vec4(color.X, color.Y, color.Z, alpha * color.W));
+                            }
+                        }
+                    }
+                }
+                stbtt_FreeBitmap(bitmap, nullptr);
+            }
+
+            int ax, lsb;
+            stbtt_GetCodepointHMetrics(fontToUse, c, &ax, &lsb);
+            int kern = stbtt_GetCodepointKernAdvance(fontToUse, 0, c);
+            xpos += int(ax * currentScale) + kern;
+        }
+
+        float invRad = -rad;
+        float invCosR = cos(invRad);
+        float invSinR = sin(invRad);
+
+        for (int dy = -drawHeight / 2; dy <= drawHeight / 2; dy++) {
+            for (int dx = -drawWidth / 2; dx <= drawWidth / 2; dx++) {
+                float srcX = dx * invCosR - dy * invSinR;
+                float srcY = dx * invSinR + dy * invCosR;
+
+                int texX = (int)(textWidth / 2.0f + srcX);
+                int texY = (int)(textHeight / 2.0f + srcY);
+
+                if (texX >= 0 && texX < textWidth && texY >= 0 && texY < textHeight) {
+                    Vec4 texColor = tempTexture->GetColor(texX, texY);
+                    int screenX = x + dx;
+                    int screenY = y + dy;
+                    if (screenX >= 0 && screenX < m_Width && screenY >= 0 && screenY < m_Height) {
+                        SetColor(screenX, screenY, texColor);
+                    }
+                }
+            }
+        }
+
+        delete tempTexture;
     }
 
     void Framebuffer::GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw, bool baseLine) {
@@ -298,68 +370,6 @@ namespace PGR {
         if (width) *width = static_cast<int>(MaxX - MinX);
         if (height) *height = static_cast<int>(MaxY - MinY);
 
-    }
-
-    Texture* Framebuffer::TextToTexture(const std::string& text, const Vec4& color, float fontSize) {
-        if (text.empty() || fontSize <= 0.0f) {
-            return new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
-        }
-
-        int textWidth, textHeight;
-        GetTextSize(text, fontSize, &textWidth, &textHeight, false);
-
-        if (textWidth < 1) textWidth = 1;
-        if (textHeight < 1) textHeight = 1;
-
-        Texture* texture = new Texture(textWidth, textHeight);
-
-        std::wstring wstr = str2wstr(text);
-        float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
-        float DScale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
-        int xpos = 0;
-        int ascent, descent, lineGap, Dascent;
-        stbtt_GetFontVMetrics(m_FontInfo, &ascent, &descent, &lineGap);
-        stbtt_GetFontVMetrics(m_DefaultFontInfo, &Dascent, &descent, &lineGap);
-        int baseline = int(ascent * scale);
-        int Dbaseline = int(Dascent * DScale);
-
-        for (wchar_t c : wstr) {
-            int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
-            stbtt_fontinfo* fontToUse = m_FontInfo;
-            float currentScale = scale;
-            int currentBaseline = baseline;
-
-            if (glyphIndex == 0) {
-                fontToUse = m_DefaultFontInfo;
-                currentScale = DScale;
-                currentBaseline = Dbaseline;
-            }
-
-            int w, h, xoff, yoff;
-            unsigned char* bitmap = stbtt_GetCodepointBitmap(fontToUse, 0, currentScale, c, &w, &h, &xoff, &yoff);
-
-            if (bitmap != nullptr) {
-                for (int j = 0; j < h; j++) {
-                    for (int i = 0; i < w; i++) {
-                        float alpha = (float)bitmap[i + j * w] / 255.0f;
-                        int px = xpos + i + xoff;
-                        int py = currentBaseline + j + yoff;
-                        if (px >= 0 && px < textWidth && py >= 0 && py < textHeight) {
-                            Vec4 texColor(color.X, color.Y, color.Z, alpha * color.W);
-                            texture->SetColor(px, texture->GetHeight() - py - 1, texColor);
-                        }
-                    }
-                }
-                stbtt_FreeBitmap(bitmap, nullptr);
-            }
-
-            int ax, lsb;
-            stbtt_GetCodepointHMetrics(fontToUse, c, &ax, &lsb);
-            int kern = stbtt_GetCodepointKernAdvance(fontToUse, 0, c);
-            xpos += int(ax * currentScale) + kern;
-        }
-
-        return texture;
     }
 
 
