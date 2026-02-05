@@ -1,4 +1,5 @@
 #include "Framebuffer.h"
+#include <immintrin.h>
 
 namespace PGR {
 
@@ -34,13 +35,31 @@ namespace PGR {
 
 
     void Framebuffer::SetColor(const int x, const int y, const Vec4& color) {
-        if (x < 0 || y < 0 || x >= m_Width || y >= m_Height) {
+        if (x < 0 || y < 0 || x >= m_Width || y >= m_Height || color.W <= 0.0f) {
             return;
         }
 
         const int index = x + y * m_Width;
         Vec3& target = m_ColorBuffer[index];
-        target = Clamp(target * (1.0f - color.W) + Vec3(color.X, color.Y, color.Z) * color.W, 0.0f, 1.0f);
+        
+        __m128 srcColor = _mm_set_ps(0.0f, color.Z, color.Y, color.X);
+        __m128 dstColor = _mm_set_ps(0.0f, target.Z, target.Y, target.X);
+        __m128 alpha = _mm_set_ps1(color.W);
+        __m128 invAlpha = _mm_sub_ps(_mm_set_ps1(1.0f), alpha);
+        
+        __m128 blended = _mm_add_ps(
+            _mm_mul_ps(dstColor, invAlpha),
+            _mm_mul_ps(srcColor, alpha)
+        );
+        
+        __m128 clamped = _mm_max_ps(
+            _mm_min_ps(blended, _mm_set_ps1(1.0f)),
+            _mm_set_ps1(0.0f)
+        );
+        
+        target.X = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(0, 0, 0, 0)));
+        target.Y = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(1, 1, 1, 1)));
+        target.Z = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(2, 2, 2, 2)));
     }
 
     Vec3 Framebuffer::GetColor(const int x, const int y) const {
@@ -423,7 +442,7 @@ namespace PGR {
 
 
     void Framebuffer::DrawTexture(int x, int y, const Texture * texture, int w, int h, float rotation, const float alpha) {
-        if (!texture) return;
+        if (!texture || alpha <= 0.0f) return;
 
         if (w == -1) w = static_cast<int>(texture->GetWidth());
         if (h == -1) h = static_cast<int>(w * texture->GetHeight() / texture->GetWidth());
@@ -461,7 +480,6 @@ namespace PGR {
         const int windowWidth = m_Width;
         const int windowHeight = m_Height;
         const Vec4* texData = texture->GetData();
-        Vec3* colorBuffer = m_ColorBuffer;
 
         const float invSx = 1.0f / sx;
         const float invSy = 1.0f / sy;
@@ -495,9 +513,11 @@ namespace PGR {
                     const int texY = static_cast<int>(ty);
 
                     const Vec4& texColor = texData[texX + texY * texWidth];
-                    const float texAlpha = texColor.W * alpha;
-                    Vec4 finalColor(texColor.X, texColor.Y, texColor.Z, texAlpha);
-                    SetColor(dstX, dstY, finalColor);
+                    if (texColor.W > 0.0f) {
+                        const float texAlpha = texColor.W * alpha;
+                        Vec4 finalColor(texColor.X, texColor.Y, texColor.Z, texAlpha);
+                        SetColor(dstX, dstY, finalColor);
+                    }
                 }
             }
         }

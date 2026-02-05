@@ -1,4 +1,5 @@
 #include "Application.h"
+#include <immintrin.h>
 
 #pragma warning(disable:6386)
 #pragma warning(disable:4996)
@@ -82,7 +83,7 @@ namespace PGR {
                     const size_t fps = m_Info.FPS;
 
                     char ffmpegCmd[512];
-                    sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset fast %s",
+                    sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset veryfast %s",
                         dstWidth, dstHeight, fps, fps, tempVideoFile);
 
                     FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
@@ -139,19 +140,57 @@ namespace PGR {
                             }
                         }
                         else {
-                            for (size_t y = 0; y < dstHeight; ++y) {
-                                const size_t srcRowIdx = y * dstWidth;
-                                const size_t dstRowIdx = y * width3;
-                                const Vec3* srcRow = colorBuffer + srcRowIdx;
-                                unsigned char* dstRow = frameData + dstRowIdx;
+                            const Vec3* srcRow = colorBuffer;
+                            unsigned char* dstRow = frameData;
 
-                                for (size_t x = 0; x < dstWidth; ++x) {
+                            for (size_t y = 0; y < dstHeight; ++y) {
+                                size_t x = 0;
+                                for (; x + 3 < dstWidth; x += 4) {
+                                    const Vec3& c0 = srcRow[x];
+                                    const Vec3& c1 = srcRow[x + 1];
+                                    const Vec3& c2 = srcRow[x + 2];
+                                    const Vec3& c3 = srcRow[x + 3];
+
+                                    __m128 r = _mm_set_ps(c3.X, c2.X, c1.X, c0.X);
+                                    __m128 g = _mm_set_ps(c3.Y, c2.Y, c1.Y, c0.Y);
+                                    __m128 b = _mm_set_ps(c3.Z, c2.Z, c1.Z, c0.Z);
+
+                                    __m128 mult = _mm_set1_ps(255.0f);
+                                    r = _mm_mul_ps(r, mult);
+                                    g = _mm_mul_ps(g, mult);
+                                    b = _mm_mul_ps(b, mult);
+
+                                    __m128i ri = _mm_cvtps_epi32(r);
+                                    __m128i gi = _mm_cvtps_epi32(g);
+                                    __m128i bi = _mm_cvtps_epi32(b);
+
+                                    dstRow[x * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 0));
+                                    dstRow[x * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 0));
+                                    dstRow[x * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 0));
+
+                                    dstRow[(x + 1) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 1));
+                                    dstRow[(x + 1) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 1));
+                                    dstRow[(x + 1) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 1));
+
+                                    dstRow[(x + 2) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 2));
+                                    dstRow[(x + 2) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 2));
+                                    dstRow[(x + 2) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 2));
+
+                                    dstRow[(x + 3) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 3));
+                                    dstRow[(x + 3) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 3));
+                                    dstRow[(x + 3) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 3));
+                                }
+
+                                for (; x < dstWidth; ++x) {
                                     const Vec3& color = srcRow[x];
                                     size_t dstPixelOffset = x * 3;
                                     dstRow[dstPixelOffset] = static_cast<unsigned char>(color.X * 255.0f);
                                     dstRow[dstPixelOffset + 1] = static_cast<unsigned char>(color.Y * 255.0f);
                                     dstRow[dstPixelOffset + 2] = static_cast<unsigned char>(color.Z * 255.0f);
                                 }
+
+                                srcRow += srcWidth;
+                                dstRow += width3;
                             }
                         }
                         fwrite(frameData, 1u, dstFrameSize, ffmpegPipe);
@@ -299,6 +338,12 @@ namespace PGR {
         const int numJudgeLines = (int)(m_Info.chart.data.judgeLines.size());
         const float oh = m_Width * (0.005f * size + 0.005f);
 
+        std::vector<EventsValue> evs;
+        std::vector<float> beats;
+        std::vector<float> fps;
+        std::vector<float> sins;
+        std::vector<float> coss;
+
         for (size_t i = 0; i < numJudgeLines; i++) {
 
             JudgeLine line = m_Info.chart.data.judgeLines[i];
@@ -306,6 +351,7 @@ namespace PGR {
             EventsValue ev = line.getState(t, m_Info.chart.data.offset);
             ev.x = (ev.x * m_Width - m_Width / 2) * size + m_Width / 2;
             ev.y = m_Height - ((ev.y * m_Height - m_Height / 2) * size + m_Height / 2);
+            evs.push_back(ev);
 
             Vec2 linePos[2] = {
                 rotatePoint(ev.x, ev.y, m_Height * LINEH * size, -ev.rotate),
@@ -319,12 +365,16 @@ namespace PGR {
 
             const float beatt = line.sec2beat(t, m_Info.chart.data.offset);
             const float lineFp = line.getFp(beatt);
+            beats.push_back(beatt);
+            fps.push_back(lineFp);
 
             JudgeLine& currentLine = m_Info.chart.data.judgeLines[i];
 
             const float evRotateRad = ev.rotate * PI_OVER_180;
             const float sinEvRotate = sin(evRotateRad);
             const float cosEvRotate = cos(evRotateRad);
+            sins.push_back(sinEvRotate);
+            coss.push_back(cosEvRotate);
 
             if (DEBUG) {
                 char speedBuf[32];
@@ -344,18 +394,12 @@ namespace PGR {
         }
 
         for (int i = 0; i < numJudgeLines; i++) {
+            const EventsValue& ev = evs[i];
+            const float beatt = beats[i];
+            const float lineFp = fps[i];
+            const float sinEvRotate = sins[i];
+            const float cosEvRotate = coss[i];
             JudgeLine& line = m_Info.chart.data.judgeLines[i];
-
-            EventsValue ev = line.getState(t, m_Info.chart.data.offset);
-            ev.x = (ev.x * m_Width - m_Width / 2) * size + m_Width / 2;
-            ev.y = m_Height - ((ev.y * m_Height - m_Height / 2) * size + m_Height / 2);
-
-            const float beatt = line.sec2beat(t, m_Info.chart.data.offset);
-            const float lineFp = line.getFp(beatt);
-
-            const float evRotateRad = ev.rotate * PI_OVER_180;
-            const float sinEvRotate = sin(evRotateRad);
-            const float cosEvRotate = cos(evRotateRad);
 
             const auto& notes = line.notes;
             const size_t notesCount = notes.size();
@@ -486,19 +530,12 @@ namespace PGR {
         }
 
         for (int i = 0; i < numJudgeLines; i++) {
+            const EventsValue& ev = evs[i];
+            const float beatt = beats[i];
+            const float lineFp = fps[i];
+            const float sinEvRotate = sins[i];
+            const float cosEvRotate = coss[i];
             JudgeLine& line = m_Info.chart.data.judgeLines[i];
-
-            EventsValue ev = line.getState(t, m_Info.chart.data.offset);
-            ev.rotate = ev.rotate;
-            ev.x = (ev.x * m_Width - m_Width / 2) * size + m_Width / 2;
-            ev.y = m_Height - ((ev.y * m_Height - m_Height / 2) * size + m_Height / 2);
-
-            const float beatt = line.sec2beat(t, m_Info.chart.data.offset);
-            const float lineFp = line.getFp(beatt);
-
-            const float evRotateRad = ev.rotate * PI_OVER_180;
-            const float cosEvRotate = cos(evRotateRad);
-            const float sinEvRotate = sin(evRotateRad);
 
             const auto& notes = line.notes;
             const size_t notesCount = notes.size();
