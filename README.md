@@ -48,6 +48,24 @@
 ##### 图像与音频
 位于 `resources` 目录下，有需要自行替换
 
+### 注意事项
+ - 该程序会占用大量内存与 CPU 资源，请确保计算机性能足够
+ - 可能会替换删除掉某些文件，请提前备份重要数据
+   - 一定被删除的
+     - `Chart\blurred_output.png`
+   - 可能被删除的
+     - `Work\*.mp4`
+     - `Work\*.png`
+     - `Chart\output.wav`
+     - `Chart\output_cut.wav`
+     - `Chart\output_empty.wav`
+     - `Chart\output0.wav`
+     - `Chart\output_batch_*.mp4`
+     - `Chart\output.mp4`
+     - `Chart\temp_video_*.mp4`
+     - `Chart\input_list.txt`
+     
+
 ### 自行编译
 1. 安装 [`Visual Studio 2019`](https://visualstudio.microsoft.com/zh-hans/downloads/) 或更高版本
 2. 安装 [`CMake 3.18`](https://cmake.org/download/) 或更高版本
