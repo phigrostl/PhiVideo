@@ -235,7 +235,7 @@ namespace PGR {
 
         putchar('\n');
 
-        str = "ffmpeg -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.ChartDir + "output.wav -t " + std::to_string(m_Info.endTime) + " -c copy output_cut.wav";
+        str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.ChartDir + "output.wav -t " + std::to_string(m_Info.endTime) + " -c copy output_cut.wav";
         system(str.c_str());
 
         ToDir(m_Info.WorkDir);
