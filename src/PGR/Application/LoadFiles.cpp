@@ -147,7 +147,6 @@ namespace PGR{
                     e.end2 = (int)(fmodf(t, 1000.0f)) / 530.0f;
                 }
                 jline.moveEvents.push_back(e);
-                float t = j == cJSON_GetArraySize(events) - 1 ? jline.beat2sec(e.startTime, m_Info.chart.data.offset) : jline.beat2sec(e.endTime, m_Info.chart.data.offset);
             }
             events = cJSON_GetObjectItem(line, "judgeLineRotateEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
@@ -158,7 +157,6 @@ namespace PGR{
                 e.start = (float)cJSON_GetObjectItem(event, "start")->valuedouble;
                 e.end = (float)cJSON_GetObjectItem(event, "end")->valuedouble;
                 jline.rotateEvents.push_back(e);
-                float t = j == cJSON_GetArraySize(events) - 1 ? jline.beat2sec(e.startTime, m_Info.chart.data.offset) : jline.beat2sec(e.endTime, m_Info.chart.data.offset);
             }
             events = cJSON_GetObjectItem(line, "judgeLineDisappearEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
@@ -169,7 +167,6 @@ namespace PGR{
                 e.start = (float)cJSON_GetObjectItem(event, "start")->valuedouble;
                 e.end = (float)cJSON_GetObjectItem(event, "end")->valuedouble;
                 jline.disappearEvents.push_back(e);
-                float t = j == cJSON_GetArraySize(events) - 1 ? jline.beat2sec(e.startTime, m_Info.chart.data.offset) : jline.beat2sec(e.endTime, m_Info.chart.data.offset);
             }
             events = cJSON_GetObjectItem(line, "speedEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
@@ -179,7 +176,6 @@ namespace PGR{
                 e.endTime = (float)cJSON_GetObjectItem(event, "endTime")->valuedouble;
                 e.value = (float)cJSON_GetObjectItem(event, "value")->valuedouble;
                 jline.speedEvents.push_back(e);
-                float t = j == cJSON_GetArraySize(events) - 1 ? jline.beat2sec(e.startTime, m_Info.chart.data.offset) : jline.beat2sec(e.endTime, m_Info.chart.data.offset);
             }
             events = cJSON_GetObjectItem(line, "notesAbove");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
@@ -193,10 +189,6 @@ namespace PGR{
                 n.positionX = (float)cJSON_GetObjectItem(event, "positionX")->valuedouble;
                 n.isAbove = true;
                 jline.notes.push_back(n);
-                float t = n.type != 3 ? jline.beat2sec(n.time, m_Info.chart.data.offset) : jline.beat2sec(n.holdTime, m_Info.chart.data.offset);
-                if (t > m_Info.chart.data.time) {
-                    m_Info.chart.data.time = t;
-                }
             }
             events = cJSON_GetObjectItem(line, "notesBelow");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
@@ -210,10 +202,6 @@ namespace PGR{
                 n.positionX = (float)cJSON_GetObjectItem(event, "positionX")->valuedouble;
                 n.isAbove = false;
                 jline.notes.push_back(n);
-                float t = n.type != 3 ? jline.beat2sec(n.time, m_Info.chart.data.offset) : jline.beat2sec(n.holdTime, m_Info.chart.data.offset);
-                if (t > m_Info.chart.data.time) {
-                    m_Info.chart.data.time = t;
-                }
             }
 
             std::sort(jline.speedEvents.begin(), jline.speedEvents.end(), [](SpeedEvent a, SpeedEvent b)
