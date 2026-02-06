@@ -69,6 +69,7 @@ namespace PGR {
         float notesVolume = 0.5f;
         float musicVolume = 1.0f;
         float aas = 1.0f;
+        float bitrate = 10.0f;
     };
 
     class Application {

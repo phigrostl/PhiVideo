@@ -25,11 +25,12 @@ namespace PGR {
         app.add_option("-s, --startTime", m_Info.startTime, "Render from the Time");
         app.add_option("-e, --endTime", m_Info.endTime, "Render to the Time");
         app.add_option("-z,--zoom", m_Info.size, "Zoom")->check(CLI::PositiveNumber);
-        app.add_option("-m,--musicVolume", m_Info.musicVolume, "Music Volume");
-        app.add_option("-n,--notesVolume", m_Info.notesVolume, "Notes Volume");
-        app.add_option("-W,--width", m_Width, "Width");
-        app.add_option("-H,--height", m_Height, "Height");
-        app.add_option("-a,--aas", m_Info.aas, "Anti-Aliasing Scale");
+        app.add_option("-m,--musicVolume", m_Info.musicVolume, "Music Volume")->check(CLI::PositiveNumber);
+        app.add_option("-n,--notesVolume", m_Info.notesVolume, "Notes Volume")->check(CLI::PositiveNumber);
+        app.add_option("-W,--width", m_Width, "Width")->check(CLI::PositiveNumber);
+        app.add_option("-H,--height", m_Height, "Height")->check(CLI::PositiveNumber);
+        app.add_option("-a,--aas", m_Info.aas, "Anti-Aliasing Scale")->check(CLI::PositiveNumber);
+        app.add_option("-b,--bitrate", m_Info.bitrate, "Bitrate")->check(CLI::PositiveNumber);
         app.add_option("--FPS", m_Info.FPS, "FPS")->check(CLI::PositiveNumber);
         app.add_option("--CPU", m_Info.CPUNum, "CPU Core Num")->check(CLI::Range(1, 24));
 

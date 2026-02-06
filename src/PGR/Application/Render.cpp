@@ -83,8 +83,8 @@ namespace PGR {
                     const size_t fps = m_Info.FPS;
 
                     char ffmpegCmd[512];
-                    sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset veryfast %s",
-                        dstWidth, dstHeight, fps, fps, tempVideoFile);
+                    sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
+                        dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile);
 
                     FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
                     const size_t dstPixelCount = dstWidth * dstHeight;
@@ -280,7 +280,7 @@ namespace PGR {
         ToDir(m_Info.WorkDir);
 
         std::string filename = m_Info.OutPath + ".mp4";
-        str = "ffmpeg -y -hide_banner -loglevel info -i " + m_Info.ChartDir + "output.mp4 -i " + m_Info.ChartDir + "output_cut.wav -c:v libx264 -pix_fmt yuv420p -preset ultrafast -c:a aac -strict experimental -b:a 192k -shortest " + filename;
+        str = "ffmpeg -y -hide_banner -loglevel info -i " + m_Info.ChartDir + "output.mp4 -i " + m_Info.ChartDir + "output_cut.wav -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest " + filename;
         system(str.c_str());
     }
 
