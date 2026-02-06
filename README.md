@@ -11,24 +11,24 @@
 
 #### 命令行参数
 ``` args
--h, --help                              输出帮助信息并退出
--d, --debug                             开启谱面调试模式
--v, --video         BOOLEAN             渲染视频
--c, --cover         BOOLEAN             渲染封面
--o, --output        TEXT                输出文件名
--p, --picTime       FLOAT               渲染图片的时间点
--s, --startTime     FLOAT               渲染开始时间
--e, --endTime       FLOAT               渲染结束时间
--z, --zoom          FLOAT:POSITIVE      缩放比例
--m, --musicVolume   FLOAT               音乐音量
--n, --notesVolume   FLOAT               音符音效音量
--W, --width         INT                 输出视频宽度
--H, --height        INT                 输出视频高度
--a, --aas           FLOAT               反锯齿比例
-    --FPS           INT:POSITIVE        输出视频帧率
-    --CPU           INT:INT in [1 32]   使用的CPU核心数
-\   固定参数        STRING:FILE_PATH    谱面文件路径
-
+-h, --help                                          输出帮助信息并退出
+-d, --debug                                         开启谱面调试模式
+-v, --video              BOOLEAN        true        渲染视频
+-c, --cover              BOOLEAN        true        渲染封面
+-o, --output                TEXT     Unnamed        输出文件名
+-p, --picTime              FLOAT         0.0        渲染图片时间
+-s, --startTime            FLOAT         0.0        渲染开始时间
+-e, --endTime              FLOAT        -1.0        渲染结束时间
+-z, --zoom        FLOAT:POSITIVE         1.0        缩放比例
+-m, --musicVolume          FLOAT         1.0        音乐音量
+-n, --notesVolume          FLOAT         0.5        音符音效音量
+-W, --width                  INT        1920        输出视频宽度
+-H, --height                 INT        1080        输出视频高度
+-a, --aas                  FLOAT         1.0        抗锯齿比例
+-b, --bitrate              FLOAT        10.0        视频码率(Mbps)
+    --FPS           INT:POSITIVE          60        视频帧率
+    --CPU      INT:INT in [1 32]           4        使用的CPU核心数
+    固定参数    STRING:FILE_PATH                    谱面文件路径
 ```
 #### UI
 
