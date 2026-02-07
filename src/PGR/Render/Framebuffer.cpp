@@ -456,8 +456,15 @@ namespace PGR {
         const float srcH = static_cast<float>(texHeight);
 
         const float rad = -rotation * PI_OVER_180;
-        const float cosA = cosf(rad);
-        const float sinA = sinf(rad);
+        float cosA = cosf(rad);
+        float sinA = sinf(rad);
+
+        if (cosA > 0.999f) cosA = 1.0f;
+        else if (cosA < -0.999f) cosA = -1.0f;
+        else if (cosA < 0.001f && cosA > -0.001f) cosA = 0.0f;
+        if (sinA > 0.999f) sinA = 1.0f;
+        else if (sinA < -0.999f) sinA = -1.0f;
+        else if (sinA < 0.001f && sinA > -0.001f) sinA = 0.0f;
 
         float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
         int corners[4][2] = { {0, 0}, {w, 0}, {0, h}, {w, h} };

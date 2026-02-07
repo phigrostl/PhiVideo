@@ -363,6 +363,17 @@ namespace PGR {
                 m_Height * LINEW * size + 0.5f,
                 Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)));
 
+            if (DEBUG) {
+                linePos[0] = rotatePoint(ev.x, ev.y, m_Height * LINEW * size / 2.0f - 0.5f, -ev.rotate);
+                linePos[1] = rotatePoint(ev.x, ev.y, m_Height * LINEW * size / 2.0f - 0.5f, -ev.rotate + 180.0f);
+
+                fb->DrawLine(
+                    (int)(linePos[0].X + 0.5f), (int)(linePos[0].Y + 0.5f),
+                    (int)(linePos[1].X + 0.5f), (int)(linePos[1].Y + 0.5f),
+                    m_Height * LINEW * size + 0.5f,
+                    Vec4(1.0f, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)));
+            }
+
             const float beatt = line.sec2beat(t, m_Info.chart.data.offset);
             const float lineFp = line.getFp(beatt);
             beats.push_back(beatt);
@@ -389,7 +400,7 @@ namespace PGR {
                     (int)(ev.x + sinEvRotate * oh + 0.5f),
                     (int)(ev.y + cosEvRotate * oh + 0.5f),
                     lineStr,
-                    Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)), m_Width * 0.01f, ev.rotate - 0.5f);
+                    Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)), m_Width * 0.01f, ev.rotate);
             }
         }
 
@@ -497,7 +508,7 @@ namespace PGR {
                     (int)(drawY + 0.5f),
                     holdImg,
                     -1, -1,
-                    noteDrawRotate + 0.5f, isHide ? 0.5f : 1.0f);
+                    noteDrawRotate, isHide ? 0.5f : 1.0f);
 
                 delete holdImg;
 
@@ -524,7 +535,7 @@ namespace PGR {
                     fb->DrawRotatedTextTTF(
                         (int)(debugX + 0.5f),
                         (int)(debugY + 0.5f),
-                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate - 0.5f);
+                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate);
                 }
             }
         }
@@ -631,7 +642,7 @@ namespace PGR {
                     fb->DrawRotatedTextTTF(
                         (int)(debugX + 0.5f),
                         (int)(debugY + 0.5f),
-                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate - 0.5f);
+                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate);
                 }
             }
         }
@@ -872,6 +883,14 @@ namespace PGR {
                 EDisappear += (size_t)findEvent(line.sec2beat(t, m_Info.chart.data.offset), line.disappearEvents) + 1u;
                 ESpeed += (size_t)findEvent(line.sec2beat(t, m_Info.chart.data.offset), line.speedEvents) + 1u;
             }
+            char Str[32];
+            if (m_Info.chart.data.oneBPM) {
+                sprintf(Str, "Offset: %.2f BPM: %.2f", m_Info.chart.data.offset, m_Info.chart.data.judgeLines[0].bpm);
+            }
+            else {
+                sprintf(Str, "Offset: %.2f", m_Info.chart.data.offset);
+            }
+            InfoStrs.push_back(Str);
             InfoStrs.push_back("SpeedEvent : " + std::to_string(ESpeed) + " / " + std::to_string(ASpeed));
             InfoStrs.push_back("DisappearEvent : " + std::to_string(EDisappear) + " / " + std::to_string(ADisappear));
             InfoStrs.push_back("RotateEvent : " + std::to_string(ERotate) + " / " + std::to_string(ARotate));
@@ -932,25 +951,6 @@ namespace PGR {
                     SSize
                 );
                 Sy += So;
-            }
-
-            if (t <= 30.0f / ((m_Info.chart.data.judgeLines.size() != 0) ? Min(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS) : 120)) {
-                char Str[32];
-                if (m_Info.chart.data.oneBPM) {
-                    sprintf(Str, "Offset: %.2f BPM: %.2f", m_Info.chart.data.offset, m_Info.chart.data.judgeLines[0].bpm);
-                }
-                else {
-                    sprintf(Str, "Offset: %.2f", m_Info.chart.data.offset);
-                }
-
-                fb->DrawTextTTF(
-                    m_Width,
-                    (int)(76.0f * m_Height / 1080.0f),
-                    Str,
-                    Vec4(1.0f, 0.5f * (1.0f - t / (30.0f / (m_Info.chart.data.judgeLines.size() > 0 ? (Min(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS)) : 120.0f)))),
-                    m_Width * 0.01f,
-                    1.0f
-                );
             }
 
         }
@@ -1113,7 +1113,7 @@ namespace PGR {
             fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr, Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f);
 
         fb->DrawTextTTF(
-            m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info, Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
+            m_Width / 2, (int)(m_Height * 1060.0f / 1080.0f), m_UI.info, Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
         );
 
         if (size < 1.0f) {
