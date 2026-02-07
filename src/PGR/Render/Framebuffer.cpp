@@ -187,7 +187,7 @@ namespace PGR {
         x = (int)(x - w / 2.0f * c - h / 2.0f * s);
         y = (int)(y - h / 2.0f * c + w / 2.0f * s);
 
-        DrawTexture(x, y, texture, -1, -1, rotation - 0.5f);
+        DrawTexture(x, y, texture, -1, -1, rotation);
         delete texture;
     }
 
@@ -455,7 +455,7 @@ namespace PGR {
         const float srcW = static_cast<float>(texWidth);
         const float srcH = static_cast<float>(texHeight);
 
-        const float rad = rotation * -3.14159265f / 180.0f;
+        const float rad = -rotation * PI_OVER_180;
         const float cosA = cosf(rad);
         const float sinA = sinf(rad);
 

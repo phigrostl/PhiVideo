@@ -389,7 +389,7 @@ namespace PGR {
                     (int)(ev.x + sinEvRotate * oh + 0.5f),
                     (int)(ev.y + cosEvRotate * oh + 0.5f),
                     lineStr,
-                    Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)), m_Width * 0.01f, ev.rotate);
+                    Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)), m_Width * 0.01f, ev.rotate - 0.5f);
             }
         }
 
@@ -497,7 +497,7 @@ namespace PGR {
                     (int)(drawY + 0.5f),
                     holdImg,
                     -1, -1,
-                    noteDrawRotate, isHide ? 0.5f : 1.0f);
+                    noteDrawRotate + 0.5f, isHide ? 0.5f : 1.0f);
 
                 delete holdImg;
 
@@ -524,7 +524,7 @@ namespace PGR {
                     fb->DrawRotatedTextTTF(
                         (int)(debugX + 0.5f),
                         (int)(debugY + 0.5f),
-                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate);
+                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate - 0.5f);
                 }
             }
         }
@@ -631,7 +631,7 @@ namespace PGR {
                     fb->DrawRotatedTextTTF(
                         (int)(debugX + 0.5f),
                         (int)(debugY + 0.5f),
-                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate);
+                        noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f), m_Width * 0.0066f, noteDrawRotate - 0.5f);
                 }
             }
         }
@@ -947,7 +947,7 @@ namespace PGR {
                     m_Width,
                     (int)(76.0f * m_Height / 1080.0f),
                     Str,
-                    Vec4(1.0f, 0.5f * (1.0f - t / (30.0f / m_Info.chart.data.judgeLines.size() > 0 ? Min(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS) : 120))),
+                    Vec4(1.0f, 0.5f * (1.0f - t / (30.0f / (m_Info.chart.data.judgeLines.size() > 0 ? (Min(m_Info.chart.data.judgeLines[0].bpm, 15 * m_Info.FPS)) : 120.0f)))),
                     m_Width * 0.01f,
                     1.0f
                 );
