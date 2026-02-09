@@ -513,11 +513,11 @@ namespace PGR {
                 const int i = dstX - x;
 
                 float tx = i * cosAInvSx + baseTx;
-                float ty = texHeight - (i * negSinAInvSy + baseTy);
+                float ty = texHeight - (i * negSinAInvSy + baseTy) - 1;
 
                 if (tx >= 0.0f && tx < srcW && ty >= 0.0f && ty < srcH) {
-                    const int texX = static_cast<int>(tx);
-                    const int texY = static_cast<int>(ty);
+                    const int texX = static_cast<int>(tx + 0.5f);
+                    const int texY = static_cast<int>(ty - 0.5f);
 
                     const Vec4& texColor = texData[texX + texY * texWidth];
                     if (texColor.W > 0.0f) {

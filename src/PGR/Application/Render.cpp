@@ -535,8 +535,10 @@ namespace PGR {
                     if (!DEBUG) continue;
                     else isHide = true;
 
-                if (!drawHead) noteHeadHeight = 0.0f;
-
+                if (!drawHead) {
+                    noteHeadHeight = 0.0f;
+                    noteFp = 0.0f;
+                }
                 const float noteTailFp = noteFp + noteBodyHeight;
                 Texture* holdImg = GetHoldTexture(noteHeadImg, (int)noteHeadHeight, noteBodyImg, (int)noteBodyHeight, noteTailImg, (int)noteTillHeight, (int)(thisNoteWidth * m_Width), (int)(noteTailFp <= viewFp ? -1 : viewFp - noteFp));
 
