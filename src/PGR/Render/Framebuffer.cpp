@@ -494,11 +494,11 @@ namespace PGR {
         const float sinAInvSx = sinA * invSx;
         const float negSinAInvSy = -sinA * invSy;
         const float cosAInvSy = cosA * invSy;
-
-        const int yStart = y + startY;
-        const int yEnd = y + endY;
-        const int xStart = x + startX;
-        const int xEnd = x + endX;
+        
+        const int yStart = std::clamp(y + startY, 0, windowHeight - 1);
+        const int yEnd = std::clamp(y + endY, 0, windowHeight - 1);
+        const int xStart = std::clamp(x + startX, 0, windowWidth - 1);
+        const int xEnd = std::clamp(x + endX, 0, windowWidth - 1);
 
         for (int dstY = yStart; dstY <= yEnd; ++dstY) {
             if (dstY < 0 || dstY >= windowHeight) continue;
@@ -513,7 +513,7 @@ namespace PGR {
                 const int i = dstX - x;
 
                 float tx = i * cosAInvSx + baseTx;
-                float ty = texHeight - (i * negSinAInvSy + baseTy) - 1;
+                float ty = texHeight - (i * negSinAInvSy + baseTy);
 
                 if (tx >= 0.0f && tx < srcW && ty >= 0.0f && ty < srcH) {
                     const int texX = static_cast<int>(tx);

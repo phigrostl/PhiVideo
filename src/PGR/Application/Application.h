@@ -68,7 +68,7 @@ namespace PGR {
         float size = 1.0f;
         float notesVolume = 0.5f;
         float musicVolume = 1.0f;
-        float aas = 1.0f;
+        int aas = 1.0f;
         float bitrate = 10.0f;
     };
 

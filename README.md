@@ -29,7 +29,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
 -n, --notesVolume          FLOAT         0.5        音符音效音量
 -W, --width                  INT        1920        输出视频宽度
 -H, --height                 INT        1080        输出视频高度
--a, --aas                  FLOAT         1.0        抗锯齿比例
+-a, --aas                    INT           1        抗锯齿比例
 -b, --bitrate              FLOAT        10.0        视频码率(Mbps)
     --FPS           INT:POSITIVE          60        视频帧率
     --CPU      INT:INT in [1 32]           4        使用的CPU核心数

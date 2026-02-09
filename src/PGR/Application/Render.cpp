@@ -75,7 +75,7 @@ namespace PGR {
                     char tempVideoFile[64];
                     sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
 
-                    const bool useAA = m_Info.aas > 1.0f;
+                    const bool useAA = m_Info.aas > 1;
                     const size_t srcWidth = m_Width;
                     const size_t srcHeight = m_Height;
                     const size_t dstWidth = useAA ? static_cast<size_t>(m_Width / m_Info.aas) : m_Width;
@@ -116,26 +116,58 @@ namespace PGR {
                                     const int srcX = static_cast<int>(dx * aaScale);
                                     const int srcXEnd = srcX + aaScaleInt;
 
-                                    float r = 0.0f, g = 0.0f, b = 0.0f;
+                                    __m128 r_sum = _mm_setzero_ps();
+                                    __m128 g_sum = _mm_setzero_ps();
+                                    __m128 b_sum = _mm_setzero_ps();
+                                    int count = 0;
 
                                     for (int sy = srcY; sy < srcYEnd && sy < srcHeight; ++sy) {
                                         const Vec3* srcRow = colorBuffer + sy * srcWidth;
-                                        for (int sx = srcX; sx < srcXEnd && sx < srcWidth; ++sx) {
-                                            const Vec3& color = srcRow[sx];
-                                            r += color.X;
-                                            g += color.Y;
-                                            b += color.Z;
+                                        for (size_t sx = srcX; sx < srcXEnd && sx < srcWidth; sx += 4) {
+                                            if (sx + 3 < srcXEnd && sx + 3 < srcWidth) {
+                                                const Vec3& c0 = srcRow[sx];
+                                                const Vec3& c1 = srcRow[sx + 1];
+                                                const Vec3& c2 = srcRow[sx + 2];
+                                                const Vec3& c3 = srcRow[sx + 3];
+
+                                                __m128 r = _mm_set_ps(c3.X, c2.X, c1.X, c0.X);
+                                                __m128 g = _mm_set_ps(c3.Y, c2.Y, c1.Y, c0.Y);
+                                                __m128 b = _mm_set_ps(c3.Z, c2.Z, c1.Z, c0.Z);
+
+                                                r_sum = _mm_add_ps(r_sum, r);
+                                                g_sum = _mm_add_ps(g_sum, g);
+                                                b_sum = _mm_add_ps(b_sum, b);
+                                                count += 4;
+                                            } else {
+                                                for (int i = sx; i < srcXEnd && i < srcWidth; ++i) {
+                                                    const Vec3& color = srcRow[i];
+                                                    r_sum = _mm_add_ss(r_sum, _mm_set_ss(color.X));
+                                                    g_sum = _mm_add_ss(g_sum, _mm_set_ss(color.Y));
+                                                    b_sum = _mm_add_ss(b_sum, _mm_set_ss(color.Z));
+                                                    count++;
+                                                }
+                                                break;
+                                            }
                                         }
                                     }
 
-                                    r *= invSampleArea;
-                                    g *= invSampleArea;
-                                    b *= invSampleArea;
+                                    __m128 r_avg = _mm_mul_ps(r_sum, _mm_set1_ps(invSampleArea));
+                                    __m128 g_avg = _mm_mul_ps(g_sum, _mm_set1_ps(invSampleArea));
+                                    __m128 b_avg = _mm_mul_ps(b_sum, _mm_set1_ps(invSampleArea));
+
+                                    __m128 mult = _mm_set1_ps(255.0f);
+                                    r_avg = _mm_mul_ps(r_avg, mult);
+                                    g_avg = _mm_mul_ps(g_avg, mult);
+                                    b_avg = _mm_mul_ps(b_avg, mult);
+
+                                    __m128i ri = _mm_cvtps_epi32(r_avg);
+                                    __m128i gi = _mm_cvtps_epi32(g_avg);
+                                    __m128i bi = _mm_cvtps_epi32(b_avg);
 
                                     size_t dstPixelOffset = dx * 3;
-                                    currentRow[dstPixelOffset] = static_cast<unsigned char>(r * 255.0f);
-                                    currentRow[dstPixelOffset + 1] = static_cast<unsigned char>(g * 255.0f);
-                                    currentRow[dstPixelOffset + 2] = static_cast<unsigned char>(b * 255.0f);
+                                    currentRow[dstPixelOffset] = static_cast<unsigned char>(_mm_extract_epi32(ri, 0));
+                                    currentRow[dstPixelOffset + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 0));
+                                    currentRow[dstPixelOffset + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 0));
                                 }
                             }
                         }
@@ -284,34 +316,59 @@ namespace PGR {
         system(str.c_str());
     }
 
-    Texture* GetHoldTexture(const Texture* head, const int headH, const Texture* body, const int bodyH, const Texture* tail, const int tailH, const int w) {
-        const int h = headH + bodyH + tailH;
-        Texture* tex = new Texture(w, h);
-        
-        const int headWidth = head->GetWidth();
-        const int headHeight = head->GetHeight();
-        const int bodyHeight = body->GetHeight();
-        const int tailHeight = tail->GetHeight();
-        
-        for (int i = 0; i < w; i++) {
-            const int headX = (int)((float)i / w * headWidth);
-            
-            for (int j = 0; j < headH; j++) {
-                const int headY = (int)((float)j / headH * headHeight);
-                tex->SetColor(i, j, head->GetColor(headX, headY));
+    Texture* GetHoldTexture(const Texture* head, const int headH, const Texture* body, const int bodyH, const Texture* tail, const int tailH, const int w, const int bh = -1) {
+        if (bh == -1) {
+            const int h = headH + bodyH + tailH;
+            Texture* tex = new Texture(w, h);
+
+            const int headWidth = head->GetWidth();
+            const int headHeight = head->GetHeight();
+            const int bodyHeight = body->GetHeight();
+            const int tailHeight = tail->GetHeight();
+
+            for (int i = 0; i < w; i++) {
+                const int headX = (int)((float)i / w * headWidth);
+
+                for (int j = 0; j < headH; j++) {
+                    const int headY = (int)((float)j / headH * headHeight);
+                    tex->SetColor(i, j, head->GetColor(headX, headY));
+                }
+
+                for (int j = headH; j < headH + bodyH; j++) {
+                    const int bodyY = (int)((float)(j - headH) / bodyH * bodyHeight);
+                    tex->SetColor(i, j, body->GetColor(headX, bodyY));
+                }
+
+                for (int j = headH + bodyH; j < h; j++) {
+                    const int tailY = (int)((float)(j - headH - bodyH) / tailH * tailHeight);
+                    tex->SetColor(i, j, tail->GetColor(headX, tailY));
+                }
             }
-            
-            for (int j = headH; j < headH + bodyH; j++) {
-                const int bodyY = (int)((float)(j - headH) / bodyH * bodyHeight);
-                tex->SetColor(i, j, body->GetColor(headX, bodyY));
-            }
-            
-            for (int j = headH + bodyH; j < h; j++) {
-                const int tailY = (int)((float)(j - headH - bodyH) / tailH * tailHeight);
-                tex->SetColor(i, j, tail->GetColor(headX, tailY));
-            }
+            return tex;
         }
-        return tex;
+        else {
+            const int h = headH + bh;
+            Texture* tex = new Texture(w, h);
+
+            const int headWidth = head->GetWidth();
+            const int headHeight = head->GetHeight();
+            const int bodyHeight = body->GetHeight();
+
+            for (int i = 0; i < w; i++) {
+                const int headX = (int)((float)i / w * headWidth);
+
+                for (int j = 0; j < headH; j++) {
+                    const int headY = (int)((float)j / headH * headHeight);
+                    tex->SetColor(i, j, head->GetColor(headX, headY));
+                }
+
+                for (int j = headH; j < h; j++) {
+                    const int bodyY = (int)((float)(j - headH) / bodyH * bodyHeight);
+                    tex->SetColor(i, j, body->GetColor(headX, bodyY));
+                }
+            }
+            return tex;
+        }
     }
 
     void Application::Render(float t, Framebuffer* fb, bool drawBack, bool cover) {
@@ -363,17 +420,6 @@ namespace PGR {
                 m_Height * LINEW * size + 0.5f,
                 Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)));
 
-            if (DEBUG) {
-                linePos[0] = rotatePoint(ev.x, ev.y, m_Height * LINEW * size / 2.0f - 0.5f, -ev.rotate);
-                linePos[1] = rotatePoint(ev.x, ev.y, m_Height * LINEW * size / 2.0f - 0.5f, -ev.rotate + 180.0f);
-
-                fb->DrawLine(
-                    (int)(linePos[0].X + 0.5f), (int)(linePos[0].Y + 0.5f),
-                    (int)(linePos[1].X + 0.5f), (int)(linePos[1].Y + 0.5f),
-                    m_Height * LINEW * size + 0.5f,
-                    Vec4(1.0f, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)));
-            }
-
             const float beatt = line.sec2beat(t, m_Info.chart.data.offset);
             const float lineFp = line.getFp(beatt);
             beats.push_back(beatt);
@@ -404,6 +450,8 @@ namespace PGR {
             }
         }
 
+        const float viewFp = m_Height * 2.0f * (DEBUG ? 1 : size);
+
         for (int i = 0; i < numJudgeLines; i++) {
             const EventsValue& ev = evs[i];
             const float beatt = beats[i];
@@ -431,7 +479,7 @@ namespace PGR {
 
                 float noteFp = (note.floorPosition - lineFp) * PGRH * (PGRBEAT / line.bpm) * m_Height * size;
 
-                const bool isVisible = (DEBUG ? noteFp : noteFp / size) <= m_Height * 2;
+                const bool isVisible = (DEBUG ? noteFp : noteFp) <= viewFp;
                 if (!isVisible) continue;
 
                 bool isHide = noteFp < 0 && !clicked;
@@ -489,7 +537,8 @@ namespace PGR {
 
                 if (!drawHead) noteHeadHeight = 0.0f;
 
-                Texture* holdImg = GetHoldTexture(noteHeadImg, (int)noteHeadHeight, noteBodyImg, (int)noteBodyHeight, noteTailImg, (int)noteTillHeight, (int)(thisNoteWidth * m_Width));
+                const float noteTailFp = noteFp + noteBodyHeight;
+                Texture* holdImg = GetHoldTexture(noteHeadImg, (int)noteHeadHeight, noteBodyImg, (int)noteBodyHeight, noteTailImg, (int)noteTillHeight, (int)(thisNoteWidth * m_Width), (int)(noteTailFp <= viewFp ? -1 : viewFp - noteFp));
 
                 float drawX = 0.0f;
                 float drawY = 0.0f;
@@ -509,8 +558,8 @@ namespace PGR {
                     holdImg,
                     -1, -1,
                     noteDrawRotate, isHide ? 0.5f : 1.0f);
-
                 delete holdImg;
+                
 
                 if (DEBUG) {
 
@@ -564,7 +613,7 @@ namespace PGR {
 
                 float noteFp = (note.floorPosition - lineFp) * PGRH * (PGRBEAT / line.bpm) * m_Height * size * note.speed;
 
-                const bool isVisible = (DEBUG ? noteFp : noteFp / size) <= m_Height * 2;
+                const bool isVisible = (DEBUG ? noteFp : noteFp) <= viewFp;
                 if (!isVisible) continue;
 
                 const bool isHide = noteFp < 0 && note.secTime > t;
@@ -1063,12 +1112,12 @@ namespace PGR {
 
         if (m_Info.chart.info.composer != "")
             fb->DrawTextTTF(
-                0, (int)(m_Height * 1060.0f / 1080.0f),
+                0, (int)(m_Height * 1054.0f / 1080.0f),
                 "Composer: " + m_Info.chart.info.composer, Vec4(1.0f, 0.5f), m_Width * 18.0f / 1920.0f);
 
         if (m_Info.chart.info.charter != "")
             fb->DrawTextTTF(
-                m_Width, (int)(m_Height * 1060.0f / 1080.0f),
+                m_Width, (int)(m_Height * 1054.0f / 1080.0f),
                 "Charter: " + m_Info.chart.info.charter, Vec4(1.0f, 0.5f), m_Width * 18.0f / 1920.0f, 1.0f);
 
         if (m_Info.chart.info.illustrator != "")
@@ -1113,7 +1162,7 @@ namespace PGR {
             fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr, Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f);
 
         fb->DrawTextTTF(
-            m_Width / 2, (int)(m_Height * 1060.0f / 1080.0f), m_UI.info, Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
+            m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info, Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
         );
 
         if (size < 1.0f) {
