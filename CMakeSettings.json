@@ -3,7 +3,7 @@
 		{
 			"name": "x64-Debug",
 			"generator": "Ninja",
-			"configurationType": "RelWithDebInfo",
+			"configurationType": "Debug",
 			"buildRoot": "${projectDir}\\out\\build\\${name}",
 			"installRoot": "${projectDir}\\out\\install\\${name}",
 			"cmakeCommandArgs": "",
@@ -25,7 +25,7 @@
 		{
 			"name": "x86-Debug",
 			"generator": "Ninja",
-			"configurationType": "RelWithDebInfo",
+			"configurationType": "Debug",
 			"buildRoot": "${projectDir}\\out\\build\\${name}",
 			"installRoot": "${projectDir}\\out\\install\\${name}",
 			"cmakeCommandArgs": "",

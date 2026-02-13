@@ -1,6 +1,6 @@
 #include "Application.h"
 
-namespace PGR{
+namespace PGR {
 
     UI::UI(std::string& str) {
         cJSON* root = cJSON_Parse(str.c_str());
@@ -313,7 +313,8 @@ namespace PGR{
         std::sort(
             m_Info.chart.data.clickEffectCollection.begin(),
             m_Info.chart.data.clickEffectCollection.end(),
-            [](NoteMap a, NoteMap b) { return a.time < b.time; });
+            [this](NoteMap a, NoteMap b) { return m_Info.chart.data.judgeLines[a.note.line].beat2sec(a.time, m_Info.chart.data.offset) < m_Info.chart.data.judgeLines[b.note.line].beat2sec(b.time, m_Info.chart.data.offset); }
+        );
 
     }
 

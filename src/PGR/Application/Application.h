@@ -57,10 +57,10 @@ namespace PGR {
         std::string InfoPath;
         std::string OutPath;
 
-        bool RenderVideo = true;
-        bool RenderCover = true;
-        bool RenderPic = false;
-        float PicTime = 0.0f;
+        bool RenderVideo = false;
+        bool RenderCover = false;
+        bool RenderPic = true;
+        float PicTime = 31.0f;
         float startTime = 0.0f;
         float endTime = -1.0f;
         int CPUNum = 4;

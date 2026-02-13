@@ -441,7 +441,7 @@ namespace PGR {
                     "[" + std::to_string(i) +
                     "]" + speedBuf;
 
-                float oh = m_Width * (0.00325f * size + 0.00475f);
+                float oh = m_Width * (0.004f * size + 0.0055f);
                 fb->DrawRotatedTextTTF(
                     (int)(ev.x + sinEvRotate * oh + 0.5f),
                     (int)(ev.y + cosEvRotate * oh + 0.5f),
