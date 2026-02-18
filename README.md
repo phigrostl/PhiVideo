@@ -14,10 +14,11 @@
 
 PhiVideo [FILE_PATH] [OPTIONS]
 
-                STRING:FILE_PATH                    谱面文件路径
+                  TEXT:FILE_PATH                    谱面文件路径
 
 -h, --help                                          输出帮助信息并退出
 -d, --debug                                         开启谱面调试模式
+-y, --overwrite          BOOLEAN       false        是否总是覆盖输出文件
 -v, --video              BOOLEAN        true        渲染视频
 -c, --cover              BOOLEAN        true        渲染封面
 -o, --output                TEXT     Unnamed        输出文件名
@@ -31,6 +32,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
 -H, --height                 INT        1080        输出视频高度
 -a, --aas                    INT           1        抗锯齿比例
 -b, --bitrate              FLOAT        10.0        视频码率(Mbps)
+-l, --logLevel              TEXT        info        日志等级
     --FPS           INT:POSITIVE          60        视频帧率
     --CPU      INT:INT in [1 32]           4        使用的CPU核心数
 ```
