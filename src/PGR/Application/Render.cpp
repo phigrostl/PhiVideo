@@ -86,6 +86,7 @@ namespace PGR {
                     sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
                         dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile);
 
+                    Overwrite("tempVideoFile");
                     FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
                     const size_t dstPixelCount = dstWidth * dstHeight;
                     const size_t dstFrameSize = dstPixelCount * 3;
@@ -276,13 +277,17 @@ namespace PGR {
                     dur, estimatedTotalTime, remainingTime,
                     static_cast<int>(currentFPS) / 60
                 );
-                printf("%s", buf);
+                LogInfo("%s", buf);
             }
+
+            LogInfo("\rRendered videos in %.2fs", std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - start).count());
+
             });
 
         for (auto& t : threads)
             t.join();
 
+        Overwrite("input_list.txt");
         std::ofstream inputListFile("input_list.txt");
         if (inputListFile.is_open()) {
             for (const auto& file : tempVideoFiles) {
@@ -293,26 +298,30 @@ namespace PGR {
             inputListFile.close();
 
             std::string concatCmd = "ffmpeg -y -loglevel error -f concat -safe 0 -i input_list.txt -c copy output.mp4";
+            Overwrite("output.mp4");
             system(concatCmd.c_str());
 
-            remove("input_list.txt");
+            Remove("input_list.txt");
         }
 
         for (const auto& file : tempVideoFiles) {
             if (!file.empty()) {
-                remove(file.c_str());
+                Remove(file.c_str());
             }
         }
 
         putchar('\n');
 
+        Overwrite("output_cut.wav");
         str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.ChartDir + "output.wav -t " + std::to_string(m_Info.endTime) + " -c copy output_cut.wav";
         system(str.c_str());
 
         ToDir(m_Info.WorkDir);
 
         std::string filename = m_Info.OutPath + ".mp4";
-        str = "ffmpeg -y -hide_banner -loglevel info -i " + m_Info.ChartDir + "output.mp4 -i " + m_Info.ChartDir + "output_cut.wav -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest " + filename;
+
+        str = "ffmpeg -y -loglevel error -i " + m_Info.ChartDir + "output.mp4 -i " + m_Info.ChartDir + "output_cut.wav -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest " + filename;
+        Overwrite(filename);
         system(str.c_str());
     }
 

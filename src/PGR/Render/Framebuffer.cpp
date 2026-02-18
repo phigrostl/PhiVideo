@@ -97,7 +97,11 @@ namespace PGR {
                 file.open("C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\Windows\\Fonts" + fontPath + ".ttf", std::ios::binary);
                 if (!file) {
                     file.open(fontPath + ".ttf", std::ios::binary);
-                    if (!file) file.open("C:\\Windows\\Fonts\\arial.ttf", std::ios::binary);
+                    if (!file) {
+                        file.open("C:\\Windows\\Fonts\\arial.ttf", std::ios::binary);
+                        LogError("Font file not found: %s", fontPath.c_str());
+                    }
+                    else Exit("Font file not found", 0);
                 }
             }
         }

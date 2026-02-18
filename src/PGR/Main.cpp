@@ -5,8 +5,7 @@
 #include <iostream>
 
 int main(int argc, char** argv) {
-
-    system("CHCP 65001");
+    system("CHCP 65001 > nul 2>&1");
 
     char workDir[MAX_PATH];
     if (!_getcwd(workDir, MAX_PATH))
@@ -16,19 +15,19 @@ int main(int argc, char** argv) {
     DWORD pathLen = GetModuleFileNameA(NULL, exeFullPath, MAX_PATH);
 
     if (pathLen == 0 || pathLen >= MAX_PATH)
-        return false;
+        Exit("Failed to get executable path", 1);
 
     if (!PathRemoveFileSpecA(exeFullPath))
-        return false;
+        Exit("Failed to remove file spec from executable path", 1);
 
     if (!SetCurrentDirectoryA(exeFullPath))
-        return false;
+        Exit("Failed to set current directory to executable path", 1);
 
     while (true) {
         if (!_chdir(".\\resources"))
             break;
         if (_chdir(".."))
-            exit(1);
+            Exit("Failed to set current directory to resources", 1);
     }
 
     char ResDir[MAX_PATH];
@@ -39,5 +38,6 @@ int main(int argc, char** argv) {
 
     App.Run();
 
+    LogNotice("Exiting application");
     return 0;
 }

@@ -26,6 +26,8 @@ add_executable (PhiVideo
     "src/PGR/Render/Texture.cpp"
     "src/PGR/Render/Framebuffer.cpp"
 
+    "src/PGR/Log/Log.cpp"
+
     "src/PGR/Application/Note.cpp"
     "src/PGR/Application/Event.cpp"
     "src/PGR/Application/HitFx.cpp"

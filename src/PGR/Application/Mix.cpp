@@ -11,6 +11,7 @@ namespace PGR {
         std::string flick = m_Info.ResDir + "\\Notes\\Flick.wav";
         std::string music = m_Info.ChartDir + "\\" + m_Info.chart.info.song;
 
+        Overwrite("output.wav");
         system(("ffmpeg -y -loglevel error -i \"" + music + "\" output.wav").c_str());
         const int BATCH_SIZE = 100;
 
@@ -57,6 +58,7 @@ namespace PGR {
         std::atomic<int> completedBatches = 0;
         int ThreadsN = 0;
 
+        Overwrite("output_empty.wav");
         system("ffmpeg -y -loglevel error -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 1 output_empty.wav");
 
         for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
@@ -123,6 +125,7 @@ namespace PGR {
                     std::to_string(1 + (batchEnd - batchStart)) +
                     ":duration=longest:normalize=0\" " + tempOutputFile;
 
+                Overwrite(tempOutputFile);
                 system(batchCmd.c_str());
 
                 {
@@ -131,7 +134,7 @@ namespace PGR {
                 }
 
                 completedBatches++;
-                printf("\rProcessing batch %d/%d %d", (int)completedBatches, totalBatches, ThreadsN);
+                LogInfo("\rProcessing batch %d/%d", (int)completedBatches, totalBatches);
 
                 ThreadsN--;
                 });
@@ -154,13 +157,15 @@ namespace PGR {
             }
             mergeCmd += "amix=inputs=" + std::to_string(tempAudioFiles.size()) + ":duration=longest:normalize=0\" output0.wav";
 
+            Overwrite("output0.wav");
             system(mergeCmd.c_str());
 
             for (const auto& file : tempAudioFiles) {
-                remove(file.c_str());
+                Remove(file.c_str());
             }
         }
         else {
+            Overwrite("output0.wav");
             system("ffmpeg -y -loglevel error -i output.wav output0.wav");
         }
 
@@ -168,8 +173,11 @@ namespace PGR {
             "-filter_complex \"[0:a]volume=" + std::to_string(m_Info.musicVolume) + "[a0];[1:a]volume=" + std::to_string(m_Info.notesVolume) + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" output.wav";
         system(mixCmd.c_str());
 
-        remove("output0.wav");
-        remove("output_empty.wav");
+        Remove("output0.wav");
+        Remove("output_empty.wav");
+
+        putchar('\n');
+        LogInfo("Mixed music");
 	}
 
 }

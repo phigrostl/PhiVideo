@@ -28,74 +28,93 @@ namespace PGR {
     }
 
     void Application::LoadJsons() {
-        ToDir(m_Info.ResDir);
-        std::ifstream file("UI.json");
-        std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        file.close();
-        m_UI = UI(json);
+        std::ifstream file;
 
-        ToDir(m_Info.WorkDir);
-        if (m_Info.InfoPath != "") {
-            std::filesystem::path path(m_Info.InfoPath);
-            file.open(m_Info.InfoPath);
-            if (path.is_absolute())
-                m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
-            else {
-                m_Info.InfoPath = "./" + m_Info.InfoPath;
-                m_Info.ChartDir = m_Info.WorkDir + GetFilePath(m_Info.InfoPath);
-            }
-        }
-        else {
-            OPENFILENAME ofn;
-            char szFile[MAX_PATH] = "";
-
-            ZeroMemory(&ofn, sizeof(ofn));
-            ofn.lStructSize = sizeof(ofn);
-            ofn.hwndOwner = NULL;
-            ofn.lpstrFile = szFile;
-            ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t);
-            ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
-            ofn.nFilterIndex = 1;
-            ofn.lpstrInitialDir = "chart\\";
-            ofn.lpstrTitle = "Choose a ChartInfo file";
-            ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-            if (GetOpenFileName(&ofn))
-                file.open(ofn.lpstrFile);
-            m_Info.InfoPath = ofn.lpstrFile;
-            m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
-        }
-
-        if (!file.is_open())
-            Exit("Please select a CORRECT ChartInfo file.", 1);
-        else {
-            while (!file.eof()) {
-                std::string line;
-                std::getline(file, line);
-                if (line.find("Name:") == 0)
-                    m_Info.chart.info.name = line.substr(6);
-                else if (line.find("Level:") == 0)
-                    m_Info.chart.info.level = line.substr(7);
-                else if (line.find("Song:") == 0)
-                    m_Info.chart.info.song = line.substr(6);
-                else if (line.find("Picture:") == 0)
-                    m_Info.chart.info.picture = line.substr(9);
-                else if (line.find("Chart:") == 0)
-                    m_Info.chart.info.chart = line.substr(7);
-                else if (line.find("Composer: ") == 0)
-                    m_Info.chart.info.composer = line.substr(10);
-                else if (line.find("Illustrator: ") == 0)
-                    m_Info.chart.info.illustrator = line.substr(13);
-                else if (line.find("Charter: ") == 0)
-                    m_Info.chart.info.charter = line.substr(9);
-            }
+        try {
+            ToDir(m_Info.ResDir);
+            std::ifstream file("UI.json");
+            std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             file.close();
+            m_UI = UI(json);
+        }
+        catch (std::exception e) {
+            Exit("UI.json not found or format error.", 1);
         }
 
-        printf("\nName: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s\n\n", m_Info.chart.info.name.c_str(), m_Info.chart.info.level.c_str(), m_Info.chart.info.song.c_str(), m_Info.chart.info.picture.c_str(), m_Info.chart.info.chart.c_str());
+        try {
+            ToDir(m_Info.WorkDir);
+            if (m_Info.InfoPath != "") {
+                std::filesystem::path path(m_Info.InfoPath);
+                file.open(m_Info.InfoPath);
+                if (path.is_absolute())
+                    m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
+                else {
+                    m_Info.InfoPath = "./" + m_Info.InfoPath;
+                    m_Info.ChartDir = m_Info.WorkDir + GetFilePath(m_Info.InfoPath);
+                }
+            }
+            else {
+                OPENFILENAME ofn;
+                char szFile[MAX_PATH] = "";
 
-        LoadChartJson();
+                ZeroMemory(&ofn, sizeof(ofn));
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = NULL;
+                ofn.lpstrFile = szFile;
+                ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t);
+                ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
+                ofn.nFilterIndex = 1;
+                ofn.lpstrInitialDir = "chart\\";
+                ofn.lpstrTitle = "Choose a ChartInfo file";
+                ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
+                if (GetOpenFileName(&ofn))
+                    file.open(ofn.lpstrFile);
+                m_Info.InfoPath = ofn.lpstrFile;
+                m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
+            }
+
+            if (!file.is_open())
+                Exit("Please select a CORRECT ChartInfo file.", 1);
+            else {
+                while (!file.eof()) {
+                    std::string line;
+                    std::getline(file, line);
+                    if (line.find("Name:") == 0)
+                        m_Info.chart.info.name = line.substr(6);
+                    else if (line.find("Level:") == 0)
+                        m_Info.chart.info.level = line.substr(7);
+                    else if (line.find("Song:") == 0)
+                        m_Info.chart.info.song = line.substr(6);
+                    else if (line.find("Picture:") == 0)
+                        m_Info.chart.info.picture = line.substr(9);
+                    else if (line.find("Chart:") == 0)
+                        m_Info.chart.info.chart = line.substr(7);
+                    else if (line.find("Composer: ") == 0)
+                        m_Info.chart.info.composer = line.substr(10);
+                    else if (line.find("Illustrator: ") == 0)
+                        m_Info.chart.info.illustrator = line.substr(13);
+                    else if (line.find("Charter: ") == 0)
+                        m_Info.chart.info.charter = line.substr(9);
+                }
+                file.close();
+            }
+
+            if (m_Info.chart.info.chart == "" || m_Info.chart.info.song == "" || m_Info.chart.info.picture == "")
+                throw std::exception();
+
+            LogInfo("Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s", m_Info.chart.info.name.c_str(), m_Info.chart.info.level.c_str(), m_Info.chart.info.song.c_str(), m_Info.chart.info.picture.c_str(), m_Info.chart.info.chart.c_str());
+        }
+        catch (std::exception e) {
+            Exit("ChartInfo file format error.", 1);
+        }
+
+        try {
+            LoadChartJson();
+        }
+        catch (std::exception e) {
+            Exit("Chart file format error.", 1);
+        }
     }
 
     void Application::LoadChartJson() {
@@ -116,8 +135,6 @@ namespace PGR {
         lines = cJSON_GetObjectItem(root, "judgeLineList");
 
         std::map<float, int> noteSectCounter;
-
-        printf("Line   Notes    Move  Rotate   Alpha   Speed\n");
 
         for (int i = 0; i < cJSON_GetArraySize(lines); i++) {
             JudgeLine jline;
@@ -271,7 +288,7 @@ namespace PGR {
             m_Info.chart.data.judgeLines.push_back(jline);
             m_Info.chart.data.noteCount += (int)jline.notes.size();
 
-            printf("%4d\t%4zu\t%4zu\t%4zu\t%4zu\t%4zu\n", i, jline.notes.size(), jline.moveEvents.size(), jline.rotateEvents.size(), jline.disappearEvents.size(), jline.speedEvents.size());
+            LogInfo("Line: %d, Notes: %zd, Events: %zd", i, jline.notes.size(), jline.moveEvents.size() + jline.rotateEvents.size() + jline.disappearEvents.size() + jline.speedEvents.size());
         }
 
         for (long long i = 0; i < (int)m_Info.chart.data.judgeLines.size() - 1; i++) {
@@ -316,6 +333,7 @@ namespace PGR {
             [this](NoteMap a, NoteMap b) { return m_Info.chart.data.judgeLines[a.note.line].beat2sec(a.time, m_Info.chart.data.offset) < m_Info.chart.data.judgeLines[b.note.line].beat2sec(b.time, m_Info.chart.data.offset); }
         );
 
+        LogInfo("Organized Notes");
     }
 
     void Application::LoadFiles() {
@@ -353,8 +371,11 @@ namespace PGR {
 
         ToDir(m_Info.ChartDir);
         m_Info.chart.image = new Texture(m_Info.chart.info.picture);
+        Overwrite("blurred_output.png");
         system(("ffmpeg -y -loglevel error -i " + m_Info.chart.info.picture + " -vf \"gblur = sigma = 99.0\" blurred_output.png").c_str());
         m_Info.chart.imageBlur = (new Texture("blurred_output.png"))->GetShaderImg(1.5f);
+
+        LogInfo("Loaded Images");
     }
 
     void Application::LoadFxImgs() {
@@ -379,18 +400,27 @@ namespace PGR {
                     ->ColorTexture(Vec4(PCOLOR, 1.0f), false));
             }
         }
+
+        LogInfo("Loaded FxImages");
     }
 
     void Application::LoadMusics() {
-        ToDir(m_Info.ChartDir);
-        std::string music = m_Info.chart.info.song;
-        std::string str = "open \"" + music + "\" alias music";
-        mciSendString(str.c_str(), NULL, 0, NULL);
+        try {
+            ToDir(m_Info.ChartDir);
+            std::string music = m_Info.chart.info.song;
+            std::string str = "open \"" + music + "\" alias music";
+            mciSendString(str.c_str(), NULL, 0, NULL);
 
-        char durationStr[256] = { 0 };
-        MCIERROR err = mciSendStringA("status music length", durationStr, sizeof(durationStr), NULL);
-        mciSendString("close music", NULL, 0, NULL);
-        m_Info.chart.data.time = atoi(durationStr) / 1000.0f;
+            char durationStr[256] = { 0 };
+            MCIERROR err = mciSendStringA("status music length", durationStr, sizeof(durationStr), NULL);
+            mciSendString("close music", NULL, 0, NULL);
+            m_Info.chart.data.time = atoi(durationStr) / 1000.0f;
+
+            LogInfo("Loaded Music");
+        }
+        catch (std::exception e) {
+            Exit("Failed to load music", 1);
+        }
     }
 
 }

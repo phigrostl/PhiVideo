@@ -2,6 +2,7 @@
 
 #include "PGR/Application/Chart.h"
 #include "PGR/Render/Framebuffer.h"
+#include "PGR/Log/Log.h"
 
 #include <map>
 #include <chrono>
@@ -65,9 +66,11 @@ namespace PGR {
         float endTime = -1.0f;
         int CPUNum = 4;
         int FPS = 60;
+        bool showWindow = true;
         float size = 1.0f;
         float notesVolume = 0.5f;
         float musicVolume = 1.0f;
+        bool overwrite = false;
         int aas = 1.0f;
         float bitrate = 10.0f;
     };
@@ -131,6 +134,9 @@ namespace PGR {
 
         void RenderVideo();
         void MixMusic();
+
+        bool Overwrite(const std::string& path);
+        void Remove(const char* path);
 
     private:
         int argc;
