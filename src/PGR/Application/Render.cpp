@@ -277,7 +277,7 @@ namespace PGR {
                 const double remainingTime = (static_cast<double>((double)frameNum - (double)renderedFrames) / static_cast<double>(currentFPS) * 60.0) + dur;
 
                 char buf[512];
-                sprintf_s(buf, "\r%.2f%% %d.%d/%d.%d %.2fs/%.2fs(%.2fs) FPS: %d ",
+                sprintf_s(buf, "\r%.2f%% %d.%d/%d.%d %.2fs/%.2fs(%.2fs) FPS: %d",
                     progress,
                     renderedFrames / fps, renderedFrames % fps,
                     static_cast<int>(totalFrames) / fps, static_cast<int>(totalFrames) % fps,

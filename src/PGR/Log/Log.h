@@ -7,6 +7,8 @@
 #include <ctime>
 #include <sstream>
 #include <cstdarg>
+#include <chrono>
+#include <windows.h>
 
 enum class LogLevel {
     Debug,
@@ -22,6 +24,7 @@ std::string logLevelToString(LogLevel level);
 std::string getColoredLogLevel(LogLevel level);
 void log(LogLevel level, const char* file, int line, const char* func, const std::string format, ...);
 
+LogLevel getLogLevel();
 void setLogLevel(LogLevel level);
 void setLogEnd(const std::string& end = "\n");
 

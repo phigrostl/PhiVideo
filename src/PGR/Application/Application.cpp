@@ -63,7 +63,10 @@ namespace PGR {
             std::ostringstream out;
             std::ostringstream err;
             app.exit(e, out, err);
-            Exit(out.str() + err.str(), 1);
+            LogInfo("%s", out.str().c_str());
+            LogFatal("%s", err.str().c_str());
+            LogNotice("Exiting with code: %d", 1);
+            exit(1);
         }
 
         setLogLevel(stringToLogLevel(log_level_str));
@@ -209,9 +212,12 @@ namespace PGR {
                 log(LogLevel::Warning, file, line, func, "Overwrite file: " + path);
             }
             else {
+                LogLevel l = getLogLevel();
                 setLogEnd("");
+                setLogLevel(LogLevel::Warning);
                 log(LogLevel::Warning, file, line, func, "Do you want to overwrite file: " + GetDir() + "\\" + (name == "" ? path : name) + "? (Yes/No/All yes): ");
                 setLogEnd();
+                setLogLevel(l);
                 std::string input;
                 std::cin >> input;
                 std::cout << "\033[1A";
