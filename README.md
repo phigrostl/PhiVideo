@@ -18,7 +18,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
 
 -h, --help                                          输出帮助信息并退出
 -d, --debug                                         开启谱面调试模式
--y, --overwrite          BOOLEAN       false        是否总是覆盖输出文件
+-y, --overwrite                                     是否总是覆盖输出文件
 -v, --video              BOOLEAN        true        渲染视频
 -c, --cover              BOOLEAN        true        渲染封面
 -o, --output                TEXT     Unnamed        输出文件名
