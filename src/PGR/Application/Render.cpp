@@ -247,10 +247,13 @@ namespace PGR {
                     delete[] frameData;
                     _pclose(ffmpegPipe);
 
+                    LogInfo("Ending thread %d", i);
+
                     {
                         std::lock_guard<std::mutex> lock(tempVFilesMutex);
                         tempVideoFiles[i] = tempVideoFile;
                     }
+
                 });
 
         }
@@ -284,8 +287,8 @@ namespace PGR {
                 LogInfo("%s", buf);
             }
 
-            putchar('\n');
-            LogInfo("Rendered videos in %.2fs, total frames: %d, average FPS: %.2f", std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - start).count(), frameNum, currentFPS);
+            float time = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - start).count();
+            LogInfo("Rendered videos in %.2fs, total frames: %d, average FPS: %.2f", time, frameNum, static_cast<double>(frameNum) / (double)time);
 
             });
 

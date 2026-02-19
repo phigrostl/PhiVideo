@@ -149,8 +149,6 @@ namespace PGR {
             thread.join();
         }
 
-        putchar('\n');
-
         if (tempAudioFiles.size() > 0) {
             std::string mergeCmd = "ffmpeg -y -loglevel error";
 

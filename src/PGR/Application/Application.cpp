@@ -195,7 +195,11 @@ namespace PGR {
     bool Application::Overwritea(const std::string& path, const std::string& name, const char* file, int line, const char* func) {
 
         if (isFileOpenedByOtherProcess(path)) {
-            Exit("File is opened by other process: " + path, 1);
+            LogError("File is opened by other process: " + path);
+            LogError("Please close the process which is using the file.");
+            while (isFileOpenedByOtherProcess(path)) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
         }
 
         std::fstream File(path);

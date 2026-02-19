@@ -35,6 +35,8 @@ std::string getColoredLogLevel(LogLevel level) {
     }
 }
 
+char ls = '\0';
+
 void log(LogLevel level, const char* file, int line, const char* func, const std::string format, ...) {
     if (level < g_log_level)
         return;
@@ -49,6 +51,9 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
         va_end(va_args);
 
         if (buffer[0] == '\r') {
+
+            ls = '\r';
+
             std::ostringstream oss;
 
             oss << "\033[2K\r[" << getCurrentTime() << "]"
@@ -83,6 +88,12 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
         }
         else {
             std::ostringstream oss;
+
+            if (ls == '\r') {
+                oss << "\n";
+                ls = '\0';
+            }
+
             oss << "[" << getCurrentTime() << "]"
                 << getColoredLogLevel(level)
                 << "[\033[95m" << file << "\033[0m @ \033[93m" << func << "()\033[0m : \033[96m" << line << "\033[0m] "
