@@ -17,14 +17,13 @@ enum class LogLevel {
     Fatal
 };
 
-extern LogLevel g_log_level;
-
 std::string getCurrentTime();
 std::string logLevelToString(LogLevel level);
 std::string getColoredLogLevel(LogLevel level);
 void log(LogLevel level, const char* file, int line, const char* func, const std::string format, ...);
 
 void setLogLevel(LogLevel level);
+void setLogEnd(const std::string& end = "\n");
 
 #define LogDebug(format, ...)   log(LogLevel::Debug, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 #define LogInfo(format, ...)    log(LogLevel::Info, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)

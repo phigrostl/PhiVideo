@@ -67,6 +67,11 @@ namespace PGR {
         RenderBack(&back);
 
         for (int i = 0; i < CPUNum; i++) {
+            if (Overwrite("temp_video_" + std::to_string(i) + ".mp4"))
+                break;
+        }
+
+        for (int i = 0; i < CPUNum; i++) {
             threads.emplace_back([this, i, &fbs, &fn, &lastFn, &lastTime, &currentFPS, frameNum, &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex, back, time]()
                 {
                     const int startFrame = threadStart[i];
@@ -86,7 +91,6 @@ namespace PGR {
                     sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
                         dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile);
 
-                    Overwrite("tempVideoFile");
                     FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
                     const size_t dstPixelCount = dstWidth * dstHeight;
                     const size_t dstFrameSize = dstPixelCount * 3;
@@ -280,7 +284,8 @@ namespace PGR {
                 LogInfo("%s", buf);
             }
 
-            LogInfo("\rRendered videos in %.2fs", std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - start).count());
+            putchar('\n');
+            LogInfo("Rendered videos in %.2fs, total frames: %d, average FPS: %.2f", std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - start).count(), frameNum, currentFPS);
 
             });
 
@@ -309,8 +314,6 @@ namespace PGR {
                 Remove(file.c_str());
             }
         }
-
-        putchar('\n');
 
         Overwrite("output_cut.wav");
         str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.ChartDir + "output.wav -t " + std::to_string(m_Info.endTime) + " -c copy output_cut.wav";

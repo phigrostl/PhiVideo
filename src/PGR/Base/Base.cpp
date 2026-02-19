@@ -1,8 +1,8 @@
 #include "Base.h"
 
-void Exit(std::string message, const int code) {
-    LogFatal(message);
-    LogNotice("Exiting with code: %d", code);
+void Exita(std::string message, const int code, const char* file, int line, const char* func) {
+    log(LogLevel::Fatal, file, line, func, message);
+    log(LogLevel::Notice, file, line, func, "Exiting with code: %d", code);
     exit(code);
 }
 

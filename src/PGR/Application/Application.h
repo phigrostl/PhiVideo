@@ -135,8 +135,8 @@ namespace PGR {
         void RenderVideo();
         void MixMusic();
 
-        bool Overwrite(const std::string& path);
-        void Remove(const char* path);
+        bool Overwritea(const std::string& path, const std::string& name, const char* file, int line, const char* func);
+        void Removea(const char* path, const char* file, int line, const char* func);
 
     private:
         int argc;
@@ -152,3 +152,8 @@ namespace PGR {
     };
 
 }
+
+#define Overwrite(path) Overwritea(path, path, __FILE__, __LINE__, __func__)
+#define OverwriteA(path, name) Overwritea(path, name, __FILE__, __LINE__, __func__)
+
+#define Remove(path) Removea(path, __FILE__, __LINE__, __func__)

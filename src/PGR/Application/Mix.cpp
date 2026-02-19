@@ -62,6 +62,11 @@ namespace PGR {
         system("ffmpeg -y -loglevel error -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 1 output_empty.wav");
 
         for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
+            if (Overwrite("output_batch_" + std::to_string(batchIdx) + ".wav"))
+                break;
+        }
+
+        for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
             audioThreads.emplace_back([this, batchIdx, BATCH_SIZE, &allNotes, totalNotes, &tempAudioFiles, &tempMFilesMutex, &completedBatches, totalBatches, &ThreadsN, CPUNum]() {
 
                 while (ThreadsN >= CPUNum)
@@ -125,7 +130,6 @@ namespace PGR {
                     std::to_string(1 + (batchEnd - batchStart)) +
                     ":duration=longest:normalize=0\" " + tempOutputFile;
 
-                Overwrite(tempOutputFile);
                 system(batchCmd.c_str());
 
                 {
@@ -138,11 +142,14 @@ namespace PGR {
 
                 ThreadsN--;
                 });
+
         }
 
         for (auto& thread : audioThreads) {
             thread.join();
         }
+
+        putchar('\n');
 
         if (tempAudioFiles.size() > 0) {
             std::string mergeCmd = "ffmpeg -y -loglevel error";
@@ -176,7 +183,6 @@ namespace PGR {
         Remove("output0.wav");
         Remove("output_empty.wav");
 
-        putchar('\n');
         LogInfo("Mixed music");
 	}
 

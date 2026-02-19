@@ -170,18 +170,47 @@ namespace PGR {
 
     }
 
-    bool Application::Overwrite(const std::string& path) {
-        std::fstream file(path);
-        if (file.is_open()) {
-            file.close();
-            if (m_Info.overwrite) {
-                LogWarning("Overwrite file: " + path);
+    bool isFileOpenedByOtherProcess(const std::string& filePath) {
+
+        HANDLE hFile = CreateFileA(
+            filePath.c_str(),
+            GENERIC_READ,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+        );
+
+        if (hFile == INVALID_HANDLE_VALUE) {
+            DWORD error = GetLastError();
+            if (error == ERROR_SHARING_VIOLATION || error == ERROR_LOCK_VIOLATION)
                 return true;
+        }
+
+        CloseHandle(hFile);
+        return false;
+    }
+
+    bool Application::Overwritea(const std::string& path, const std::string& name, const char* file, int line, const char* func) {
+
+        if (isFileOpenedByOtherProcess(path)) {
+            Exit("File is opened by other process: " + path, 1);
+        }
+
+        std::fstream File(path);
+        if (File.is_open()) {
+            File.close();
+            if (m_Info.overwrite) {
+                log(LogLevel::Warning, file, line, func, "Overwrite file: " + path);
             }
             else {
-                LogWarning("Do you want to overwrite file: " + GetDir() + "\\" + path + "? (y/n/a): ");
+                setLogEnd("");
+                log(LogLevel::Warning, file, line, func, "Do you want to overwrite file: " + GetDir() + "\\" + (name == "" ? path : name) + "? (Yes/No/All yes): ");
+                setLogEnd();
                 std::string input;
                 std::cin >> input;
+                std::cout << "\033[1A";
                 if (input == "y" || input == "Y") {
                     putchar('\n');
                     return true;
@@ -201,9 +230,9 @@ namespace PGR {
         return true;
     }
 
-    void Application::Remove(const char* path){
+    void Application::Removea(const char* path, const char* file, int line, const char* func){
         remove(path);
-        LogNotice("Removed file: %s", path);
+        log(LogLevel::Notice, file, line, func, (std::string)"Remove file: " + path);
     }
 
 }
