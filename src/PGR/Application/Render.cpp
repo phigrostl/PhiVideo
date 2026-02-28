@@ -22,7 +22,7 @@ namespace PGR {
     }
 
     void Application::RenderVideo() {
-        ToDir(m_Info.ChartDir);
+        ToDir(m_Info.TempDir);
 
         if (m_Info.endTime == -1.0f) m_Info.endTime = m_Info.chart.data.time;
         float time = m_Info.endTime - m_Info.startTime;
@@ -65,10 +65,6 @@ namespace PGR {
         back.LoadFontTTF(FontInfo);
         back.Clear();
         RenderBack(&back);
-
-        for (int i = 0; i < CPUNum; i++) {
-            Overwrite("temp_video_" + std::to_string(i) + ".mp4");
-        }
 
         for (int i = 0; i < CPUNum; i++) {
             threads.emplace_back([this, i, &fbs, &fn, &lastFn, &lastTime, &currentFPS, frameNum, &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex, back, time]()
@@ -294,7 +290,6 @@ namespace PGR {
         for (auto& t : threads)
             t.join();
 
-        Overwrite("input_list.txt");
         std::ofstream inputListFile("input_list.txt");
         if (inputListFile.is_open()) {
             for (const auto& file : tempVideoFiles) {
@@ -304,28 +299,18 @@ namespace PGR {
             }
             inputListFile.close();
 
-            std::string concatCmd = "ffmpeg -y -loglevel error -f concat -safe 0 -i input_list.txt -c copy output.mp4";
-            Overwrite("output.mp4");
+            std::string concatCmd = "ffmpeg -y -loglevel error -f concat -safe 0 -i input_list.txt -c copy rendered.mp4";
             system(concatCmd.c_str());
-
-            Remove("input_list.txt");
         }
 
-        for (const auto& file : tempVideoFiles) {
-            if (!file.empty()) {
-                Remove(file.c_str());
-            }
-        }
-
-        Overwrite("output_cut.wav");
-        str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.ChartDir + "output.wav -t " + std::to_string(m_Info.endTime) + " -c copy output_cut.wav";
+        str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.TempDir + "mixed.wav -t " + std::to_string(m_Info.endTime) + " -c copy mixed_cut.wav";
         system(str.c_str());
 
         ToDir(m_Info.WorkDir);
 
         std::string filename = m_Info.OutPath + ".mp4";
 
-        str = "ffmpeg -y -loglevel error -i " + m_Info.ChartDir + "output.mp4 -i " + m_Info.ChartDir + "output_cut.wav -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest " + filename;
+        str = "ffmpeg -y -loglevel error -i " + m_Info.TempDir + "rendered.mp4 -i " + m_Info.TempDir + "mixed_cut.wav -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest " + filename;
         Overwrite(filename);
         system(str.c_str());
     }

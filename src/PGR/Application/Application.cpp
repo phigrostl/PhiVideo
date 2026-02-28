@@ -11,7 +11,7 @@ namespace PGR {
     }
 
     Application::~Application() {
-        Terminate();
+        if (m_Inited) Terminate();
     }
 
     LogLevel stringToLogLevel(const std::string& level_str) {
@@ -121,9 +121,13 @@ namespace PGR {
             delete m_Info.hitFxImgs[i];
         }
         m_Info.hitFxImgs.clear();
+
+        std::filesystem::remove_all(m_Info.TempDir);
     }
 
     void Application::Run() {
+        m_Inited = true;
+
         if (DEBUG)
             m_UI.title = m_UI.title2;
 
@@ -131,10 +135,6 @@ namespace PGR {
         GetSystemInfo(&sysInfo);
         const int maxThreads = (int)Min((float)sysInfo.dwNumberOfProcessors, 16.0f);
         int CPUNum = (int)Max(1.0f, Min((float)m_Info.CPUNum, (float)maxThreads));
-
-        ToDir(m_Info.ResDir);
-        m_Framebuffer->Clear(Vec3(0.0f, 0.0f, 0.0f));
-        m_Framebuffer->LoadFontTTF("Font.ttf");
 
         ToDir(m_Info.WorkDir);
 
@@ -160,17 +160,12 @@ namespace PGR {
             catch (std::exception& e) { LogError("Render Video Error: %s", e.what()); }
 
             ToDir(m_Info.ChartDir);
-            Remove("output.wav");
-            Remove("output_cut.wav");
-            Remove("output.mp4");
         }
-        
-        delete m_Framebuffer->GetFontInfo();
-        delete m_Framebuffer->GetDFontInfo();
 
         ToDir(m_Info.ChartDir);
-        Remove("blurred_output.png");
 
+        delete m_Framebuffer->GetFontInfo();
+        delete m_Framebuffer->GetDFontInfo();
     }
 
     bool isFileOpenedByOtherProcess(const std::string& filePath) {
@@ -227,15 +222,15 @@ namespace PGR {
                     putchar('\n');
                     return true;
                 }
-                else if (input == "n" || input == "N") {
-                    putchar('\n');
-                    Exit("Please clear or rename the file: " + path, 1);
-                    return false;
-                }
                 else if (input == "a" || input == "A") {
                     putchar('\n');
                     m_Info.overwrite = true;
                     return true;
+                }
+                else {
+                    putchar('\n');
+                    Exit("Please clear or rename the file: " + path, 1);
+                    return false;
                 }
             }
         }

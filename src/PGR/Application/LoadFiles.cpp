@@ -120,6 +120,22 @@ namespace PGR {
         catch (std::exception e) {
             Exit("Chart file format error.", 1);
         }
+
+        ToDir(m_Info.ChartDir);
+        for (int i = 0; true; i++) {
+            if (!std::filesystem::exists("temp" + std::to_string(i))) {
+                m_Info.TempDir = m_Info.ChartDir + "temp" + std::to_string(i) + "\\";
+                if (!std::filesystem::create_directory(m_Info.TempDir)) {
+                    Exit("Failed to create temp directory", 1);
+                }
+                break;
+            }
+
+            if (i >= 100) {
+                Exit("Failed to create temp directory", 1);
+            }
+        }
+
     }
 
     void Application::LoadChartJson() {
@@ -376,9 +392,8 @@ namespace PGR {
 
         ToDir(m_Info.ChartDir);
         m_Info.chart.image = new Texture(m_Info.chart.info.picture);
-        Overwrite("blurred_output.png");
-        system(("ffmpeg -y -loglevel error -i " + m_Info.chart.info.picture + " -vf \"gblur = sigma = 99.0\" blurred_output.png").c_str());
-        m_Info.chart.imageBlur = (new Texture("blurred_output.png"))->GetShaderImg(1.5f);
+        system(("ffmpeg -y -loglevel error -i " + m_Info.chart.info.picture + " -vf \"gblur = sigma = 99.0\" " + m_Info.TempDir + "blurred_output.png").c_str());
+        m_Info.chart.imageBlur = (new Texture(m_Info.TempDir + "blurred_output.png"))->GetShaderImg(1.5f);
 
         LogInfo("Loaded Images");
     }

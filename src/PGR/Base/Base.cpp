@@ -3,11 +3,12 @@
 void Exita(std::string message, const int code, const char* file, int line, const char* func) {
     setLogLevel(LogLevel::Debug);
 
-    if (code != 0)
+    if (code != 0) {
         log(LogLevel::Fatal, file, line, func, message);
+        log(LogLevel::Notice, file, line, func, "Exiting with code: %d", code);
+    }
     else
         log(LogLevel::Notice, file, line, func, message);
-    log(LogLevel::Notice, file, line, func, "Exiting with code: %d", code);
     exit(code);
 }
 

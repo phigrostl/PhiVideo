@@ -1,11 +1,31 @@
 #include "PGR/Application/Application.h"
 
-#include <Windows.h>
-#include <string>
-#include <iostream>
+PGR::Application App;
+
+void CtrlC() {
+    std::cout << "\n\n\r";
+    LogNotice("Ctrl-C", 0);
+}
+
+BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
+    switch (dwCtrlType) {
+    case CTRL_C_EVENT:
+    case CTRL_CLOSE_EVENT:
+    case CTRL_BREAK_EVENT:
+    case CTRL_LOGOFF_EVENT:
+    case CTRL_SHUTDOWN_EVENT:
+        Exit("Console closed", 0);
+        break;
+    default:
+        return FALSE;
+    }
+    return TRUE;
+}
 
 int main(int argc, char** argv) {
     system("CHCP 65001 > nul 2>&1");
+
+    if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) Exit("Failed to set console control handler", 1);
 
     char workDir[MAX_PATH];
     if (!_getcwd(workDir, MAX_PATH))
@@ -34,8 +54,7 @@ int main(int argc, char** argv) {
     if (!_getcwd(ResDir, MAX_PATH))
         Exit("Failed to get resources directory", 1);
 
-    PGR::Application App(argc, argv, workDir, ResDir);
-
+    App = PGR::Application(argc, argv, workDir, ResDir);
     App.Run();
 
     LogNotice("Exiting application");

@@ -13,6 +13,8 @@
 #include <codecvt>
 #include <locale>
 #include <mutex>
+#include <csignal>
+#include <climits>
 #include <strsafe.h>
 #include <tchar.h>
 #include <filesystem>
@@ -57,6 +59,7 @@ namespace PGR {
         std::string ChartDir;
         std::string WorkDir;
         std::string ResDir;
+        std::string TempDir;
         std::string InfoPath;
         std::string OutPath;
 
@@ -83,6 +86,11 @@ namespace PGR {
             int argc, char** argv,
             std::string WorkDir, std::string ResDir
         );
+        Application() {
+            argc = 0;
+            argv = nullptr;
+            m_Framebuffer = nullptr;
+        }
 
         ~Application();
 
@@ -149,6 +157,7 @@ namespace PGR {
 
         UI m_UI;
         RenderInfo m_Info;
+        bool m_Inited = false;
 
         std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     };
@@ -156,5 +165,4 @@ namespace PGR {
 }
 
 #define Overwrite(path) Overwritea(path, __FILE__, __LINE__, __func__)
-
 #define Remove(path) Removea(path, __FILE__, __LINE__, __func__)

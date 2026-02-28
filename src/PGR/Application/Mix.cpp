@@ -3,7 +3,7 @@
 namespace PGR {
 
 	void Application::MixMusic() {
-        ToDir(m_Info.ChartDir);
+        ToDir(m_Info.TempDir);
         int CPUNum = m_Info.CPUNum;
 
         std::string click = m_Info.ResDir + "\\Notes\\Tap.wav";
@@ -11,8 +11,7 @@ namespace PGR {
         std::string flick = m_Info.ResDir + "\\Notes\\Flick.wav";
         std::string music = m_Info.ChartDir + "\\" + m_Info.chart.info.song;
 
-        Overwrite("output.wav");
-        system(("ffmpeg -y -loglevel error -i \"" + music + "\" output.wav").c_str());
+        system(("ffmpeg -y -loglevel error -i \"" + music + "\" music.wav").c_str());
         const int BATCH_SIZE = 100;
 
         struct NoteInfo {
@@ -60,12 +59,7 @@ namespace PGR {
         std::atomic<int> completedBatches = 0;
         int ThreadsN = 0;
 
-        Overwrite("output_empty.wav");
-        system("ffmpeg -y -loglevel error -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 1 output_empty.wav");
-
-        for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
-            Overwrite("output_batch_" + std::to_string(batchIdx) + ".wav");
-        }
+        system("ffmpeg -y -loglevel error -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 1 empty.wav");
 
         for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
             audioThreads.emplace_back([this, batchIdx, BATCH_SIZE, &allNotes, totalNotes, &tempAudioFiles, &tempMFilesMutex, &completedBatches, totalBatches, &ThreadsN, CPUNum]() {
@@ -109,8 +103,8 @@ namespace PGR {
                         delayTime + "|" + delayTime + "[" + outputLabel + "];");
                 }
 
-                std::string tempOutputFile = "output_batch_" + std::to_string(batchIdx) + ".wav";
-                std::string batchCmd = "ffmpeg -y -loglevel error -i output_empty.wav";
+                std::string tempOutputFile = "batch_" + std::to_string(batchIdx) + ".wav";
+                std::string batchCmd = "ffmpeg -y -loglevel error -i empty.wav";
 
                 for (const auto& file : tempInputFiles) {
                     batchCmd += " -i " + file;
@@ -161,26 +155,16 @@ namespace PGR {
             for (int i = 0; i < tempAudioFiles.size(); i++) {
                 mergeCmd += "[" + std::to_string(i) + ":a]";
             }
-            mergeCmd += "amix=inputs=" + std::to_string(tempAudioFiles.size()) + ":duration=longest:normalize=0\" output0.wav";
-
-            Overwrite("output0.wav");
+            mergeCmd += "amix=inputs=" + std::to_string(tempAudioFiles.size()) + ":duration=longest:normalize=0\" notes.wav";
             system(mergeCmd.c_str());
-
-            for (const auto& file : tempAudioFiles) {
-                Remove(file.c_str());
-            }
         }
         else {
-            Overwrite("output0.wav");
-            system("ffmpeg -y -loglevel error -i output.wav output0.wav");
+            system("ffmpeg -y -loglevel error -i empty.wav notes.wav");
         }
 
-        std::string mixCmd = "ffmpeg -y -loglevel error -i \"" + music + "\" -i output0.wav " +
-            "-filter_complex \"[0:a]volume=" + std::to_string(m_Info.musicVolume) + "[a0];[1:a]volume=" + std::to_string(m_Info.notesVolume) + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" output.wav";
+        std::string mixCmd = "ffmpeg -y -loglevel error -i \"" + music + "\" -i notes.wav " +
+            "-filter_complex \"[0:a]volume=" + std::to_string(m_Info.musicVolume) + "[a0];[1:a]volume=" + std::to_string(m_Info.notesVolume) + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" mixed.wav";
         system(mixCmd.c_str());
-
-        Remove("output0.wav");
-        Remove("output_empty.wav");
 
         LogInfo("Mixed music");
 	}
