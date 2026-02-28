@@ -18,11 +18,16 @@ namespace PGR {
         holdAtlasMH.X = (float)cJSON_GetArrayItem(array, 0)->valueint;
         holdAtlasMH.Y = (float)cJSON_GetArrayItem(array, 1)->valueint;
 
-        root = cJSON_GetObjectItem(root, "title");
         title = cJSON_GetObjectItem(root, "Title")->valuestring;
         title2 = cJSON_GetObjectItem(root, "Title2")->valuestring;
         combo = cJSON_GetObjectItem(root, "Combo")->valuestring;
         info = cJSON_GetObjectItem(root, "Info")->valuestring;
+
+        array = cJSON_GetObjectItem(root, "noteDelay");
+        noteDelays[0] = (float)cJSON_GetArrayItem(array, 0)->valuedouble;
+        noteDelays[1] = (float)cJSON_GetArrayItem(array, 1)->valuedouble;
+        noteDelays[2] = (float)cJSON_GetArrayItem(array, 0)->valuedouble;
+        noteDelays[3] = (float)cJSON_GetArrayItem(array, 2)->valuedouble;
 
         cJSON_Delete(root);
     }

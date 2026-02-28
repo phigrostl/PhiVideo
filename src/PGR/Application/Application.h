@@ -36,6 +36,8 @@ namespace PGR {
         Vec2 holdAtlas;
         Vec2 holdAtlasMH;
 
+        float noteDelays[4] = { 0 };
+
         std::string title;
         std::string title2;
         std::string combo;

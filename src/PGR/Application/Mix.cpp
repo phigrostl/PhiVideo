@@ -27,6 +27,8 @@ namespace PGR {
             for (const auto& note : m_Info.chart.data.judgeLines[i].notes) {
                 NoteInfo ni;
 
+                float delay = 0;
+
                 switch (note.type) {
                 case 1:
                 case 3:
@@ -42,7 +44,7 @@ namespace PGR {
                     continue;
                 }
 
-                ni.delayTime = note.secTime * 1000.0f - (note.type == 2 ? 30.0f : 0.0f);
+                ni.delayTime = (note.secTime - m_UI.noteDelays[note.type - 1]) * 1000.0f;
                 allNotes.push_back(ni);
             }
         }

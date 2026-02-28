@@ -48,8 +48,8 @@ namespace PGR {
         app.add_option("-z,--zoom", m_Info.size, "Zoom")->check(CLI::PositiveNumber);
         app.add_option("-m,--musicVolume", m_Info.musicVolume, "Music Volume")->check(CLI::PositiveNumber);
         app.add_option("-n,--notesVolume", m_Info.notesVolume, "Notes Volume")->check(CLI::PositiveNumber);
-        app.add_option("-W,--width", m_Width, "Width")->check(CLI::PositiveNumber);
-        app.add_option("-H,--height", m_Height, "Height")->check(CLI::PositiveNumber);
+        app.add_option("-W,--width", m_Width, "Width")->check(CLI::Range(10, INT_MAX));
+        app.add_option("-H,--height", m_Height, "Height")->check(CLI::Range(10, INT_MAX));
         app.add_option("-a,--aas", m_Info.aas, "Anti-Aliasing Scale")->check(CLI::PositiveNumber);
         app.add_option("-b,--bitrate", m_Info.bitrate, "Bitrate")->check(CLI::PositiveNumber);
         app.add_option("-l,--logLevel", log_level_str, "Log level");

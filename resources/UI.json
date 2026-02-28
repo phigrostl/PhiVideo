@@ -3,10 +3,14 @@
 	"HoldAtlas": [ 50, 50 ],
 	"HoldAtlasMH": [ 100, 100 ],
 
-	"Title": {
-		"Title": "谱面演示",
-		"Title2": "谱面揭秘",
-		"Info": "Code & File by たおりん on Bilibili | - Phigros - ",
-		"Combo": "AUTOPLAY"
-	}
+	"Title": "谱面演示",
+	"Title2": "谱面揭秘",
+	"Info": "Code & File by たおりん on Bilibili | - Phigros - ",
+	"Combo": "AUTOPLAY",
+
+	"NoteDelay": [
+		0.00061239101845989,
+		0.03229180050666951,
+		0.00183683717307712
+	]
 }
