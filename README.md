@@ -41,13 +41,29 @@ PhiVideo [FILE_PATH] [OPTIONS]
 ##### UI.json
 ```json
 {
-    "hitFx": ["[x]", "[y]"],                // 打击特效长宽数量
-    "holdAtlas": ["[head]", "[tail]"],      // Hold 音符头尾切割位置
-    "holdAtlasMH": ["[head]", "[tail]"],    // Hold 双押音符头尾切割位置
-    "title": "Title",                       // 标题文本
-    "title2": "DEBUGTitle",                 // 调试标题文本
-    "combo": "Combo",                       // 连击文本
-    "info": "Info"                          // 水印文本
+    "HitFx": ["[x]", "[y]"],                // 打击特效长宽数量
+    "HoldAtlas": ["[head]", "[tail]"],      // Hold 音符头尾切割位置
+    "HoldAtlasMH": ["[head]", "[tail]"],    // Hold 双押音符头尾切割位置
+    "Title": "Title",                       // 标题文本
+    "Title2": "DEBUGTitle",                 // 调试标题文本
+    "Info": "Info"                          // 水印文本
+    "Combo": "Combo",                       // 连击文本
+}
+{
+	"HitFx": [[x], [y]],                    // 打击特效长宽数量
+	"HoldAtlas": [[head], [tail]],          // Hold 音符头尾切割位置
+	"HoldAtlasMH": [[head], [tail]],        // Hold 双押音符头尾切割位置
+
+	"Title": "Title",                       // 标题文本
+	"Title2": "DEBUGTitle",                 // 调试标题文本
+	"Info": "Info",                         // 水印文本
+	"Combo": "Combo"                        // 连击文本
+
+	"NoteDelay": [                          // 音符提前时间
+		[Tap/Hold],
+		[Drag],
+		[Flick]
+	]
 }
 ```
 
@@ -57,19 +73,6 @@ PhiVideo [FILE_PATH] [OPTIONS]
 ### 注意事项
  - 该程序会占用大量内存与 CPU 资源，请确保计算机性能足够
  - 可能会替换删除掉某些文件，请提前备份重要数据
-   - 一定被删除的
-     - `Chart\blurred_output.png`
-   - 可能被删除的
-     - `Work\*.mp4`
-     - `Work\*.png`
-     - `Chart\output.wav`
-     - `Chart\output_cut.wav`
-     - `Chart\output_empty.wav`
-     - `Chart\output0.wav`
-     - `Chart\output_batch_*.mp4`
-     - `Chart\output.mp4`
-     - `Chart\temp_video_*.mp4`
-     - `Chart\input_list.txt`
      
 
 ### 自行编译
