@@ -1,7 +1,12 @@
 #include "Base.h"
 
 void Exita(std::string message, const int code, const char* file, int line, const char* func) {
-    log(LogLevel::Fatal, file, line, func, message);
+    setLogLevel(LogLevel::Debug);
+
+    if (code != 0)
+        log(LogLevel::Fatal, file, line, func, message);
+    else
+        log(LogLevel::Notice, file, line, func, message);
     log(LogLevel::Notice, file, line, func, "Exiting with code: %d", code);
     exit(code);
 }

@@ -67,8 +67,7 @@ namespace PGR {
         RenderBack(&back);
 
         for (int i = 0; i < CPUNum; i++) {
-            if (Overwrite("temp_video_" + std::to_string(i) + ".mp4"))
-                break;
+            Overwrite("temp_video_" + std::to_string(i) + ".mp4");
         }
 
         for (int i = 0; i < CPUNum; i++) {

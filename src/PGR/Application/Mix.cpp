@@ -62,8 +62,7 @@ namespace PGR {
         system("ffmpeg -y -loglevel error -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 1 output_empty.wav");
 
         for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
-            if (Overwrite("output_batch_" + std::to_string(batchIdx) + ".wav"))
-                break;
+            Overwrite("output_batch_" + std::to_string(batchIdx) + ".wav");
         }
 
         for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {

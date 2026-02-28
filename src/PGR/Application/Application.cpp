@@ -195,11 +195,13 @@ namespace PGR {
         return false;
     }
 
-    bool Application::Overwritea(const std::string& path, const std::string& name, const char* file, int line, const char* func) {
+    bool Application::Overwritea(const std::string& path, const char* file, int line, const char* func) {
+
+        std::string utf8path = gbk2utf8(path);
 
         if (isFileOpenedByOtherProcess(path)) {
-            LogError("File is opened by other process: " + path);
-            LogError("Please close the process which is using the file.");
+            log(LogLevel::Error, file, line, func, "File is opened by other process: " + utf8path);
+            log(LogLevel::Error, file, line, func, "Please close the process which is using the file.");
             while (isFileOpenedByOtherProcess(path)) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
@@ -209,13 +211,13 @@ namespace PGR {
         if (File.is_open()) {
             File.close();
             if (m_Info.overwrite) {
-                log(LogLevel::Warning, file, line, func, "Overwrite file: " + path);
+                log(LogLevel::Notice, file, line, func, "Overwrite file: " + utf8path);
             }
             else {
                 LogLevel l = getLogLevel();
                 setLogEnd("");
                 setLogLevel(LogLevel::Warning);
-                log(LogLevel::Warning, file, line, func, "Do you want to overwrite file: " + GetDir() + "\\" + (name == "" ? path : name) + "? (Yes/No/All yes): ");
+                log(LogLevel::Warning, file, line, func, "Do you want to overwrite file: " + gbk2utf8(GetDir()) + "\\" + utf8path + "? (Yes/No/All yes): ");
                 setLogEnd();
                 setLogLevel(l);
                 std::string input;
