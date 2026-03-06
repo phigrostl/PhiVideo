@@ -392,7 +392,7 @@ namespace PGR {
 
         ToDir(m_Info.ChartDir);
         m_Info.chart.image = new Texture(m_Info.chart.info.picture);
-        system(("ffmpeg -y -loglevel error -i " + m_Info.chart.info.picture + " -vf \"gblur = sigma = 99.0\" " + m_Info.TempDir + "blurred_output.png").c_str());
+        system(("ffmpeg -y -loglevel error -i \"" + m_Info.chart.info.picture + "\" -vf \"gblur = sigma = 99.0\" \"" + m_Info.TempDir + "blurred_output.png\"").c_str());
         m_Info.chart.imageBlur = (new Texture(m_Info.TempDir + "blurred_output.png"))->GetShaderImg(1.5f);
 
         LogInfo("Loaded Images");

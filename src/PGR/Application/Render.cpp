@@ -303,14 +303,14 @@ namespace PGR {
             system(concatCmd.c_str());
         }
 
-        str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i " + m_Info.TempDir + "mixed.wav -t " + std::to_string(m_Info.endTime) + " -c copy mixed_cut.wav";
+        str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i \"" + m_Info.TempDir + "mixed.wav\" -t " + std::to_string(m_Info.endTime) + " -c copy mixed_cut.wav";
         system(str.c_str());
 
         ToDir(m_Info.WorkDir);
 
         std::string filename = m_Info.OutPath + ".mp4";
 
-        str = "ffmpeg -y -loglevel error -i " + m_Info.TempDir + "rendered.mp4 -i " + m_Info.TempDir + "mixed_cut.wav -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest " + filename;
+        str = "ffmpeg -y -loglevel error -i \"" + m_Info.TempDir + "rendered.mp4\" -i \"" + m_Info.TempDir + "mixed_cut.wav\" -c:v libx264 -pix_fmt yuv420p -preset medium -b:v " + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest \"" + filename + "\"";
         Overwrite(filename);
         system(str.c_str());
     }
