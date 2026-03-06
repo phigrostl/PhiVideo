@@ -1,6 +1,8 @@
 # PhiVideo
 
-> 一个基于 `C++` 的 `Phigros` 谱面渲染器 <br> 本工具仅用于学习交流，请勿用于商业用途
+> 一个基于 `C++` 的 `Phigros` 谱面渲染器 <br> 本工具仅用于学习交流，请勿用于商业用途 <br> 项目资源文件均属于 `南京鸽游网络有限公司` ，本作者不拥有任何版权
+
+> 注意：该项目的代码质量较低，很多错误处理不完善，若在使用时遇到问题请先检查输入是否正确，如果问题仍然存在请提交 [issue](https://github.com/phigrostl/PhiVideo/issues) <br> 部分特殊字符会引发程序问题，请避免在输入文件路径或输出文件名中使用特殊字符
 
 ## 使用方法
 
@@ -79,8 +81,9 @@ PhiVideo [FILE_PATH] [OPTIONS]
 1. 安装 [`Visual Studio 2019`](https://visualstudio.microsoft.com/zh-hans/downloads/) 或更高版本
 2. 安装 [`CMake 3.18`](https://cmake.org/download/) 或更高版本
 3. 克隆或下载项目到本地
-4. 使用 `CMake `生成 `Visual Studio` 解决方案
+4. 使用 `CMake` 生成 `Visual Studio` 解决方案
 5. 在 `Visual Studio` 中打开生成的解决方案并编译
+6. 按 [`Release`](#release) 部分的使用方法运行编译后的程序
 
 ## 技术栈
 - 语言：`C++`
@@ -90,6 +93,11 @@ PhiVideo [FILE_PATH] [OPTIONS]
   - [`FFmpeg`](https://ffmpeg.org/download.html)
   - [`CLI11`](https://github.com/CLIUtils/CLI11)
   - [`cJSON`](https://github.com/DaveGamble/cJSON)
+
+## 特殊字符包含
+ - 中文字符可正常使用
+ - 某些特殊语言中的字符
+ - `\` `/` `:` `*` `?` `"` `<` `>` `|`
 
 ## Star History
 
