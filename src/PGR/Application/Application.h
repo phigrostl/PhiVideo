@@ -4,21 +4,24 @@
 #include "PGR/Render/Framebuffer.h"
 #include "PGR/Log/Log.h"
 
-#include <map>
-#include <chrono>
-#include <fstream>
-#include <thread>
+#include <climits>
+#include <csignal>
+#include <cstdlib>
+
 #include <direct.h>
 #include <mmsystem.h>
-#include <codecvt>
-#include <locale>
-#include <mutex>
-#include <csignal>
-#include <climits>
+#include <shlwapi.h>
 #include <strsafe.h>
 #include <tchar.h>
+
+#include <chrono>
+#include <codecvt>
+#include <fstream>
 #include <filesystem>
-#include <shlwapi.h>
+#include <locale>
+#include <map>
+#include <mutex>
+#include <thread>
 
 #include "cJSON/cJSON.h"
 #include "CLI/CLI11.h"
