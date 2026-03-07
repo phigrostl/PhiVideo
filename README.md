@@ -95,7 +95,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
   - [`cJSON`](https://github.com/DaveGamble/cJSON)
 
 ## 特殊字符
- - 中文字符，空格，可正常使用
+ - `中文字符`，`空格`，`终端特殊字元(不含下文特殊字符)`，可正常使用
  - 某些特殊语言中的字符
  - `\` `/` `:` `*` `?` `"` `<` `>` `|`
 
