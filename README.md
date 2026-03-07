@@ -43,15 +43,6 @@ PhiVideo [FILE_PATH] [OPTIONS]
 ##### UI.json
 ```json
 {
-    "HitFx": ["[x]", "[y]"],                // 打击特效长宽数量
-    "HoldAtlas": ["[head]", "[tail]"],      // Hold 音符头尾切割位置
-    "HoldAtlasMH": ["[head]", "[tail]"],    // Hold 双押音符头尾切割位置
-    "Title": "Title",                       // 标题文本
-    "Title2": "DEBUGTitle",                 // 调试标题文本
-    "Info": "Info"                          // 水印文本
-    "Combo": "Combo",                       // 连击文本
-}
-{
 	"HitFx": [[x], [y]],                    // 打击特效长宽数量
 	"HoldAtlas": [[head], [tail]],          // Hold 音符头尾切割位置
 	"HoldAtlasMH": [[head], [tail]],        // Hold 双押音符头尾切割位置
@@ -61,7 +52,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
 	"Info": "Info",                         // 水印文本
 	"Combo": "Combo"                        // 连击文本
 
-	"NoteDelay": [                          // 音符提前时间
+	"NoteDelay": [                          // 音符音频提前时间
 		[Tap/Hold],
 		[Drag],
 		[Flick]
