@@ -33,30 +33,30 @@ namespace PGR {
 
     };
 
-	struct NoteImgs {
+    struct NoteImgs {
         NoteImgs();
 
-		Texture* click;
-		Texture* drag;
-		Texture* hold;
-		Texture* flick;
+        Texture* click;
+        Texture* drag;
+        Texture* hold;
+        Texture* flick;
 
-		Texture* holdBody = nullptr;
-		Texture* holdHead = nullptr;
-		Texture* holdTail = nullptr;
+        Texture* holdBody = nullptr;
+        Texture* holdHead = nullptr;
+        Texture* holdTail = nullptr;
 
-		Texture* clickMH;
-		Texture* dragMH;
-		Texture* holdMH;
-		Texture* flickMH;
+        Texture* clickMH;
+        Texture* dragMH;
+        Texture* holdMH;
+        Texture* flickMH;
 
-		Texture* holdMHBody = nullptr;
-		Texture* holdMHHead = nullptr;
-		Texture* holdMHTail = nullptr;
+        Texture* holdMHBody = nullptr;
+        Texture* holdMHHead = nullptr;
+        Texture* holdMHTail = nullptr;
 
-		Texture* hitFx;
+        Texture* hitFx;
 
-	};
+    };
 
     struct NoteMap {
         NoteMap() = default;

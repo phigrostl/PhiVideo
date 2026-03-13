@@ -14,16 +14,13 @@ size_t getTerminalWidth() {
 int getVisibleLength(const std::string& str) {
     int length = 0;
     bool in_escape = false;
-    
+
     for (char c : str) {
-        if (c == '\033')
-            in_escape = true;
-        else if (in_escape && c == 'm')
-            in_escape = false;
-        else if (!in_escape)
-            length++;
+        if (c == '\033') in_escape = true;
+        else if (in_escape && c == 'm') in_escape = false;
+        else if (!in_escape) length++;
     }
-    
+
     return length;
 }
 
@@ -67,7 +64,7 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
 
     try {
         const size_t buffer_size = 1024;
-        char buffer[buffer_size] = { 0 };
+        char buffer[buffer_size] = {0};
 
         va_list va_args;
         va_start(va_args, format);
@@ -100,32 +97,28 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
                 std::string trimmed_str;
                 int current_length = 0;
                 bool in_escape = false;
-                
+
                 for (char c : log_str) {
                     if (c == '\033') {
                         in_escape = true;
                         trimmed_str += c;
-                    } 
-                    else if (in_escape && c == 'm') {
+                    } else if (in_escape && c == 'm') {
                         in_escape = false;
                         trimmed_str += c;
-                    } 
-                    else if (!in_escape) {
+                    } else if (!in_escape) {
                         if (current_length >= terminal_width - 13)
                             break;
                         current_length++;
                         trimmed_str += c;
-                    } 
-                    else
+                    } else
                         trimmed_str += c;
                 }
-                
-                log_str = trimmed_str + "...";
+
+                log_str = trimmed_str + "\033[0m...";
             }
 
             std::cout << log_str;
-        }
-        else if (std::string(buffer).find('\n') != std::string::npos) {
+        } else if (std::string(buffer).find('\n') != std::string::npos) {
             std::istringstream iss(buffer);
             std::vector<std::string> lines;
             std::string Line;
@@ -147,8 +140,7 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
                 << oss2.str();
 
             std::cout << oss1.str() << g_log_end;
-        }
-        else {
+        } else {
             std::ostringstream oss;
 
             if (ls == '\r') {
@@ -163,9 +155,8 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
 
             std::cout << oss.str() << g_log_end;
         }
-        
-    }
-    catch (const std::exception& e) {
+
+    } catch (const std::exception& e) {
         std::cerr << "[" << getCurrentTime() << "]"
             << getColoredLogLevel(LogLevel::Error)
             << "[\033[38;2;180;000;158m" << file << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "

@@ -2,14 +2,14 @@
 
 namespace PGR {
 
-    Vec2 Note::getclickEffect(float w, float h, EventsValue ev) {
-        Vec2 pos = rotatePoint(
-            ev.x * w, ev.y * h,
-            positionX * PGRW * w,
-            ev.rotate
-        );
-        return pos;
-    }
+	Vec2 Note::getclickEffect(float w, float h, EventsValue ev) {
+		Vec2 pos = rotatePoint(
+			ev.x * w, ev.y * h,
+			positionX * PGRW * w,
+			ev.rotate
+		);
+		return pos;
+	}
 
 	NoteImgs::NoteImgs()
 		: click(new Texture("Notes\\Tap.png")),
@@ -20,6 +20,7 @@ namespace PGR {
 		dragMH(new Texture("Notes\\DragMH.png")),
 		holdMH(new Texture("Notes\\HoldMH.png")),
 		flickMH(new Texture("Notes\\FlickMH.png")),
-		hitFx(new Texture("Notes\\HitFx.png")) {}
+		hitFx(new Texture("Notes\\HitFx.png")) {
+	}
 
 }

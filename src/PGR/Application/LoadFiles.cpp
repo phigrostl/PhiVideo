@@ -41,8 +41,7 @@ namespace PGR {
             std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             file.close();
             m_UI = UI(json);
-        }
-        catch (std::exception e) {
+        } catch (std::exception e) {
             Exit("UI.json not found or format error.", 1);
         }
 
@@ -51,14 +50,12 @@ namespace PGR {
             if (m_Info.InfoPath != "") {
                 std::filesystem::path path(m_Info.InfoPath);
                 file.open(m_Info.InfoPath);
-                if (path.is_absolute())
-                    m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
+                if (path.is_absolute()) m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
                 else {
                     m_Info.InfoPath = "./" + m_Info.InfoPath;
                     m_Info.ChartDir = m_Info.WorkDir + GetFilePath(m_Info.InfoPath);
                 }
-            }
-            else {
+            } else {
                 OPENFILENAME ofn;
                 char szFile[MAX_PATH] = "";
 
@@ -73,51 +70,38 @@ namespace PGR {
                 ofn.lpstrTitle = "Choose a ChartInfo file";
                 ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-                if (GetOpenFileName(&ofn))
-                    file.open(ofn.lpstrFile);
+                if (GetOpenFileName(&ofn)) file.open(ofn.lpstrFile);
                 m_Info.InfoPath = ofn.lpstrFile;
                 m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
             }
 
-            if (!file.is_open())
-                Exit("Please select a CORRECT ChartInfo file.", 1);
+            if (!file.is_open()) Exit("Please select a CORRECT ChartInfo file.", 1);
             else {
                 while (!file.eof()) {
                     std::string line;
                     std::getline(file, line);
-                    if (line.find("Name:") == 0)
-                        m_Info.chart.info.name = line.substr(6);
-                    else if (line.find("Level:") == 0)
-                        m_Info.chart.info.level = line.substr(7);
-                    else if (line.find("Song:") == 0)
-                        m_Info.chart.info.song = line.substr(6);
-                    else if (line.find("Picture:") == 0)
-                        m_Info.chart.info.picture = line.substr(9);
-                    else if (line.find("Chart:") == 0)
-                        m_Info.chart.info.chart = line.substr(7);
-                    else if (line.find("Composer: ") == 0)
-                        m_Info.chart.info.composer = line.substr(10);
-                    else if (line.find("Illustrator: ") == 0)
-                        m_Info.chart.info.illustrator = line.substr(13);
-                    else if (line.find("Charter: ") == 0)
-                        m_Info.chart.info.charter = line.substr(9);
+                    if (line.find("Name:") == 0) m_Info.chart.info.name = line.substr(6);
+                    else if (line.find("Level:") == 0) m_Info.chart.info.level = line.substr(7);
+                    else if (line.find("Song:") == 0) m_Info.chart.info.song = line.substr(6);
+                    else if (line.find("Picture:") == 0) m_Info.chart.info.picture = line.substr(9);
+                    else if (line.find("Chart:") == 0) m_Info.chart.info.chart = line.substr(7);
+                    else if (line.find("Composer: ") == 0) m_Info.chart.info.composer = line.substr(10);
+                    else if (line.find("Illustrator: ") == 0) m_Info.chart.info.illustrator = line.substr(13);
+                    else if (line.find("Charter: ") == 0) m_Info.chart.info.charter = line.substr(9);
                 }
                 file.close();
             }
 
-            if (m_Info.chart.info.chart == "" || m_Info.chart.info.song == "" || m_Info.chart.info.picture == "")
-                throw std::exception();
+            if (m_Info.chart.info.chart == "" || m_Info.chart.info.song == "" || m_Info.chart.info.picture == "") throw std::exception();
 
             LogInfo("Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s", m_Info.chart.info.name.c_str(), m_Info.chart.info.level.c_str(), m_Info.chart.info.song.c_str(), m_Info.chart.info.picture.c_str(), m_Info.chart.info.chart.c_str());
-        }
-        catch (std::exception e) {
+        } catch (std::exception e) {
             Exit("ChartInfo file format error.", 1);
         }
 
         try {
             LoadChartJson();
-        }
-        catch (std::exception e) {
+        } catch (std::exception e) {
             Exit("Chart file format error.", 1);
         }
 
@@ -125,15 +109,11 @@ namespace PGR {
         for (int i = 0; true; i++) {
             if (!std::filesystem::exists("temp" + std::to_string(i))) {
                 m_Info.TempDir = m_Info.ChartDir + "temp" + std::to_string(i) + "\\";
-                if (!std::filesystem::create_directory(m_Info.TempDir)) {
-                    Exit("Failed to create temp directory", 1);
-                }
+                if (!std::filesystem::create_directory(m_Info.TempDir)) Exit("Failed to create temp directory", 1);
                 break;
             }
 
-            if (i >= 100) {
-                Exit("Failed to create temp directory", 1);
-            }
+            if (i >= 100) Exit("Failed to create temp directory", 1);
         }
 
     }
@@ -174,8 +154,7 @@ namespace PGR {
                 if (legacyTemp != NULL) {
                     e.start2 = (float)cJSON_GetObjectItem(event, "start2")->valuedouble;
                     e.end2 = (float)cJSON_GetObjectItem(event, "end2")->valuedouble;
-                }
-                else {
+                } else {
                     float t;
                     t = e.start;
                     e.start = (int)(t / 1000.0f) / 880.0f;
@@ -242,8 +221,7 @@ namespace PGR {
                 jline.notes.push_back(n);
             }
 
-            std::sort(jline.speedEvents.begin(), jline.speedEvents.end(), [](SpeedEvent a, SpeedEvent b)
-                { return a.startTime < b.startTime; });
+            std::sort(jline.speedEvents.begin(), jline.speedEvents.end(), [](SpeedEvent a, SpeedEvent b) { return a.startTime < b.startTime; });
             for (size_t j = 0; j < jline.speedEvents.size(); j++) {
                 if (jline.speedEvents[j].endTime < jline.speedEvents[j].startTime) {
                     jline.speedEvents.erase(jline.speedEvents.begin() + j);
@@ -253,8 +231,7 @@ namespace PGR {
             for (size_t i = 1; i < jline.speedEvents.size(); i++)
                 jline.speedEvents[i].startTime = jline.speedEvents[i - 1u].endTime;
 
-            std::sort(jline.moveEvents.begin(), jline.moveEvents.end(), [](JudgeLineMoveEvent a, JudgeLineMoveEvent b)
-                { return a.startTime < b.startTime; });
+            std::sort(jline.moveEvents.begin(), jline.moveEvents.end(), [](JudgeLineMoveEvent a, JudgeLineMoveEvent b) { return a.startTime < b.startTime; });
             for (size_t j = 0; j < jline.moveEvents.size(); j++) {
                 if (jline.moveEvents[j].endTime < jline.moveEvents[j].startTime) {
                     jline.moveEvents.erase(jline.moveEvents.begin() + j);
@@ -264,8 +241,7 @@ namespace PGR {
             for (size_t i = 1; i < jline.moveEvents.size(); i++)
                 jline.moveEvents[i].startTime = jline.moveEvents[i - 1u].endTime;
 
-            std::sort(jline.rotateEvents.begin(), jline.rotateEvents.end(), [](JudgeLineRotateEvent a, JudgeLineRotateEvent b)
-                { return a.startTime < b.startTime; });
+            std::sort(jline.rotateEvents.begin(), jline.rotateEvents.end(), [](JudgeLineRotateEvent a, JudgeLineRotateEvent b) { return a.startTime < b.startTime; });
             for (size_t j = 0; j < jline.rotateEvents.size(); j++) {
                 if (jline.rotateEvents[j].endTime < jline.rotateEvents[j].startTime) {
                     jline.rotateEvents.erase(jline.rotateEvents.begin() + j);
@@ -275,8 +251,7 @@ namespace PGR {
             for (size_t i = 1; i < jline.rotateEvents.size(); i++)
                 jline.rotateEvents[i].startTime = jline.rotateEvents[i - 1u].endTime;
 
-            std::sort(jline.disappearEvents.begin(), jline.disappearEvents.end(), [](JudgeLineDisappearEvent a, JudgeLineDisappearEvent b)
-                { return a.startTime < b.startTime; });
+            std::sort(jline.disappearEvents.begin(), jline.disappearEvents.end(), [](JudgeLineDisappearEvent a, JudgeLineDisappearEvent b) { return a.startTime < b.startTime; });
             for (size_t j = 0; j < jline.disappearEvents.size(); j++) {
                 if (jline.disappearEvents[j].endTime < jline.disappearEvents[j].startTime) {
                     jline.disappearEvents.erase(jline.disappearEvents.begin() + j);
@@ -289,8 +264,7 @@ namespace PGR {
             jline.initSpeedEvents();
             jline.initNoteFp();
 
-            std::sort(jline.notes.begin(), jline.notes.end(), [](Note a, Note b)
-                { return a.time < b.time; });
+            std::sort(jline.notes.begin(), jline.notes.end(), [](Note a, Note b) { return a.time < b.time; });
 
             for (auto& n : jline.notes) {
                 n.secTime = jline.beat2sec(n.time, m_Info.chart.data.offset);
@@ -299,9 +273,7 @@ namespace PGR {
                 n.holdLength = n.secHoldTime * n.speed * PGRH;
                 n.isHold = n.type == 3;
                 n.line = (int)m_Info.chart.data.judgeLines.size();
-                if (noteSectCounter.find(n.secTime) == noteSectCounter.end()) {
-                    noteSectCounter[n.secTime] = 0;
-                }
+                if (noteSectCounter.find(n.secTime) == noteSectCounter.end()) noteSectCounter[n.secTime] = 0;
 
                 noteSectCounter[n.secTime]++;
             }
@@ -334,14 +306,14 @@ namespace PGR {
                     n.speed * 19997,
                     n.positionX * 12347
                 };
-                m_Info.chart.data.clickEffectCollection.push_back({ n, n.time, Particles((float)m_Width, (float)m_Height, seeds) });
-                m_Info.chart.data.clickCollection.push_back({ n, n.time, Particles((float)m_Width, (float)m_Height, seeds) });
+                m_Info.chart.data.clickEffectCollection.push_back({n, n.time, Particles((float)m_Width, (float)m_Height, seeds)});
+                m_Info.chart.data.clickCollection.push_back({n, n.time, Particles((float)m_Width, (float)m_Height, seeds)});
                 if (n.isHold) {
                     float dt = 16;
                     float st = n.time;
                     while (st < n.time + n.holdTime) {
                         seeds[4] = st;
-                        m_Info.chart.data.clickEffectCollection.push_back({ n, st, Particles((float)m_Width, (float)m_Height, seeds) });
+                        m_Info.chart.data.clickEffectCollection.push_back({n, st, Particles((float)m_Width, (float)m_Height, seeds)});
                         st += dt;
                     }
                 }
@@ -431,14 +403,13 @@ namespace PGR {
             std::string str = "open \"" + music + "\" alias music";
             mciSendString(str.c_str(), NULL, 0, NULL);
 
-            char durationStr[256] = { 0 };
+            char durationStr[256] = {0};
             MCIERROR err = mciSendStringA("status music length", durationStr, sizeof(durationStr), NULL);
             mciSendString("close music", NULL, 0, NULL);
             m_Info.chart.data.time = atoi(durationStr) / 1000.0f;
 
             LogInfo("Loaded Music");
-        }
-        catch (std::exception e) {
+        } catch (std::exception e) {
             Exit("Failed to load music", 1);
         }
     }

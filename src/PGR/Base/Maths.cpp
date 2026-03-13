@@ -3,32 +3,32 @@
 namespace PGR {
 
     Vec2 operator+ (const Vec2& left, const Vec2& right) {
-        return Vec2{ left.X + right.X, left.Y + right.Y };
+        return Vec2{left.X + right.X, left.Y + right.Y};
     }
     Vec2 operator- (const Vec2& left, const Vec2& right) {
-        return Vec2{ left.X - right.X, left.Y - right.Y };
+        return Vec2{left.X - right.X, left.Y - right.Y};
     }
 
     Vec3 operator+ (const Vec3& left, const Vec3& right) {
-        return Vec3{ left.X + right.X, left.Y + right.Y, left.Z + right.Z };
+        return Vec3{left.X + right.X, left.Y + right.Y, left.Z + right.Z};
     }
     Vec3 operator- (const Vec3& left, const Vec3& right) {
         return left + (-1.0f * right);
     }
     Vec3 operator* (const float left, const Vec3& right) {
-        return Vec3{ left * right.X, left * right.Y, left * right.Z };
+        return Vec3{left * right.X, left * right.Y, left * right.Z};
     }
     Vec3 operator* (const Vec3& left, const float right) {
         return right * left;
     }
     Vec3 operator* (const Vec3& left, const Vec3& right) {
-        return { left.X * right.X, left.Y * right.Y, left.Z * right.Z };
+        return {left.X * right.X, left.Y * right.Y, left.Z * right.Z};
     }
     Vec3 operator/ (const Vec3& left, const float right) {
         return left * (1.0f / right);
     }
     Vec3 operator/ (const Vec3& left, const Vec3& right) {
-        return left * Vec3{ 1.0f / right.X, 1.0f / right.Y, 1.0f / right.Z };
+        return left * Vec3{1.0f / right.X, 1.0f / right.Y, 1.0f / right.Z};
     }
     Vec3& operator*= (Vec3& left, const float right) {
         left = left * right;
@@ -44,19 +44,19 @@ namespace PGR {
     }
 
     Vec4 operator+ (const Vec4& left, const Vec4& right) {
-        return Vec4{ left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W };
+        return Vec4{left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W};
     }
     Vec4 operator- (const Vec4& left, const Vec4& right) {
-        return Vec4{ left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W };
+        return Vec4{left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W};
     }
     Vec4 operator* (const float left, const Vec4& right) {
-        return Vec4{ left * right.X, left * right.Y, left * right.Z, left * right.W };
+        return Vec4{left * right.X, left * right.Y, left * right.Z, left * right.W};
     }
     Vec4 operator* (const Vec4& left, const float right) {
         return right * left;
     }
     Vec4 operator* (const Vec4& left, const Vec4& right) {
-        return { left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W };
+        return {left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W};
     }
     Vec4 operator/ (const Vec4& left, const float right) {
         return left * (1.0f / right);
@@ -107,8 +107,7 @@ namespace PGR {
 
     float randf(const std::vector<float>& seeds, float min, float max) {
         uint64_t seed = 0;
-        for (const auto& val : seeds)
-        {
+        for (const auto& val : seeds) {
             const uint32_t* float_as_uint = reinterpret_cast<const uint32_t*>(&val);
             seed = seed * 31 + *float_as_uint;
         }

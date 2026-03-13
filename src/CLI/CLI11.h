@@ -5032,7 +5032,8 @@ namespace CLI {
     };
 
     inline AsNumberWithUnit::Options operator|(const AsNumberWithUnit::Options& a, const AsNumberWithUnit::Options& b) {
-        return static_cast<AsNumberWithUnit::Options>(static_cast<int>(a) | static_cast<int>(b));
+        using UnderlyingType = std::underlying_type_t<AsNumberWithUnit::Options>;
+        return static_cast<AsNumberWithUnit::Options>(static_cast<UnderlyingType>(a) | static_cast<UnderlyingType>(b));
     }
 
     /// Converts a human-readable size string (with unit literal) to uin64_t size.

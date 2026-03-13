@@ -41,7 +41,7 @@ namespace PGR {
         Vec2 holdAtlas;
         Vec2 holdAtlasMH;
 
-        float noteDelays[4] = { 0 };
+        float noteDelays[4] = {0};
 
         std::string title;
         std::string title2;
@@ -55,9 +55,9 @@ namespace PGR {
         NoteImgs noteImgs;
         std::vector<Texture*> hitFxImgs;
         Chart chart;
-        Texture* noteHeadImgs[4][2] = { 0 };
-        Texture* holdBodyImgs[2] = { 0 };
-        Texture* holdTailImgs[2] = { 0 };
+        Texture* noteHeadImgs[4][2] = {0};
+        Texture* holdBodyImgs[2] = {0};
+        Texture* holdTailImgs[2] = {0};
 
         std::string ChartDir;
         std::string WorkDir;
@@ -105,15 +105,12 @@ namespace PGR {
 
         std::string GetDir() {
             char dir[MAX_PATH];
-            if (!_getcwd(dir, MAX_PATH))
-                Exit("Failed to get Working Directory", 1);
+            if (!_getcwd(dir, MAX_PATH)) Exit("Failed to get Working Directory", 1);
             return dir;
         }
 
         void ToDir(const std::string& dir) {
-            if (_chdir(dir.c_str())) {
-                Exit("Failed to change directory to " + dir, 1);
-            }
+            if (_chdir(dir.c_str())) Exit("Failed to change directory to " + dir, 1);
         }
 
         std::string GetFileName(const std::string path) {
@@ -126,8 +123,7 @@ namespace PGR {
         std::string GetFilePath(const std::string& path) {
             std::string result = path;
             size_t pos = result.find_last_of("/\\");
-            if (pos != std::string::npos)
-                result = result.substr(0, pos + 1);
+            if (pos != std::string::npos) result = result.substr(0, pos + 1);
             return result;
         }
 

@@ -36,16 +36,13 @@ namespace PGR {
 
         float getFp(float t) {
             int i = findEvent(t, speedEvents);
-            if (i == -1)
-                return 0.0f;
-
+            if (i == -1) return 0.0f;
             SpeedEvent e = speedEvents[i];
             return e.floorPosition + (t - e.startTime) * e.value;
         }
 
         void initNoteFp() {
-            for (auto& n : notes)
-                n.floorPosition = getFp(n.time);
+            for (auto& n : notes) n.floorPosition = getFp(n.time);
         }
 
         EventsValue getState(float t, float offset) {
@@ -56,7 +53,7 @@ namespace PGR {
             float y = getPosYEvent(beatt, moveEvents);
             float alpha = getEventValue(beatt, disappearEvents);
             float speed = getSpeedValue(beatt, speedEvents);
-            return { rotate, x, y, alpha, speed };
+            return {rotate, x, y, alpha, speed};
         }
 
     };

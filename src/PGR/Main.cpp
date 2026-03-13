@@ -28,10 +28,9 @@ int main(int argc, char** argv) {
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) Exit("Failed to set console control handler", 1);
 
     char workDir[MAX_PATH];
-    if (!_getcwd(workDir, MAX_PATH))
-        Exit("Failed to get working directory", 1);
+    if (!_getcwd(workDir, MAX_PATH)) Exit("Failed to get working directory", 1);
 
-    char exeFullPath[MAX_PATH] = { 0 };
+    char exeFullPath[MAX_PATH] = {0};
     DWORD pathLen = GetModuleFileNameA(NULL, exeFullPath, MAX_PATH);
 
     if (pathLen == 0 || pathLen >= MAX_PATH)

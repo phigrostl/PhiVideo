@@ -2,7 +2,7 @@
 
 namespace PGR {
 
-	void Application::MixMusic() {
+    void Application::MixMusic() {
         ToDir(m_Info.TempDir);
         int CPUNum = m_Info.CPUNum;
 
@@ -48,8 +48,7 @@ namespace PGR {
             }
         }
 
-        std::sort(allNotes.begin(), allNotes.end(), [](const NoteInfo& a, const NoteInfo& b)
-            { return a.delayTime < b.delayTime; });
+        std::sort(allNotes.begin(), allNotes.end(), [](const NoteInfo& a, const NoteInfo& b) { return a.delayTime < b.delayTime; });
 
         size_t totalNotes = allNotes.size();
         int totalBatches = (int)((totalNotes + BATCH_SIZE - 1) / BATCH_SIZE);
@@ -100,7 +99,7 @@ namespace PGR {
 
                     std::string outputLabel = "delayed" + std::to_string(k);
                     filterComplexParts.push_back("[" + std::to_string(existingIndex) + ":a]adelay=" +
-                        delayTime + "|" + delayTime + "[" + outputLabel + "];");
+                                                 delayTime + "|" + delayTime + "[" + outputLabel + "];");
                 }
 
                 std::string tempOutputFile = "batch_" + std::to_string(batchIdx) + ".wav";
@@ -136,13 +135,11 @@ namespace PGR {
                 LogInfo("\rProcessing batch %d/%d", (int)completedBatches, totalBatches);
 
                 ThreadsN--;
-                });
+            });
 
         }
 
-        for (auto& thread : audioThreads) {
-            thread.join();
-        }
+        for (auto& thread : audioThreads) thread.join();
 
         if (tempAudioFiles.size() > 0) {
             std::string mergeCmd = "ffmpeg -y -loglevel error";
@@ -157,16 +154,13 @@ namespace PGR {
             }
             mergeCmd += "amix=inputs=" + std::to_string(tempAudioFiles.size()) + ":duration=longest:normalize=0\" notes.wav";
             system(mergeCmd.c_str());
-        }
-        else {
-            system("ffmpeg -y -loglevel error -i empty.wav notes.wav");
-        }
+        } else system("ffmpeg -y -loglevel error -i empty.wav notes.wav");
 
         std::string mixCmd = "ffmpeg -y -loglevel error -i \"" + music + "\" -i notes.wav " +
             "-filter_complex \"[0:a]volume=" + std::to_string(m_Info.musicVolume) + "[a0];[1:a]volume=" + std::to_string(m_Info.notesVolume) + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" mixed.wav";
         system(mixCmd.c_str());
 
         LogInfo("Mixed music");
-	}
+    }
 
 }

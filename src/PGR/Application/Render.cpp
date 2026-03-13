@@ -55,7 +55,7 @@ namespace PGR {
         }
 
         for (int i = 0; i < CPUNum; i++) {
-            int curE = curS + framesPerThread + (i < frameNum% CPUNum ? 1 : 0);
+            int curE = curS + framesPerThread + (i < frameNum % CPUNum ? 1 : 0);
             curE = (int)Min((float)curE, (float)frameNum);
             threadStart[i] = curS;
             threadEnd[i] = curE;
@@ -67,189 +67,185 @@ namespace PGR {
         RenderBack(&back);
 
         for (int i = 0; i < CPUNum; i++) {
-            threads.emplace_back([this, i, &fbs, &fn, &lastFn, &lastTime, &currentFPS, frameNum, &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex, back, time]()
-                {
-                    const int startFrame = threadStart[i];
-                    const int endFrame = threadEnd[i];
+            threads.emplace_back([this, i, &fbs, &fn, &lastFn, &lastTime, &currentFPS, frameNum, &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex, back, time]() {
+                const int startFrame = threadStart[i];
+                const int endFrame = threadEnd[i];
 
-                    char tempVideoFile[64];
-                    sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
+                char tempVideoFile[64];
+                sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
 
-                    const bool useAA = m_Info.aas > 1;
-                    const size_t srcWidth = m_Width;
-                    const size_t srcHeight = m_Height;
-                    const size_t dstWidth = useAA ? static_cast<size_t>(m_Width / m_Info.aas) : m_Width;
-                    const size_t dstHeight = useAA ? static_cast<size_t>(m_Height / m_Info.aas) : m_Height;
-                    const size_t fps = m_Info.FPS;
+                const bool useAA = m_Info.aas > 1;
+                const size_t srcWidth = m_Width;
+                const size_t srcHeight = m_Height;
+                const size_t dstWidth = useAA ? static_cast<size_t>(m_Width / m_Info.aas) : m_Width;
+                const size_t dstHeight = useAA ? static_cast<size_t>(m_Height / m_Info.aas) : m_Height;
+                const size_t fps = m_Info.FPS;
 
-                    char ffmpegCmd[512];
-                    sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
-                        dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile);
+                char ffmpegCmd[512];
+                sprintf_s(ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
+                          dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile);
 
-                    FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
-                    const size_t dstPixelCount = dstWidth * dstHeight;
-                    const size_t dstFrameSize = dstPixelCount * 3;
+                FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
+                const size_t dstPixelCount = dstWidth * dstHeight;
+                const size_t dstFrameSize = dstPixelCount * 3;
 
-                    unsigned char* frameData = new unsigned char[dstFrameSize];
-                    memset(frameData, 0, dstFrameSize);
-                    const size_t width3 = dstWidth * 3;
+                unsigned char* frameData = new unsigned char[dstFrameSize];
+                memset(frameData, 0, dstFrameSize);
+                const size_t width3 = dstWidth * 3;
 
-                    for (int j = startFrame; j < endFrame; j++) {
-                        fbs[i]->Clear(back);
-                        Render((static_cast<float>(j) / static_cast<float>(fps)) + m_Info.startTime, fbs[i], false);
+                for (int j = startFrame; j < endFrame; j++) {
+                    fbs[i]->Clear(back);
+                    Render((static_cast<float>(j) / static_cast<float>(fps)) + m_Info.startTime, fbs[i], false);
 
-                        const Vec3* colorBuffer = fbs[i]->GetColorData();
+                    const Vec3* colorBuffer = fbs[i]->GetColorData();
 
-                        if (useAA) {
-                            const int aaScaleInt = static_cast<int>(m_Info.aas);
-                            const float aaScale = m_Info.aas;
-                            const int sampleArea = aaScaleInt * aaScaleInt;
-                            const float invSampleArea = 1.0f / sampleArea;
+                    if (useAA) {
+                        const int aaScaleInt = static_cast<int>(m_Info.aas);
+                        const float aaScale = m_Info.aas;
+                        const int sampleArea = aaScaleInt * aaScaleInt;
+                        const float invSampleArea = 1.0f / sampleArea;
 
-                            for (size_t dy = 0; dy < dstHeight; ++dy) {
-                                const int srcY = static_cast<int>(dy * aaScale);
-                                const int srcYEnd = srcY + aaScaleInt;
+                        for (size_t dy = 0; dy < dstHeight; ++dy) {
+                            const int srcY = static_cast<int>(dy * aaScale);
+                            const int srcYEnd = srcY + aaScaleInt;
 
-                                unsigned char* currentRow = frameData + dy * width3;
+                            unsigned char* currentRow = frameData + dy * width3;
 
-                                for (size_t dx = 0; dx < dstWidth; ++dx) {
-                                    const int srcX = static_cast<int>(dx * aaScale);
-                                    const int srcXEnd = srcX + aaScaleInt;
+                            for (size_t dx = 0; dx < dstWidth; ++dx) {
+                                const int srcX = static_cast<int>(dx * aaScale);
+                                const int srcXEnd = srcX + aaScaleInt;
 
-                                    __m128 r_sum = _mm_setzero_ps();
-                                    __m128 g_sum = _mm_setzero_ps();
-                                    __m128 b_sum = _mm_setzero_ps();
-                                    int count = 0;
+                                __m128 r_sum = _mm_setzero_ps();
+                                __m128 g_sum = _mm_setzero_ps();
+                                __m128 b_sum = _mm_setzero_ps();
+                                int count = 0;
 
-                                    for (int sy = srcY; sy < srcYEnd && sy < srcHeight; ++sy) {
-                                        const Vec3* srcRow = colorBuffer + sy * srcWidth;
-                                        for (size_t sx = srcX; sx < srcXEnd && sx < srcWidth; sx += 4) {
-                                            if (sx + 3 < srcXEnd && sx + 3 < srcWidth) {
-                                                const Vec3& c0 = srcRow[sx];
-                                                const Vec3& c1 = srcRow[sx + 1];
-                                                const Vec3& c2 = srcRow[sx + 2];
-                                                const Vec3& c3 = srcRow[sx + 3];
+                                for (int sy = srcY; sy < srcYEnd && sy < srcHeight; ++sy) {
+                                    const Vec3* srcRow = colorBuffer + sy * srcWidth;
+                                    for (size_t sx = srcX; sx < srcXEnd && sx < srcWidth; sx += 4) {
+                                        if (sx + 3 < srcXEnd && sx + 3 < srcWidth) {
+                                            const Vec3& c0 = srcRow[sx];
+                                            const Vec3& c1 = srcRow[sx + 1];
+                                            const Vec3& c2 = srcRow[sx + 2];
+                                            const Vec3& c3 = srcRow[sx + 3];
 
-                                                __m128 r = _mm_set_ps(c3.X, c2.X, c1.X, c0.X);
-                                                __m128 g = _mm_set_ps(c3.Y, c2.Y, c1.Y, c0.Y);
-                                                __m128 b = _mm_set_ps(c3.Z, c2.Z, c1.Z, c0.Z);
+                                            __m128 r = _mm_set_ps(c3.X, c2.X, c1.X, c0.X);
+                                            __m128 g = _mm_set_ps(c3.Y, c2.Y, c1.Y, c0.Y);
+                                            __m128 b = _mm_set_ps(c3.Z, c2.Z, c1.Z, c0.Z);
 
-                                                r_sum = _mm_add_ps(r_sum, r);
-                                                g_sum = _mm_add_ps(g_sum, g);
-                                                b_sum = _mm_add_ps(b_sum, b);
-                                                count += 4;
-                                            } else {
-                                                for (int i = sx; i < srcXEnd && i < srcWidth; ++i) {
-                                                    const Vec3& color = srcRow[i];
-                                                    r_sum = _mm_add_ss(r_sum, _mm_set_ss(color.X));
-                                                    g_sum = _mm_add_ss(g_sum, _mm_set_ss(color.Y));
-                                                    b_sum = _mm_add_ss(b_sum, _mm_set_ss(color.Z));
-                                                    count++;
-                                                }
-                                                break;
+                                            r_sum = _mm_add_ps(r_sum, r);
+                                            g_sum = _mm_add_ps(g_sum, g);
+                                            b_sum = _mm_add_ps(b_sum, b);
+                                            count += 4;
+                                        } else {
+                                            for (int i = sx; i < srcXEnd && i < srcWidth; ++i) {
+                                                const Vec3& color = srcRow[i];
+                                                r_sum = _mm_add_ss(r_sum, _mm_set_ss(color.X));
+                                                g_sum = _mm_add_ss(g_sum, _mm_set_ss(color.Y));
+                                                b_sum = _mm_add_ss(b_sum, _mm_set_ss(color.Z));
+                                                count++;
                                             }
+                                            break;
                                         }
                                     }
-
-                                    __m128 r_avg = _mm_mul_ps(r_sum, _mm_set1_ps(invSampleArea));
-                                    __m128 g_avg = _mm_mul_ps(g_sum, _mm_set1_ps(invSampleArea));
-                                    __m128 b_avg = _mm_mul_ps(b_sum, _mm_set1_ps(invSampleArea));
-
-                                    __m128 mult = _mm_set1_ps(255.0f);
-                                    r_avg = _mm_mul_ps(r_avg, mult);
-                                    g_avg = _mm_mul_ps(g_avg, mult);
-                                    b_avg = _mm_mul_ps(b_avg, mult);
-
-                                    __m128i ri = _mm_cvtps_epi32(r_avg);
-                                    __m128i gi = _mm_cvtps_epi32(g_avg);
-                                    __m128i bi = _mm_cvtps_epi32(b_avg);
-
-                                    size_t dstPixelOffset = dx * 3;
-                                    currentRow[dstPixelOffset] = static_cast<unsigned char>(_mm_extract_epi32(ri, 0));
-                                    currentRow[dstPixelOffset + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 0));
-                                    currentRow[dstPixelOffset + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 0));
                                 }
+
+                                __m128 r_avg = _mm_mul_ps(r_sum, _mm_set1_ps(invSampleArea));
+                                __m128 g_avg = _mm_mul_ps(g_sum, _mm_set1_ps(invSampleArea));
+                                __m128 b_avg = _mm_mul_ps(b_sum, _mm_set1_ps(invSampleArea));
+
+                                __m128 mult = _mm_set1_ps(255.0f);
+                                r_avg = _mm_mul_ps(r_avg, mult);
+                                g_avg = _mm_mul_ps(g_avg, mult);
+                                b_avg = _mm_mul_ps(b_avg, mult);
+
+                                __m128i ri = _mm_cvtps_epi32(r_avg);
+                                __m128i gi = _mm_cvtps_epi32(g_avg);
+                                __m128i bi = _mm_cvtps_epi32(b_avg);
+
+                                size_t dstPixelOffset = dx * 3;
+                                currentRow[dstPixelOffset] = static_cast<unsigned char>(_mm_extract_epi32(ri, 0));
+                                currentRow[dstPixelOffset + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 0));
+                                currentRow[dstPixelOffset + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 0));
                             }
                         }
-                        else {
-                            const Vec3* srcRow = colorBuffer;
-                            unsigned char* dstRow = frameData;
+                    } else {
+                        const Vec3* srcRow = colorBuffer;
+                        unsigned char* dstRow = frameData;
 
-                            for (size_t y = 0; y < dstHeight; ++y) {
-                                size_t x = 0;
-                                for (; x + 3 < dstWidth; x += 4) {
-                                    const Vec3& c0 = srcRow[x];
-                                    const Vec3& c1 = srcRow[x + 1];
-                                    const Vec3& c2 = srcRow[x + 2];
-                                    const Vec3& c3 = srcRow[x + 3];
+                        for (size_t y = 0; y < dstHeight; ++y) {
+                            size_t x = 0;
+                            for (; x + 3 < dstWidth; x += 4) {
+                                const Vec3& c0 = srcRow[x];
+                                const Vec3& c1 = srcRow[x + 1];
+                                const Vec3& c2 = srcRow[x + 2];
+                                const Vec3& c3 = srcRow[x + 3];
 
-                                    __m128 r = _mm_set_ps(c3.X, c2.X, c1.X, c0.X);
-                                    __m128 g = _mm_set_ps(c3.Y, c2.Y, c1.Y, c0.Y);
-                                    __m128 b = _mm_set_ps(c3.Z, c2.Z, c1.Z, c0.Z);
+                                __m128 r = _mm_set_ps(c3.X, c2.X, c1.X, c0.X);
+                                __m128 g = _mm_set_ps(c3.Y, c2.Y, c1.Y, c0.Y);
+                                __m128 b = _mm_set_ps(c3.Z, c2.Z, c1.Z, c0.Z);
 
-                                    __m128 mult = _mm_set1_ps(255.0f);
-                                    r = _mm_mul_ps(r, mult);
-                                    g = _mm_mul_ps(g, mult);
-                                    b = _mm_mul_ps(b, mult);
+                                __m128 mult = _mm_set1_ps(255.0f);
+                                r = _mm_mul_ps(r, mult);
+                                g = _mm_mul_ps(g, mult);
+                                b = _mm_mul_ps(b, mult);
 
-                                    __m128i ri = _mm_cvtps_epi32(r);
-                                    __m128i gi = _mm_cvtps_epi32(g);
-                                    __m128i bi = _mm_cvtps_epi32(b);
+                                __m128i ri = _mm_cvtps_epi32(r);
+                                __m128i gi = _mm_cvtps_epi32(g);
+                                __m128i bi = _mm_cvtps_epi32(b);
 
-                                    dstRow[x * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 0));
-                                    dstRow[x * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 0));
-                                    dstRow[x * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 0));
+                                dstRow[x * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 0));
+                                dstRow[x * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 0));
+                                dstRow[x * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 0));
 
-                                    dstRow[(x + 1) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 1));
-                                    dstRow[(x + 1) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 1));
-                                    dstRow[(x + 1) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 1));
+                                dstRow[(x + 1) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 1));
+                                dstRow[(x + 1) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 1));
+                                dstRow[(x + 1) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 1));
 
-                                    dstRow[(x + 2) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 2));
-                                    dstRow[(x + 2) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 2));
-                                    dstRow[(x + 2) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 2));
+                                dstRow[(x + 2) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 2));
+                                dstRow[(x + 2) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 2));
+                                dstRow[(x + 2) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 2));
 
-                                    dstRow[(x + 3) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 3));
-                                    dstRow[(x + 3) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 3));
-                                    dstRow[(x + 3) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 3));
-                                }
-
-                                for (; x < dstWidth; ++x) {
-                                    const Vec3& color = srcRow[x];
-                                    size_t dstPixelOffset = x * 3;
-                                    dstRow[dstPixelOffset] = static_cast<unsigned char>(color.X * 255.0f);
-                                    dstRow[dstPixelOffset + 1] = static_cast<unsigned char>(color.Y * 255.0f);
-                                    dstRow[dstPixelOffset + 2] = static_cast<unsigned char>(color.Z * 255.0f);
-                                }
-
-                                srcRow += srcWidth;
-                                dstRow += width3;
+                                dstRow[(x + 3) * 3] = static_cast<unsigned char>(_mm_extract_epi32(ri, 3));
+                                dstRow[(x + 3) * 3 + 1] = static_cast<unsigned char>(_mm_extract_epi32(gi, 3));
+                                dstRow[(x + 3) * 3 + 2] = static_cast<unsigned char>(_mm_extract_epi32(bi, 3));
                             }
-                        }
-                        fwrite(frameData, 1u, dstFrameSize, ffmpegPipe);
 
-                        fn.fetch_add(1, std::memory_order_relaxed);
+                            for (; x < dstWidth; ++x) {
+                                const Vec3& color = srcRow[x];
+                                size_t dstPixelOffset = x * 3;
+                                dstRow[dstPixelOffset] = static_cast<unsigned char>(color.X * 255.0f);
+                                dstRow[dstPixelOffset + 1] = static_cast<unsigned char>(color.Y * 255.0f);
+                                dstRow[dstPixelOffset + 2] = static_cast<unsigned char>(color.Z * 255.0f);
+                            }
 
-                        auto currentTime = std::chrono::steady_clock::now();
-                        static constexpr std::chrono::seconds updateInterval(1);
-                        if (currentTime - lastTime >= updateInterval) {
-                            int renderedFrames = fn.load(std::memory_order_relaxed) - lastFn.load(std::memory_order_relaxed);
-                            currentFPS = static_cast<float>(renderedFrames) * 60.0f;
-                            lastFn.store(fn.load(std::memory_order_relaxed), std::memory_order_relaxed);
-                            lastTime = currentTime;
+                            srcRow += srcWidth;
+                            dstRow += width3;
                         }
                     }
+                    fwrite(frameData, 1u, dstFrameSize, ffmpegPipe);
 
-                    delete[] frameData;
-                    _pclose(ffmpegPipe);
+                    fn.fetch_add(1, std::memory_order_relaxed);
 
-                    LogInfo("Ending thread %d", i);
-
-                    {
-                        std::lock_guard<std::mutex> lock(tempVFilesMutex);
-                        tempVideoFiles[i] = tempVideoFile;
+                    auto currentTime = std::chrono::steady_clock::now();
+                    static constexpr std::chrono::seconds updateInterval(1);
+                    if (currentTime - lastTime >= updateInterval) {
+                        int renderedFrames = fn.load(std::memory_order_relaxed) - lastFn.load(std::memory_order_relaxed);
+                        currentFPS = static_cast<float>(renderedFrames) * 60.0f;
+                        lastFn.store(fn.load(std::memory_order_relaxed), std::memory_order_relaxed);
+                        lastTime = currentTime;
                     }
+                }
 
-                });
+                delete[] frameData;
+                _pclose(ffmpegPipe);
+
+                LogInfo("Ending thread %d", i);
+
+                std::lock_guard<std::mutex> lock(tempVFilesMutex);
+                tempVideoFiles[i] = tempVideoFile;
+
+            });
 
         }
 
@@ -273,11 +269,11 @@ namespace PGR {
 
                 char buf[512];
                 sprintf_s(buf, "\r%.2f%% %d.%d/%d.%d %.2fs/%.2fs(%.2fs) FPS: %d",
-                    progress,
-                    renderedFrames / fps, renderedFrames % fps,
-                    static_cast<int>(totalFrames) / fps, static_cast<int>(totalFrames) % fps,
-                    dur, estimatedTotalTime, remainingTime,
-                    static_cast<int>(currentFPS) / 60
+                          progress,
+                          renderedFrames / fps, renderedFrames % fps,
+                          static_cast<int>(totalFrames) / fps, static_cast<int>(totalFrames) % fps,
+                          dur, estimatedTotalTime, remainingTime,
+                          static_cast<int>(currentFPS) / 60
                 );
                 LogInfo("%s", buf);
             }
@@ -285,20 +281,14 @@ namespace PGR {
             float time = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::steady_clock::now() - start).count();
             LogInfo("Rendered videos in %.2fs, total frames: %d, average FPS: %.2f", time, frameNum, static_cast<double>(frameNum) / (double)time);
 
-            });
+        });
 
-        for (auto& t : threads)
-            t.join();
+        for (auto& t : threads) t.join();
 
         std::ofstream inputListFile("input_list.txt");
         if (inputListFile.is_open()) {
-            for (const auto& file : tempVideoFiles) {
-                if (!file.empty()) {
-                    inputListFile << "file '" << file << "'" << std::endl;
-                }
-            }
+            for (const auto& file : tempVideoFiles) if (!file.empty()) inputListFile << "file '" << file << "'" << std::endl;
             inputListFile.close();
-
             std::string concatCmd = "ffmpeg -y -loglevel error -f concat -safe 0 -i input_list.txt -c copy rendered.mp4";
             system(concatCmd.c_str());
         }
@@ -344,8 +334,7 @@ namespace PGR {
                 }
             }
             return tex;
-        }
-        else {
+        } else {
             const int h = headH + bh;
             Texture* tex = new Texture(w, h);
 
@@ -411,7 +400,7 @@ namespace PGR {
 
             Vec2 linePos[2] = {
                 rotatePoint(ev.x, ev.y, m_Height * LINEH * size, -ev.rotate),
-                rotatePoint(ev.x, ev.y, m_Height * LINEH * size, -ev.rotate + 180.0f) };
+                rotatePoint(ev.x, ev.y, m_Height * LINEH * size, -ev.rotate + 180.0f)};
 
             fb->DrawLine(
                 (int)(linePos[0].X + 0.5f), (int)(linePos[0].Y + 0.5f),
@@ -467,9 +456,7 @@ namespace PGR {
 
                 bool clicked = note.secTime <= t;
 
-                if (!note.isHold) {
-                    continue;
-                }
+                if (!note.isHold) continue;
 
                 if (note.secHoldEndTime <= t) {
                     combo++;
@@ -524,11 +511,9 @@ namespace PGR {
 
                 const float noteBodyHeight = Max(Hl, 0.0f);
 
-                if (Hl < 0.0f)
-                    if (!DEBUG)
-                        continue;
-                    else
-                        isHide = true;
+                if (Hl < 0.0f) 
+                    if (!DEBUG) continue;
+                    else isHide = true;
 
                 if (note.holdLength == 0.0f)
                     if (!DEBUG) continue;
@@ -538,6 +523,7 @@ namespace PGR {
                     noteHeadHeight = 0.0f;
                     noteFp = 0.0f;
                 }
+
                 const float noteTailFp = noteFp + noteBodyHeight;
                 Texture* holdImg = GetHoldTexture(noteHeadImg, (int)noteHeadHeight, noteBodyImg, (int)noteBodyHeight, noteTailImg, (int)noteTillHeight, (int)(thisNoteWidth * m_Width), (int)(noteTailFp <= viewFp ? -1 : viewFp - noteFp));
 
@@ -547,8 +533,7 @@ namespace PGR {
                 if (drawHead) {
                     drawX = headX - cosDrawRad * headImgWidth * texScale / 2.0f + drawHeadHeight * sinDrawRad - holdImg->GetHeight() * sinDrawRad;
                     drawY = headY + sinDrawRad * headImgWidth * texScale / 2.0f + drawHeadHeight * cosDrawRad - holdImg->GetHeight() * cosDrawRad;
-                }
-                else {
+                } else {
                     drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f - holdImg->GetHeight() * sinDrawRad;
                     drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f - holdImg->GetHeight() * cosDrawRad;
                 }
@@ -560,17 +545,14 @@ namespace PGR {
                     -1, -1,
                     noteDrawRotate, isHide ? 0.5f : 1.0f);
                 delete holdImg;
-                
+
 
                 if (DEBUG) {
-
                     EventsValue nev = line.getState(Max(t, note.secTime), m_Info.chart.data.offset);
 
                     char speedBuf[32];
-                    if (note.speed != nev.speed && clicked)
-                        sprintf(speedBuf, "%.2f : ", note.speed / nev.speed);
-                    else
-                        speedBuf[0] = 0;
+                    if (note.speed != nev.speed && clicked) sprintf(speedBuf, "%.2f : ", note.speed / nev.speed);
+                    else speedBuf[0] = 0;
 
                     std::string noteStr =
                         "[" + std::to_string(i) +
@@ -604,8 +586,7 @@ namespace PGR {
             for (size_t j = 0; j < notesCount; j++) {
                 const Note& note = notes[j];
 
-                if (note.isHold)
-                    continue;
+                if (note.isHold) continue;
 
                 if (note.secTime <= t) {
                     combo++;
@@ -670,21 +651,16 @@ namespace PGR {
                 }
 
                 if (DEBUG && drawHead) {
-
                     char speedBuf[32];
-                    if (note.speed != 1.0f)
-                        sprintf(speedBuf, "%.2f : ", note.speed);
-                    else
-                        speedBuf[0] = 0;
+                    if (note.speed != 1.0f) sprintf(speedBuf, "%.2f : ", note.speed);
+                    else speedBuf[0] = 0;
 
                     std::string noteStr =
                         "[" + std::to_string(i) +
                         "]" + speedBuf +
                         std::to_string((int)(note.time + 0.5f));
 
-                    if (!note.isAbove) {
-                        noteStr += " (Below)";
-                    }
+                    if (!note.isAbove) noteStr += " (Below)";
 
                     const float debugX = headX + sinDrawRad * oh;
                     const float debugY = headY + cosDrawRad * oh;
@@ -709,10 +685,8 @@ namespace PGR {
 
             float secnt = m_Info.chart.data.judgeLines[nm.note.line].beat2sec(nm.time, m_Info.chart.data.offset);
 
-            if (secnt > t)
-                break;
-            if (secnt + effectDur < t)
-                continue;
+            if (secnt > t) break;
+            if (secnt + effectDur < t) continue;
 
             float p = (t - secnt) / effectDur;
             float alpha = 1.0f - p;
@@ -772,12 +746,10 @@ namespace PGR {
 
         if (DEBUG) {
             std::sort(m_Info.chart.data.clickCollection.begin(), m_Info.chart.data.clickCollection.end(), [](const NoteMap& a, const NoteMap& b) {
-                if (a.note.secTime != b.note.secTime)
-                    return a.note.secTime < b.note.secTime;
-                if (a.note.positionX != b.note.positionX)
-                    return a.note.positionX < b.note.positionX;
+                if (a.note.secTime != b.note.secTime) return a.note.secTime < b.note.secTime;
+                if (a.note.positionX != b.note.positionX) return a.note.positionX < b.note.positionX;
                 return a.note.line < b.note.line;
-                });
+            });
 
             int n = 0;
             for (int i = 0; i < m_Info.chart.data.clickCollection.size(); i++) {
@@ -834,14 +806,10 @@ namespace PGR {
 
                 sprintf(PosXBuf, "%.2f", nm.note.positionX);
                 if (nm.note.isHold)
-                    if (nev.speed != nm.note.speed)
-                        sprintf(speedBuf, "%.2f : ", nm.note.speed / nev.speed);
-                    else
-                        speedBuf[0] = 0;
-                else if (nm.note.speed != 1.0f)
-                    sprintf(speedBuf, "%.2f : ", nm.note.speed);
-                else
-                    speedBuf[0] = 0;
+                    if (nev.speed != nm.note.speed) sprintf(speedBuf, "%.2f : ", nm.note.speed / nev.speed);
+                    else speedBuf[0] = 0;
+                else if (nm.note.speed != 1.0f) sprintf(speedBuf, "%.2f : ", nm.note.speed);
+                else speedBuf[0] = 0;
 
 
                 std::string noteStr =
@@ -851,18 +819,13 @@ namespace PGR {
                     +PosXBuf +
                     " : " + std::to_string((int)(nm.note.time + 0.5f));
 
-                if (nm.note.isHold)
-                    noteStr += " / " + std::to_string((int)(nm.note.time + nm.note.holdTime + 0.5f));
-
-                if (!nm.note.isAbove) {
-                    noteStr += " (Below)";
-                }
+                if (nm.note.isHold) noteStr += " / " + std::to_string((int)(nm.note.time + nm.note.holdTime + 0.5f));
+                if (!nm.note.isAbove) noteStr += " (Below)";
 
                 noteStrs.push_back(noteStr);
                 alphas.push_back(alpha);
 
                 if (alpha > 0.0f) {
-
                     fb->DrawTextTTF(
                         (int)(finalX + 0.5f), (int)(finalY / 1080.0f * m_Height + 0.5f),
                         std::to_string(n), Vec4(1.0f, 1.0f, 1.0f, alpha), m_Width * 0.01f, 0.5f, 0.5f
@@ -877,7 +840,6 @@ namespace PGR {
             float No = noteStrs.size() <= 20 ? 20.0f / 1080.0f * m_Height : 20.0f / 1080.0f * m_Height / (noteStrs.size() / 20.0f);
 
             for (int i = 0; i < noteStrs.size(); i++) {
-
                 fb->DrawTextTTF(
                     m_Width, (int)(Ny + 0.5f),
                     noteStrs[i],
@@ -895,8 +857,8 @@ namespace PGR {
                 float sy = (ev.y - 0.5f) * size + 0.5f;
                 if (sx < 0.1f || sx > 0.9f || sy < 0.1f || sy > 0.9f || ev.alpha < 0.0f) {
                     sprintf(Lbuf,
-                        "[%d](%.2f, %.2f) : %dd : %.2f : %.2f",
-                        i, ev.x, ev.y, (int)ev.rotate, ev.alpha, ev.speed);
+                            "[%d](%.2f, %.2f) : %dd : %.2f : %.2f",
+                            i, ev.x, ev.y, (int)ev.rotate, ev.alpha, ev.speed);
                     LineStrs.push_back(Lbuf);
                 }
             }
@@ -934,12 +896,8 @@ namespace PGR {
                 ESpeed += (size_t)findEvent(line.sec2beat(t, m_Info.chart.data.offset), line.speedEvents) + 1u;
             }
             char Str[32];
-            if (m_Info.chart.data.oneBPM) {
-                sprintf(Str, "Offset: %.2f BPM: %.2f", m_Info.chart.data.offset, m_Info.chart.data.judgeLines[0].bpm);
-            }
-            else {
-                sprintf(Str, "Offset: %.2f", m_Info.chart.data.offset);
-            }
+            if (m_Info.chart.data.oneBPM) sprintf(Str, "Offset: %.2f BPM: %.2f", m_Info.chart.data.offset, m_Info.chart.data.judgeLines[0].bpm);
+            else sprintf(Str, "Offset: %.2f", m_Info.chart.data.offset);
             InfoStrs.push_back(Str);
             InfoStrs.push_back("SpeedEvent : " + std::to_string(ESpeed) + " / " + std::to_string(ASpeed));
             InfoStrs.push_back("DisappearEvent : " + std::to_string(EDisappear) + " / " + std::to_string(ADisappear));
@@ -966,9 +924,8 @@ namespace PGR {
                 JudgeLine line = m_Info.chart.data.judgeLines[i];
                 for (const SpeedEvent& se : line.speedEvents) {
                     float secTime = line.beat2sec(se.startTime, m_Info.chart.data.offset);
-                    if (secTime + (30.0f / Min(m_Info.chart.data.judgeLines[i].bpm, 15 * m_Info.FPS)) > t && secTime <= t) {
-                        vs.push_back(SpeedEventLine{ i, se.startTime, t - secTime, se.value });
-                    }
+                    if (secTime + (30.0f / Min(m_Info.chart.data.judgeLines[i].bpm, 15 * m_Info.FPS)) > t && secTime <= t)
+                        vs.push_back(SpeedEventLine{i, se.startTime, t - secTime, se.value});
                 }
             }
 
@@ -990,9 +947,7 @@ namespace PGR {
 
                 sprintf(Sbuf, "[%zd]%d : %s", v.line, (int)(v.stime + 0.5f), speedBuf);
 
-                if (!m_Info.chart.data.oneBPM && v.stime <= 0.0f) {
-                    sprintf(Sbuf, "%s : %s", Sbuf, bpmBuf);
-                }
+                if (!m_Info.chart.data.oneBPM && v.stime <= 0.0f) sprintf(Sbuf, "%s : %s", Sbuf, bpmBuf);
 
                 fb->DrawTextTTF(
                     0, (int)Sy,
@@ -1083,8 +1038,7 @@ namespace PGR {
                 baseFontSize,
                 1.0f
             );
-        }
-        else {
+        } else {
             float scaledFontSize = baseFontSize * (m_Width * 0.5f / textWidth);
             int origTextWidth, origTextHeight;
 
@@ -1127,8 +1081,7 @@ namespace PGR {
                 "Illustrator: " + m_Info.chart.info.illustrator, Vec4(1.0f, 0.5f), m_Width * 18.0f / 1920.0f, 1.0f);
 
         char timeStr[32];
-        if (!DEBUG)
-            sprintf(timeStr, "%.2f%% %.2fs/%.2fs", (double)t / (double)endTime * 100.0, t, endTime);
+        if (!DEBUG) sprintf(timeStr, "%.2f%% %.2fs/%.2fs", (double)t / (double)endTime * 100.0, t, endTime);
         else {
             std::vector<size_t> BpmIndexes;
             for (size_t i = 0; i < m_Info.chart.data.judgeLines.size(); i++) {
@@ -1144,23 +1097,18 @@ namespace PGR {
             std::string bpmStr = "";
             for (size_t i = 0; i < BpmIndexes.size(); i++) {
                 char buf[32];
-                if (BpmIndexes.size() == 1)
-                    sprintf(buf, "%d/%d ", (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(t, m_Info.chart.data.offset), (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(endTime, m_Info.chart.data.offset));
-                else
-                    sprintf(buf, "[%.2f] %d/%d ", m_Info.chart.data.judgeLines[BpmIndexes[i]].bpm, (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(t, m_Info.chart.data.offset), (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(endTime, m_Info.chart.data.offset));
+                if (BpmIndexes.size() == 1) sprintf(buf, "%d/%d ", (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(t, m_Info.chart.data.offset), (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(endTime, m_Info.chart.data.offset));
+                else sprintf(buf, "[%.2f] %d/%d ", m_Info.chart.data.judgeLines[BpmIndexes[i]].bpm, (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(t, m_Info.chart.data.offset), (int)m_Info.chart.data.judgeLines[BpmIndexes[i]].sec2beat(endTime, m_Info.chart.data.offset));
                 bpmStr += buf;
-                if (i == BpmIndexes.size() - 1)
-                    bpmStr.pop_back();
+                if (i == BpmIndexes.size() - 1) bpmStr.pop_back();
             }
             sprintf(timeStr, "%.2f%% %.2fs/%.2fs (%s)", (double)t / (double)endTime * 100.0, t, endTime, bpmStr.c_str());
         }
 
         int w;
         fb->GetTextSize(timeStr, m_Width * 0.01f, &w, NULL);
-        if (w >= m_Width * 0.5f)
-            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr, Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f / (w / (m_Width * 0.5f)));
-        else
-            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr, Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f);
+        if (w >= m_Width * 0.5f) fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr, Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f / (w / (m_Width * 0.5f)));
+        else fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr, Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f);
 
         fb->DrawTextTTF(
             m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info, Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f

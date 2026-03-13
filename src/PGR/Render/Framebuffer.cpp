@@ -41,22 +41,22 @@ namespace PGR {
 
         const int index = x + y * m_Width;
         Vec3& target = m_ColorBuffer[index];
-        
+
         __m128 srcColor = _mm_set_ps(0.0f, color.Z, color.Y, color.X);
         __m128 dstColor = _mm_set_ps(0.0f, target.Z, target.Y, target.X);
         __m128 alpha = _mm_set_ps1(color.W);
         __m128 invAlpha = _mm_sub_ps(_mm_set_ps1(1.0f), alpha);
-        
+
         __m128 blended = _mm_add_ps(
             _mm_mul_ps(dstColor, invAlpha),
             _mm_mul_ps(srcColor, alpha)
         );
-        
+
         __m128 clamped = _mm_max_ps(
             _mm_min_ps(blended, _mm_set_ps1(1.0f)),
             _mm_set_ps1(0.0f)
         );
-        
+
         target.X = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(0, 0, 0, 0)));
         target.Y = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(1, 1, 1, 1)));
         target.Z = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(2, 2, 2, 2)));
@@ -100,8 +100,7 @@ namespace PGR {
                     if (!file) {
                         file.open("C:\\Windows\\Fonts\\arial.ttf", std::ios::binary);
                         LogError("Font file not found: %s", fontPath.c_str());
-                    }
-                    else Exit("Font file not found", 0);
+                    } else Exit("Font file not found", 0);
                 }
             }
         }
@@ -167,8 +166,7 @@ namespace PGR {
                 DrawCharTTF(xpos - ox, y - oy + Dbaseline, c, color, fontSize);
                 int kern = stbtt_GetCodepointKernAdvance(m_DefaultFontInfo, 0, c);
                 xpos += int(ax * DScale) + kern;
-            }
-            else {
+            } else {
                 int ax;
                 int lsb;
                 stbtt_GetCodepointHMetrics(m_FontInfo, c, &ax, &lsb);
@@ -242,8 +240,7 @@ namespace PGR {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     int px = xpos + w + xoff;
                     int py = h + yoff + baseline;
 
@@ -263,8 +260,7 @@ namespace PGR {
                 xpos += int(ax * DScale) + kern;
 
                 delete[] bitmap;
-            }
-            else {
+            } else {
                 int ax, lsb;
                 stbtt_GetCodepointHMetrics(m_FontInfo, c, &ax, &lsb);
 
@@ -291,8 +287,7 @@ namespace PGR {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     int px = xpos + w + xoff;
                     int py = h + yoff + baseline;
 
@@ -323,7 +318,7 @@ namespace PGR {
 
     }
 
-    Texture* Framebuffer::TextToTexture(const std::string & text, const Vec4 & color, float fontSize) {
+    Texture* Framebuffer::TextToTexture(const std::string& text, const Vec4& color, float fontSize) {
         if (text.empty() || fontSize <= 0.0f) {
             return new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
         }
@@ -386,7 +381,7 @@ namespace PGR {
     }
 
 
-    void Framebuffer::DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4 & color) {
+    void Framebuffer::DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color) {
         float dx = (float)(x1 - x0);
         float dy = (float)(y1 - y0);
 
@@ -427,7 +422,7 @@ namespace PGR {
         }
     }
 
-    void Framebuffer::FillRect(int x0, int y0, int x1, int y1, const Vec4 & color) {
+    void Framebuffer::FillRect(int x0, int y0, int x1, int y1, const Vec4& color) {
         if (x0 > x1) std::swap(x0, x1);
         if (y0 > y1) std::swap(y0, y1);
 
@@ -440,12 +435,12 @@ namespace PGR {
         }
     }
 
-    void Framebuffer::FillSizeRect(int x, int y, int w, int h, const Vec4 & color) {
+    void Framebuffer::FillSizeRect(int x, int y, int w, int h, const Vec4& color) {
         FillRect(x - w / 2, y - h / 2, x + w / 2, y + h / 2, color);
     }
 
 
-    void Framebuffer::DrawTexture(int x, int y, const Texture * texture, int w, int h, float rotation, const float alpha) {
+    void Framebuffer::DrawTexture(int x, int y, const Texture* texture, int w, int h, float rotation, const float alpha) {
         if (!texture || alpha <= 0.0f) return;
 
         if (w == -1) w = static_cast<int>(texture->GetWidth());
@@ -471,7 +466,7 @@ namespace PGR {
         else if (sinA < 0.001f && sinA > -0.001f) sinA = 0.0f;
 
         float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
-        int corners[4][2] = { {0, 0}, {w, 0}, {0, h}, {w, h} };
+        int corners[4][2] = {{0, 0}, {w, 0}, {0, h}, {w, h}};
         for (int k = 0; k < 4; ++k) {
             float rx = (float)corners[k][0] * cosA - (float)corners[k][1] * sinA;
             float ry = (float)corners[k][0] * sinA + (float)corners[k][1] * cosA;
@@ -498,7 +493,7 @@ namespace PGR {
         const float sinAInvSx = sinA * invSx;
         const float negSinAInvSy = -sinA * invSy;
         const float cosAInvSy = cosA * invSy;
-        
+
         const int yStart = std::clamp(y + startY, 0, windowHeight - 1);
         const int yEnd = std::clamp(y + endY, 0, windowHeight - 1);
         const int xStart = std::clamp(x + startX, 0, windowWidth - 1);
@@ -534,7 +529,7 @@ namespace PGR {
         }
     }
 
-    void Framebuffer::ToPNG(const std::string & path) {
+    void Framebuffer::ToPNG(const std::string& path) {
         const size_t totalSize = (size_t)m_Width * (size_t)m_Height * 3;
         unsigned char* data = new unsigned char[totalSize];
 

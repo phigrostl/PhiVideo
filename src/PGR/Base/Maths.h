@@ -19,24 +19,30 @@ namespace PGR {
         float X, Y;
 
         constexpr Vec2()
-            : X(0.0f), Y(0.0f) {}
+            : X(0.0f), Y(0.0f) {
+        }
         constexpr Vec2(float x, float y)
-            : X(x), Y(y) {}
+            : X(x), Y(y) {
+        }
     };
 
     struct Vec3 {
         float X, Y, Z;
 
         constexpr Vec3()
-            : X(0.0f), Y(0.0f), Z(0.0f) {}
+            : X(0.0f), Y(0.0f), Z(0.0f) {
+        }
         constexpr Vec3(float val)
-            : X(val), Y(val), Z(val) {}
+            : X(val), Y(val), Z(val) {
+        }
         constexpr Vec3(Vec2 v, float z)
-            : X(v.X), Y(v.Y), Z(z) {}
+            : X(v.X), Y(v.Y), Z(z) {
+        }
         constexpr Vec3(float x, float y, float z)
-            : X(x), Y(y), Z(z) {}
+            : X(x), Y(y), Z(z) {
+        }
 
-        operator Vec2() const { return { X, Y }; }
+        operator Vec2() const { return {X, Y}; }
 
     };
 
@@ -44,18 +50,23 @@ namespace PGR {
         float X, Y, Z, W;
 
         constexpr Vec4()
-            : X(0.0f), Y(0.0f), Z(0.0f), W(0.0f) {}
+            : X(0.0f), Y(0.0f), Z(0.0f), W(0.0f) {
+        }
         constexpr Vec4(float val)
-            : X(val), Y(val), Z(val), W(val) {}
+            : X(val), Y(val), Z(val), W(val) {
+        }
         constexpr Vec4(float x, float y, float z, float w)
-            : X(x), Y(y), Z(z), W(w) {}
+            : X(x), Y(y), Z(z), W(w) {
+        }
         constexpr Vec4(const Vec2& vec2, float z, float w)
-            : X(vec2.X), Y(vec2.Y), Z(z), W(w) {}
+            : X(vec2.X), Y(vec2.Y), Z(z), W(w) {
+        }
         constexpr Vec4(const Vec3& vec3, float w)
-            : X(vec3.X), Y(vec3.Y), Z(vec3.Z), W(w) {}
+            : X(vec3.X), Y(vec3.Y), Z(vec3.Z), W(w) {
+        }
 
-        operator Vec2() const { return { X, Y }; }
-        operator Vec3() const { return { X, Y, Z }; }
+        operator Vec2() const { return {X, Y}; }
+        operator Vec3() const { return {X, Y, Z}; }
     };
 
     Vec2 operator+ (const Vec2& left, const Vec2& right);

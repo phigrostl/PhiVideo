@@ -6,13 +6,11 @@ void Exita(std::string message, const int code, const char* file, int line, cons
     if (code != 0) {
         log(LogLevel::Fatal, file, line, func, message);
         log(LogLevel::Notice, file, line, func, "Exiting with code: %d", code);
-    }
-    else
-        log(LogLevel::Notice, file, line, func, message);
+    } else log(LogLevel::Notice, file, line, func, message);
     exit(code);
 }
 
-std::string wstr2str(const std::wstring & wstr) {
+std::string wstr2str(const std::wstring& wstr) {
     int bufferSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string str(bufferSize, 0);
     WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], bufferSize, nullptr, nullptr);

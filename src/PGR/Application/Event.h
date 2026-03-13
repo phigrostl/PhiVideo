@@ -73,11 +73,8 @@ namespace PGR {
             if (e.startTime <= t && t <= e.endTime) {
                 result = static_cast<int>(mid);
                 left = mid + 1;
-            }
-            else if (t < e.startTime)
-                right = mid - 1;
-            else
-                left = mid + 1;
+            } else if (t < e.startTime) right = mid - 1;
+            else left = mid + 1;
         }
 
         return result;
