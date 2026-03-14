@@ -3,7 +3,7 @@
 namespace PGR {
 
     Application::Application(int argc, char** argv, std::string WorkDir,
-                             std::string ResDir)
+        std::string ResDir)
         : argc(argc), argv(argv) {
         m_Info.WorkDir = WorkDir;
         m_Info.ResDir = ResDir;
@@ -14,9 +14,8 @@ namespace PGR {
         if (m_Inited) Terminate();
     }
 
-    LogLevel stringToLogLevel(const std::string& level_str) {
-        if (level_str[0] == 'd' || level_str[0] == 'D')
-            return LogLevel::Debug;
+    static LogLevel stringToLogLevel(const std::string& level_str) {
+        if (level_str[0] == 'd' || level_str[0] == 'D') return LogLevel::Debug;
         else if (level_str[0] == 'i' || level_str[0] == 'I') return LogLevel::Info;
         else if (level_str[0] == 'n' || level_str[0] == 'N') return LogLevel::Notice;
         else if (level_str[0] == 'w' || level_str[0] == 'W') return LogLevel::Warning;
@@ -31,8 +30,8 @@ namespace PGR {
     void Application::Init() {
         CLI::App app("PhiVideo", "PhiVideo");
         std::string log_level_str = "Debug";
-        app.add_option("File", m_Info.InfoPath, "The Path of the Chart file")
-            ->required(false);
+        app.add_option("File", m_Info.InfoPath, "The Path of the Chart file")->required(false);
+
         app.add_flag("-d,--debug", DEBUG, "Debug Mode");
         app.add_flag("-y,--overwrite", m_Info.overwrite, "Overwrite");
         app.add_option("-v,--video", m_Info.RenderVideo, "Render Video");
@@ -43,25 +42,18 @@ namespace PGR {
         app.add_option("-e,--endTime", m_Info.endTime, "Render to the Time");
         app.add_option("-z,--zoom", m_Info.size, "Zoom")->check(CLI::PositiveNumber);
 
-        app.add_option("-m,--musicVolume", m_Info.musicVolume, "Music Volume")
-            ->check(CLI::PositiveNumber);
-        app.add_option("-n,--notesVolume", m_Info.notesVolume, "Notes Volume")
-            ->check(CLI::PositiveNumber);
+        app.add_option("-m,--musicVolume", m_Info.musicVolume, "Music Volume")->check(CLI::PositiveNumber);
+        app.add_option("-n,--notesVolume", m_Info.notesVolume, "Notes Volume")->check(CLI::PositiveNumber);
 
-        app.add_option("-W,--width", m_Width, "Width")
-            ->check(CLI::Range(10, INT_MAX));
-        app.add_option("-H,--height", m_Height, "Height")
-            ->check(CLI::Range(10, INT_MAX));
+        app.add_option("-W,--width", m_Width, "Width")->check(CLI::Range(10, INT_MAX));
+        app.add_option("-H,--height", m_Height, "Height")->check(CLI::Range(10, INT_MAX));
 
-        app.add_option("-a,--aas", m_Info.aas, "Anti-Aliasing Scale")
-            ->check(CLI::PositiveNumber);
-        app.add_option("-b,--bitrate", m_Info.bitrate, "Bitrate")
-            ->check(CLI::PositiveNumber);
+        app.add_option("-a,--aas", m_Info.aas, "Anti-Aliasing Scale")->check(CLI::PositiveNumber);
+        app.add_option("-b,--bitrate", m_Info.bitrate, "Bitrate")->check(CLI::PositiveNumber);
 
         app.add_option("-l,--logLevel", log_level_str, "Log level");
         app.add_option("--FPS", m_Info.FPS, "FPS")->check(CLI::PositiveNumber);
-        app.add_option("--CPU", m_Info.CPUNum, "CPU Core Num")
-            ->check(CLI::Range(1, 24));
+        app.add_option("--CPU", m_Info.CPUNum, "CPU Core Num")->check(CLI::Range(1, 24));
 
         try {
             app.parse(argc, argv);
@@ -131,7 +123,6 @@ namespace PGR {
 
     void Application::Run() {
         m_Inited = true;
-
         if (DEBUG) m_UI.title = m_UI.title2;
 
         SYSTEM_INFO sysInfo;
@@ -160,8 +151,7 @@ namespace PGR {
                 LogError("Render Picture Error: %s", e.what());
             }
             Overwrite(m_Info.OutPath + std::to_string(m_Info.PicTime) + ".png");
-            m_Framebuffer->ToPNG(m_Info.OutPath + std::to_string(-m_Info.PicTime) +
-                                 ".png");
+            m_Framebuffer->ToPNG(m_Info.OutPath + std::to_string(-m_Info.PicTime) + ".png");
         }
 
         if (m_Info.RenderVideo) {
@@ -181,28 +171,24 @@ namespace PGR {
         delete m_Framebuffer->GetDFontInfo();
     }
 
-    bool isFileOpenedByOtherProcess(const std::string& filePath) {
+    static bool isFileOpenedByOtherProcess(const std::string& filePath) {
         HANDLE hFile = CreateFileA(filePath.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
         if (hFile == INVALID_HANDLE_VALUE) {
             DWORD error = GetLastError();
-            if (error == ERROR_SHARING_VIOLATION || error == ERROR_LOCK_VIOLATION)
-                return true;
+            if (error == ERROR_SHARING_VIOLATION || error == ERROR_LOCK_VIOLATION) return true;
         }
 
         CloseHandle(hFile);
         return false;
     }
 
-    bool Application::Overwritea(const std::string& path, const char* file,
-                                 int line, const char* func) {
+    bool Application::Overwritea(const std::string& path, const char* file, int line, const char* func) {
         std::string utf8path = gbk2utf8(path);
 
         if (isFileOpenedByOtherProcess(path)) {
-            log(LogLevel::Error, file, line, func,
-                "File is opened by other process: " + utf8path);
-            log(LogLevel::Error, file, line, func,
-                "Please close the process which is using the file.");
+            log(LogLevel::Error, file, line, func, "File is opened by other process: " + utf8path);
+            log(LogLevel::Error, file, line, func, "Please close the process which is using the file.");
             while (isFileOpenedByOtherProcess(path)) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
@@ -242,7 +228,7 @@ namespace PGR {
         return true;
     }
 
-    void Application::Removea(const char* path, const char* file, int line, const char* func) {
+    void Application::Removea(const char* path, const char* file, int line, const char* func) const {
         remove(path);
         log(LogLevel::Notice, file, line, func, (std::string)"Remove file: " + path);
     }

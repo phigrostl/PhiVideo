@@ -33,6 +33,7 @@
 
 #pragma once
 #pragma warning(disable: 26812)
+#pragma warning(disable: 26827)
 
 // Standard combined includes:
 #include <algorithm>
@@ -4907,10 +4908,11 @@ namespace CLI {
         /// UNIT_OPTIONAL/UNIT_REQUIRED throws ValidationError
         ///   if UNIT_REQUIRED is set and unit literal is not found.
         enum Options : std::uint8_t {
-            CASE_SENSITIVE = 0,
-            CASE_INSENSITIVE = 1,
-            UNIT_OPTIONAL = 0,
-            UNIT_REQUIRED = 2,
+            CASE_SENSITIVE = 0 << 0,
+            CASE_INSENSITIVE = 1 << 0,
+
+            UNIT_OPTIONAL = 0 << 1,
+            UNIT_REQUIRED = 1 << 1,
             DEFAULT = CASE_INSENSITIVE | UNIT_OPTIONAL
         };
 

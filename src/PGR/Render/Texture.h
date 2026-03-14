@@ -25,9 +25,9 @@ namespace PGR {
         std::string GetPath() const { return m_Path; }
         const Vec4* GetData() const { return m_Data; }
 
-        Texture* ClipBlockImg(int x0, int y0, int x1, int y1, bool reserve = true);
-        Texture* ColorTexture(Vec4 color, bool reserve = true);
-        Texture* GetShaderImg(float radius, bool reserve = true);
+        Texture* ClipBlockImg(int x0, int y0, int x1, int y1, bool reserve = true) const;
+        Texture* ColorTexture(Vec4 color, bool reserve = true) const;
+        Texture* GetShaderImg(float radius, bool reserve = true) const;
 
     private:
         void Init();

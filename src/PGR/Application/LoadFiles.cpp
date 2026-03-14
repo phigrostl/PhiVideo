@@ -50,8 +50,9 @@ namespace PGR {
             if (m_Info.InfoPath != "") {
                 std::filesystem::path path(m_Info.InfoPath);
                 file.open(m_Info.InfoPath);
-                if (path.is_absolute()) m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
-                else {
+                if (path.is_absolute()) {
+                    m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
+                } else {
                     m_Info.InfoPath = "./" + m_Info.InfoPath;
                     m_Info.ChartDir = m_Info.WorkDir + GetFilePath(m_Info.InfoPath);
                 }
@@ -75,8 +76,9 @@ namespace PGR {
                 m_Info.ChartDir = GetFilePath(m_Info.InfoPath);
             }
 
-            if (!file.is_open()) Exit("Please select a CORRECT ChartInfo file.", 1);
-            else {
+            if (!file.is_open()) {
+                Exit("Please select a CORRECT ChartInfo file.", 1);
+            } else {
                 while (!file.eof()) {
                     std::string line;
                     std::getline(file, line);
@@ -92,7 +94,9 @@ namespace PGR {
                 file.close();
             }
 
-            if (m_Info.chart.info.chart == "" || m_Info.chart.info.song == "" || m_Info.chart.info.picture == "") throw std::exception();
+            if (m_Info.chart.info.chart == "" || m_Info.chart.info.song == "" || m_Info.chart.info.picture == "") {
+                throw std::exception();
+            }
 
             LogInfo("Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s", m_Info.chart.info.name.c_str(), m_Info.chart.info.level.c_str(), m_Info.chart.info.song.c_str(), m_Info.chart.info.picture.c_str(), m_Info.chart.info.chart.c_str());
         } catch (std::exception e) {
@@ -143,7 +147,7 @@ namespace PGR {
             jline.bpm = (float)cJSON_GetObjectItem(line, "bpm")->valuedouble;
             events = cJSON_GetObjectItem(line, "judgeLineMoveEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
-                JudgeLineMoveEvent e;
+                JudgeLineMoveEvent e = JudgeLineMoveEvent();
                 event = cJSON_GetArrayItem(events, j);
                 e.startTime = (float)cJSON_GetObjectItem(event, "startTime")->valuedouble;
                 e.endTime = (float)cJSON_GetObjectItem(event, "endTime")->valuedouble;
@@ -167,7 +171,7 @@ namespace PGR {
             }
             events = cJSON_GetObjectItem(line, "judgeLineRotateEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
-                JudgeLineRotateEvent e;
+                JudgeLineRotateEvent e = JudgeLineRotateEvent();
                 event = cJSON_GetArrayItem(events, j);
                 e.startTime = (float)cJSON_GetObjectItem(event, "startTime")->valuedouble;
                 e.endTime = (float)cJSON_GetObjectItem(event, "endTime")->valuedouble;
@@ -177,7 +181,7 @@ namespace PGR {
             }
             events = cJSON_GetObjectItem(line, "judgeLineDisappearEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
-                JudgeLineDisappearEvent e;
+                JudgeLineDisappearEvent e = JudgeLineDisappearEvent();
                 event = cJSON_GetArrayItem(events, j);
                 e.startTime = (float)cJSON_GetObjectItem(event, "startTime")->valuedouble;
                 e.endTime = (float)cJSON_GetObjectItem(event, "endTime")->valuedouble;
@@ -187,7 +191,7 @@ namespace PGR {
             }
             events = cJSON_GetObjectItem(line, "speedEvents");
             for (int j = 0; j < cJSON_GetArraySize(events); j++) {
-                SpeedEvent e;
+                SpeedEvent e = SpeedEvent();
                 event = cJSON_GetArrayItem(events, j);
                 e.startTime = (float)cJSON_GetObjectItem(event, "startTime")->valuedouble;
                 e.endTime = (float)cJSON_GetObjectItem(event, "endTime")->valuedouble;
@@ -281,39 +285,33 @@ namespace PGR {
             m_Info.chart.data.judgeLines.push_back(jline);
             m_Info.chart.data.noteCount += (int)jline.notes.size();
 
-            LogInfo("Line: %d, Notes: %zd, Events: %zd", i, jline.notes.size(), jline.moveEvents.size() + jline.rotateEvents.size() + jline.disappearEvents.size() + jline.speedEvents.size());
+            LogInfo(
+                "Line: %d, Notes: %zd, Events: %zd", i, jline.notes.size(),
+                jline.moveEvents.size() + jline.rotateEvents.size() + jline.disappearEvents.size() + jline.speedEvents.size()
+            );
         }
 
-        for (long long i = 0; i < (int)m_Info.chart.data.judgeLines.size() - 1; i++) {
-            if (m_Info.chart.data.judgeLines[i].bpm != m_Info.chart.data.judgeLines[i + 1llu].bpm) {
-                m_Info.chart.data.oneBPM = false;
-                break;
+        if (m_Info.chart.data.judgeLines.size() != 0) {
+            for (long long i = 0; i < m_Info.chart.data.judgeLines.size() - 1; i++) {
+                if (m_Info.chart.data.judgeLines[i].bpm != m_Info.chart.data.judgeLines[i + 1llu].bpm) {
+                    m_Info.chart.data.sameBPM = false;
+                    break;
+                }
             }
         }
-        if (m_Info.chart.data.judgeLines.size() == 0) m_Info.chart.data.oneBPM = false;
 
         for (auto& line : m_Info.chart.data.judgeLines) {
             for (auto& n : line.notes) {
                 n.morebets = noteSectCounter[n.secTime] > 1;
                 EventsValue ev = line.getState(n.time, m_Info.chart.data.offset);
-                Vec2 pos = rotatePoint(
-                    ev.x * m_Width, ev.y * m_Height,
-                    n.positionX * m_Width * PGRW, ev.rotate);
-                std::vector<float> seeds = {
-                    0.0f,
-                    n.time,
-                    n.holdTime * 49999,
-                    n.speed * 19997,
-                    n.positionX * 12347
-                };
-                m_Info.chart.data.clickEffectCollection.push_back({n, n.time, Particles((float)m_Width, (float)m_Height, seeds)});
-                m_Info.chart.data.clickCollection.push_back({n, n.time, Particles((float)m_Width, (float)m_Height, seeds)});
+                Vec2 pos = rotatePoint(ev.x * m_Width, ev.y * m_Height, n.positionX * m_Width * PGRW, ev.rotate);
+                m_Info.chart.data.clickEffectCollection.push_back({ n.time, n,Particles((float)m_Width, (float)m_Height) });
+                m_Info.chart.data.clickCollection.push_back({ n.time,n, Particles((float)m_Width, (float)m_Height) });
                 if (n.isHold) {
                     float dt = 16;
                     float st = n.time;
                     while (st < n.time + n.holdTime) {
-                        seeds[4] = st;
-                        m_Info.chart.data.clickEffectCollection.push_back({n, st, Particles((float)m_Width, (float)m_Height, seeds)});
+                        m_Info.chart.data.clickEffectCollection.push_back({ st,n, Particles((float)m_Width, (float)m_Height) });
                         st += dt;
                     }
                 }
@@ -323,7 +321,10 @@ namespace PGR {
         std::sort(
             m_Info.chart.data.clickEffectCollection.begin(),
             m_Info.chart.data.clickEffectCollection.end(),
-            [this](NoteMap a, NoteMap b) { return m_Info.chart.data.judgeLines[a.note.line].beat2sec(a.time, m_Info.chart.data.offset) < m_Info.chart.data.judgeLines[b.note.line].beat2sec(b.time, m_Info.chart.data.offset); }
+            [this](HitFx a, HitFx b) {
+                return m_Info.chart.data.judgeLines[a.note.line].beat2sec(a.time, m_Info.chart.data.offset)
+                    < m_Info.chart.data.judgeLines[b.note.line].beat2sec(b.time, m_Info.chart.data.offset);
+            }
         );
 
         LogInfo("Organized Notes");
@@ -389,7 +390,8 @@ namespace PGR {
 
                 m_Info.hitFxImgs.push_back(
                     m_Info.noteImgs.hitFx->ClipBlockImg(x1, y1, x2, y2)
-                    ->ColorTexture(Vec4(PCOLOR, 1.0f), false));
+                    ->ColorTexture(Vec4(PCOLOR, 1.0f), false)
+                );
             }
         }
 
@@ -403,7 +405,7 @@ namespace PGR {
             std::string str = "open \"" + music + "\" alias music";
             mciSendString(str.c_str(), NULL, 0, NULL);
 
-            char durationStr[256] = {0};
+            char durationStr[256] = { 0 };
             MCIERROR err = mciSendStringA("status music length", durationStr, sizeof(durationStr), NULL);
             mciSendString("close music", NULL, 0, NULL);
             m_Info.chart.data.time = atoi(durationStr) / 1000.0f;

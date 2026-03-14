@@ -53,7 +53,7 @@ namespace PGR {
             float y = getPosYEvent(beatt, moveEvents);
             float alpha = getEventValue(beatt, disappearEvents);
             float speed = getSpeedValue(beatt, speedEvents);
-            return {rotate, x, y, alpha, speed};
+            return { rotate, x, y, alpha, speed };
         }
 
     };

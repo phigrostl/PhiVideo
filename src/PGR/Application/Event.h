@@ -63,15 +63,13 @@ namespace PGR {
         size_t right = es.size() - 1;
         int result = -1;
 
-        if (t < es[0].startTime || t > es[right].endTime) {
-            return -1;
-        }
+        if (t < es[0].startTime || t > es[right].endTime) return -1;
+
         while (left <= right) {
             size_t mid = left + (right - left) / 2;
             const T& e = es[mid];
-
             if (e.startTime <= t && t <= e.endTime) {
-                result = static_cast<int>(mid);
+                result = (int)mid;
                 left = mid + 1;
             } else if (t < e.startTime) right = mid - 1;
             else left = mid + 1;
@@ -83,11 +81,8 @@ namespace PGR {
     template<typename T>
     float getEventValue(float t, std::vector<T> es) {
         const int i = findEvent(t, es);
-        if (i == -1)
-            return 0.0f;
-
+        if (i == -1) return 0.0f;
         const T& e = es[i];
-
         return linear(t, e.startTime, e.endTime, e.start, e.end);
     }
 

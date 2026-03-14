@@ -2,12 +2,12 @@
 
 PGR::Application App;
 
-void CtrlC() {
+static void CtrlC() {
     std::cout << "\n\n\r";
     LogNotice("Ctrl-C", 0);
 }
 
-BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
+static BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
     switch (dwCtrlType) {
     case CTRL_C_EVENT:
     case CTRL_CLOSE_EVENT:
@@ -25,12 +25,14 @@ BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
 int main(int argc, char** argv) {
     system("CHCP 65001 > nul 2>&1");
 
-    if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) Exit("Failed to set console control handler", 1);
+    if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE))
+        Exit("Failed to set console control handler", 1);
 
     char workDir[MAX_PATH];
-    if (!_getcwd(workDir, MAX_PATH)) Exit("Failed to get working directory", 1);
+    if (!_getcwd(workDir, MAX_PATH))
+        Exit("Failed to get working directory", 1);
 
-    char exeFullPath[MAX_PATH] = {0};
+    char exeFullPath[MAX_PATH] = { 0 };
     DWORD pathLen = GetModuleFileNameA(NULL, exeFullPath, MAX_PATH);
 
     if (pathLen == 0 || pathLen >= MAX_PATH)

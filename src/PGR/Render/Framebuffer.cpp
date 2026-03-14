@@ -42,29 +42,19 @@ namespace PGR {
         const int index = x + y * m_Width;
         Vec3& target = m_ColorBuffer[index];
 
-        __m128 srcColor = _mm_set_ps(0.0f, color.Z, color.Y, color.X);
-        __m128 dstColor = _mm_set_ps(0.0f, target.Z, target.Y, target.X);
-        __m128 alpha = _mm_set_ps1(color.W);
-        __m128 invAlpha = _mm_sub_ps(_mm_set_ps1(1.0f), alpha);
-
-        __m128 blended = _mm_add_ps(
-            _mm_mul_ps(dstColor, invAlpha),
-            _mm_mul_ps(srcColor, alpha)
-        );
-
-        __m128 clamped = _mm_max_ps(
-            _mm_min_ps(blended, _mm_set_ps1(1.0f)),
-            _mm_set_ps1(0.0f)
-        );
-
-        target.X = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(0, 0, 0, 0)));
-        target.Y = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(1, 1, 1, 1)));
-        target.Z = _mm_cvtss_f32(_mm_shuffle_ps(clamped, clamped, _MM_SHUFFLE(2, 2, 2, 2)));
+        Vec3 srcColor = Vec3(color);
+        float alpha = color.W;
+        float invAlpha = 1.0f - alpha;
+    
+        target.X = Clamp(target.X * invAlpha + srcColor.X * alpha, 0.0f, 1.0f);
+        target.Y = Clamp(target.Y * invAlpha + srcColor.Y * alpha, 0.0f, 1.0f);
+        target.Z = Clamp(target.Z * invAlpha + srcColor.Z * alpha, 0.0f, 1.0f);
     }
 
     Vec3 Framebuffer::GetColor(const int x, const int y) const {
-        if (x >= 0 && x < m_Width && y >= 0 && y < m_Height)
+        if (x >= 0 && x < m_Width && y >= 0 && y < m_Height) {
             return m_ColorBuffer[x + y * m_Width];
+        }
         return Vec3(0.0f, 0.0f, 0.0f);
     }
 
@@ -76,8 +66,9 @@ namespace PGR {
             ((unsigned char)(clearColor.Y * 255.0f) << 8) |
             (unsigned char)(clearColor.X * 255.0f);
 
-        for (int i = 0; i < m_PixelSize; i++)
+        for (int i = 0; i < m_PixelSize; i++) {
             m_ColorBuffer[i] = clearColor;
+        }
     }
 
     void Framebuffer::Clear(const Framebuffer& other) {
@@ -117,9 +108,7 @@ namespace PGR {
         bool charInMainFont = (glyphIndex != 0);
         stbtt_fontinfo* fontToUse = m_FontInfo;
 
-        if (!charInMainFont && m_DefaultFontInfo != nullptr) {
-            fontToUse = m_DefaultFontInfo;
-        }
+        if (!charInMainFont && m_DefaultFontInfo != nullptr) fontToUse = m_DefaultFontInfo;
 
         int w, h, xoff, yoff;
         float scale = stbtt_ScaleForPixelHeight(fontToUse, fontSize);
@@ -193,7 +182,7 @@ namespace PGR {
         delete texture;
     }
 
-    void Framebuffer::GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw, bool baseLine) {
+    void Framebuffer::GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw, bool baseLine) const {
         if (fontSize <= 0.0f || text.empty()) {
             if (width) *width = 0;
             if (height) *height = 0;
@@ -313,15 +302,13 @@ namespace PGR {
         if (baseLine && MinX > 0) MinX = 0;
         if (baseLine && MinY > 0) MinY = 0;
 
-        if (width) *width = static_cast<int>(MaxX - MinX);
-        if (height) *height = static_cast<int>(MaxY - MinY);
+        if (width) *width = (int)(MaxX - MinX);
+        if (height) *height = (int)(MaxY - MinY);
 
     }
 
     Texture* Framebuffer::TextToTexture(const std::string& text, const Vec4& color, float fontSize) {
-        if (text.empty() || fontSize <= 0.0f) {
-            return new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
-        }
+        if (text.empty() || fontSize <= 0.0f) return new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
         int textWidth, textHeight;
         GetTextSize(text, fontSize, &textWidth, &textHeight, false);
@@ -396,10 +383,10 @@ namespace PGR {
 
         float halfWidth = w / 2.0f;
 
-        int minX = static_cast<int>(floor(std::min<int>(x0, x1) - halfWidth));
-        int maxX = static_cast<int>(ceil(std::max<int>(x0, x1) + halfWidth));
-        int minY = static_cast<int>(floor(std::min<int>(y0, y1) - halfWidth));
-        int maxY = static_cast<int>(ceil(std::max<int>(y0, y1) + halfWidth));
+        int minX = (int)(floor(std::min<int>(x0, x1) - halfWidth));
+        int maxX = (int)(ceil(std::max<int>(x0, x1) + halfWidth));
+        int minY = (int)(floor(std::min<int>(y0, y1) - halfWidth));
+        int maxY = (int)(ceil(std::max<int>(y0, y1) + halfWidth));
 
         minX = std::max<int>(minX, 0);
         maxX = std::min<int>(maxX, m_Width - 1);
@@ -443,16 +430,16 @@ namespace PGR {
     void Framebuffer::DrawTexture(int x, int y, const Texture* texture, int w, int h, float rotation, const float alpha) {
         if (!texture || alpha <= 0.0f) return;
 
-        if (w == -1) w = static_cast<int>(texture->GetWidth());
-        if (h == -1) h = static_cast<int>(w * texture->GetHeight() / texture->GetWidth());
+        if (w == -1) w = (int)(texture->GetWidth());
+        if (h == -1) h = (int)(w * texture->GetHeight() / texture->GetWidth());
 
-        const float sx = static_cast<float>(w) / texture->GetWidth();
-        const float sy = static_cast<float>(h) / texture->GetHeight();
+        const float sx = (float)w / texture->GetWidth();
+        const float sy = (float)h / texture->GetHeight();
 
         const int texWidth = texture->GetWidth();
         const int texHeight = texture->GetHeight();
-        const float srcW = static_cast<float>(texWidth);
-        const float srcH = static_cast<float>(texHeight);
+        const float srcW = (float)texWidth;
+        const float srcH = (float)texHeight;
 
         const float rad = -rotation * PI_OVER_180;
         float cosA = cosf(rad);
@@ -466,7 +453,7 @@ namespace PGR {
         else if (sinA < 0.001f && sinA > -0.001f) sinA = 0.0f;
 
         float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
-        int corners[4][2] = {{0, 0}, {w, 0}, {0, h}, {w, h}};
+        int corners[4][2] = { {0, 0}, {w, 0}, {0, h}, {w, h} };
         for (int k = 0; k < 4; ++k) {
             float rx = (float)corners[k][0] * cosA - (float)corners[k][1] * sinA;
             float ry = (float)corners[k][0] * sinA + (float)corners[k][1] * cosA;
@@ -476,10 +463,10 @@ namespace PGR {
             maxY = Max(maxY, ry);
         }
 
-        int startX = static_cast<int>(std::floor(minX));
-        int endX = static_cast<int>(std::ceil(maxX));
-        int startY = static_cast<int>(std::floor(minY));
-        int endY = static_cast<int>(std::ceil(maxY));
+        int startX = (int)(std::floor(minX));
+        int endX = (int)(std::ceil(maxX));
+        int startY = (int)(std::floor(minY));
+        int endY = (int)(std::ceil(maxY));
 
         if (startX > endX || startY > endY) return;
 
@@ -515,8 +502,8 @@ namespace PGR {
                 float ty = texHeight - (i * negSinAInvSy + baseTy) - 1;
 
                 if (tx >= 0.0f && tx < srcW && ty >= 0.0f && ty < srcH) {
-                    const int texX = static_cast<int>(tx + 0.5f);
-                    const int texY = static_cast<int>(ty - 0.5f);
+                    const int texX = (int)(tx + 0.5f);
+                    const int texY = (int)(ty - 0.5f);
 
                     const Vec4& texColor = texData[texX + texY * texWidth];
                     if (texColor.W > 0.0f) {
@@ -544,9 +531,9 @@ namespace PGR {
             for (int x = 0; x < width; ++x) {
                 const Vec3& color = srcRow[x];
                 int dstIndex = x * 3;
-                dstRow[dstIndex] = static_cast<unsigned char>(color.X * 255.0f);
-                dstRow[dstIndex + 1] = static_cast<unsigned char>(color.Y * 255.0f);
-                dstRow[dstIndex + 2] = static_cast<unsigned char>(color.Z * 255.0f);
+                dstRow[dstIndex] = (unsigned char)(color.X * 255.0f);
+                dstRow[dstIndex + 1] = (unsigned char)(color.Y * 255.0f);
+                dstRow[dstIndex + 2] = (unsigned char)(color.Z * 255.0f);
             }
         }
 

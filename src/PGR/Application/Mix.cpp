@@ -63,8 +63,7 @@ namespace PGR {
         for (int batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
             audioThreads.emplace_back([this, batchIdx, BATCH_SIZE, &allNotes, totalNotes, &tempAudioFiles, &tempMFilesMutex, &completedBatches, totalBatches, &ThreadsN, CPUNum]() {
 
-                while (ThreadsN >= CPUNum)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                while (ThreadsN >= CPUNum) std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
                 ThreadsN++;
 
@@ -99,37 +98,25 @@ namespace PGR {
 
                     std::string outputLabel = "delayed" + std::to_string(k);
                     filterComplexParts.push_back("[" + std::to_string(existingIndex) + ":a]adelay=" +
-                                                 delayTime + "|" + delayTime + "[" + outputLabel + "];");
+                        delayTime + "|" + delayTime + "[" + outputLabel + "];");
                 }
 
                 std::string tempOutputFile = "batch_" + std::to_string(batchIdx) + ".wav";
                 std::string batchCmd = "ffmpeg -y -loglevel error -i empty.wav";
 
-                for (const auto& file : tempInputFiles) {
-                    batchCmd += " -i " + file;
-                }
-
+                for (const auto& file : tempInputFiles) batchCmd += " -i " + file;
                 batchCmd += " -filter_complex \"";
-
-                for (const auto& filter : filterComplexParts) {
-                    batchCmd += filter;
-                }
-
+                for (const auto& filter : filterComplexParts) batchCmd += filter;
                 batchCmd += "[0:a]";
-                for (int k = batchStart; k < batchEnd; k++) {
-                    batchCmd += "[delayed" + std::to_string(k) + "]";
-                }
-
+                for (int k = batchStart; k < batchEnd; k++) batchCmd += "[delayed" + std::to_string(k) + "]";
                 batchCmd += "amix=inputs=" +
                     std::to_string(1 + (batchEnd - batchStart)) +
                     ":duration=longest:normalize=0\" " + tempOutputFile;
 
                 system(batchCmd.c_str());
 
-                {
-                    std::lock_guard<std::mutex> lock(tempMFilesMutex);
-                    tempAudioFiles.push_back(tempOutputFile);
-                }
+                std::lock_guard<std::mutex> lock(tempMFilesMutex);
+                tempAudioFiles.push_back(tempOutputFile);
 
                 completedBatches++;
                 LogInfo("\rProcessing batch %d/%d", (int)completedBatches, totalBatches);
@@ -143,21 +130,19 @@ namespace PGR {
 
         if (tempAudioFiles.size() > 0) {
             std::string mergeCmd = "ffmpeg -y -loglevel error";
-
-            for (const auto& file : tempAudioFiles) {
-                mergeCmd += " -i " + file;
-            }
-
+            for (const auto& file : tempAudioFiles) mergeCmd += " -i " + file;
             mergeCmd += " -filter_complex \"";
-            for (int i = 0; i < tempAudioFiles.size(); i++) {
-                mergeCmd += "[" + std::to_string(i) + ":a]";
-            }
+            for (int i = 0; i < tempAudioFiles.size(); i++) mergeCmd += "[" + std::to_string(i) + ":a]";
             mergeCmd += "amix=inputs=" + std::to_string(tempAudioFiles.size()) + ":duration=longest:normalize=0\" notes.wav";
             system(mergeCmd.c_str());
         } else system("ffmpeg -y -loglevel error -i empty.wav notes.wav");
 
-        std::string mixCmd = "ffmpeg -y -loglevel error -i \"" + music + "\" -i notes.wav " +
-            "-filter_complex \"[0:a]volume=" + std::to_string(m_Info.musicVolume) + "[a0];[1:a]volume=" + std::to_string(m_Info.notesVolume) + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" mixed.wav";
+        std::string mixCmd = "ffmpeg -y -loglevel error -i \"" + music + "\" -i notes.wav "
+            + "-filter_complex \"[0:a]volume="
+            + std::to_string(m_Info.musicVolume)
+            + "[a0];[1:a]volume="
+            + std::to_string(m_Info.notesVolume)
+            + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" mixed.wav";
         system(mixCmd.c_str());
 
         LogInfo("Mixed music");

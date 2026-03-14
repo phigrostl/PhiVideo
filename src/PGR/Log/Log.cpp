@@ -3,15 +3,14 @@
 LogLevel g_log_level = LogLevel::Info;
 std::string g_log_end = "\n";
 
-size_t getTerminalWidth() {
+static size_t getTerminalWidth() {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
         return (size_t)csbi.srWindow.Right - (size_t)csbi.srWindow.Left + 1;
-    }
     return 80;
 }
 
-int getVisibleLength(const std::string& str) {
+static int getVisibleLength(const std::string& str) {
     int length = 0;
     bool in_escape = false;
 
@@ -64,7 +63,7 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
 
     try {
         const size_t buffer_size = 1024;
-        char buffer[buffer_size] = {0};
+        char buffer[buffer_size] = { 0 };
 
         va_list va_args;
         va_start(va_args, format);
@@ -123,8 +122,9 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
             std::vector<std::string> lines;
             std::string Line;
 
-            while (std::getline(iss, Line))
+            while (std::getline(iss, Line)) {
                 lines.push_back(Line);
+            }
 
             std::ostringstream oss1;
             std::ostringstream oss2;

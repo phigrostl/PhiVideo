@@ -42,7 +42,7 @@ namespace PGR {
             : X(x), Y(y), Z(z) {
         }
 
-        operator Vec2() const { return {X, Y}; }
+        operator Vec2() const { return { X, Y }; }
 
     };
 
@@ -65,8 +65,8 @@ namespace PGR {
             : X(vec3.X), Y(vec3.Y), Z(vec3.Z), W(w) {
         }
 
-        operator Vec2() const { return {X, Y}; }
-        operator Vec3() const { return {X, Y, Z}; }
+        operator Vec2() const { return { X, Y }; }
+        operator Vec3() const { return { X, Y, Z }; }
     };
 
     Vec2 operator+ (const Vec2& left, const Vec2& right);
@@ -101,9 +101,7 @@ namespace PGR {
     float UChar2Float(const unsigned char c);
 
     float linear(float t, float st, float et, float sv, float ev);
-    float randf(const std::vector<float>& seeds, float min, float max);
-    float randf(float seed, float min, float max);
-    std::vector<float> getSeeds(const std::vector<float> seeds, int count);
+    float randf(float min, float max);
     Vec2 rotatePoint(float x, float y, float r, float deg);
 
 }

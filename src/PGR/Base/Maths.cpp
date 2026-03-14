@@ -3,32 +3,32 @@
 namespace PGR {
 
     Vec2 operator+ (const Vec2& left, const Vec2& right) {
-        return Vec2{left.X + right.X, left.Y + right.Y};
+        return Vec2{ left.X + right.X, left.Y + right.Y };
     }
     Vec2 operator- (const Vec2& left, const Vec2& right) {
-        return Vec2{left.X - right.X, left.Y - right.Y};
+        return Vec2{ left.X - right.X, left.Y - right.Y };
     }
 
     Vec3 operator+ (const Vec3& left, const Vec3& right) {
-        return Vec3{left.X + right.X, left.Y + right.Y, left.Z + right.Z};
+        return Vec3{ left.X + right.X, left.Y + right.Y, left.Z + right.Z };
     }
     Vec3 operator- (const Vec3& left, const Vec3& right) {
         return left + (-1.0f * right);
     }
     Vec3 operator* (const float left, const Vec3& right) {
-        return Vec3{left * right.X, left * right.Y, left * right.Z};
+        return Vec3{ left * right.X, left * right.Y, left * right.Z };
     }
     Vec3 operator* (const Vec3& left, const float right) {
         return right * left;
     }
     Vec3 operator* (const Vec3& left, const Vec3& right) {
-        return {left.X * right.X, left.Y * right.Y, left.Z * right.Z};
+        return { left.X * right.X, left.Y * right.Y, left.Z * right.Z };
     }
     Vec3 operator/ (const Vec3& left, const float right) {
         return left * (1.0f / right);
     }
     Vec3 operator/ (const Vec3& left, const Vec3& right) {
-        return left * Vec3{1.0f / right.X, 1.0f / right.Y, 1.0f / right.Z};
+        return left * Vec3{ 1.0f / right.X, 1.0f / right.Y, 1.0f / right.Z };
     }
     Vec3& operator*= (Vec3& left, const float right) {
         left = left * right;
@@ -44,19 +44,19 @@ namespace PGR {
     }
 
     Vec4 operator+ (const Vec4& left, const Vec4& right) {
-        return Vec4{left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W};
+        return Vec4{ left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W };
     }
     Vec4 operator- (const Vec4& left, const Vec4& right) {
-        return Vec4{left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W};
+        return Vec4{ left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W };
     }
     Vec4 operator* (const float left, const Vec4& right) {
-        return Vec4{left * right.X, left * right.Y, left * right.Z, left * right.W};
+        return Vec4{ left * right.X, left * right.Y, left * right.Z, left * right.W };
     }
     Vec4 operator* (const Vec4& left, const float right) {
         return right * left;
     }
     Vec4 operator* (const Vec4& left, const Vec4& right) {
-        return {left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W};
+        return { left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W };
     }
     Vec4 operator/ (const Vec4& left, const float right) {
         return left * (1.0f / right);
@@ -92,7 +92,7 @@ namespace PGR {
     }
 
     unsigned char Float2UChar(const float f) {
-        return static_cast<unsigned char>(f * 255.0f + 0.5f);
+        return (unsigned char)(f * 255.0f + 0.5f);
     }
 
     float UChar2Float(const unsigned char c) {
@@ -100,47 +100,14 @@ namespace PGR {
     }
 
     float linear(float t, float st, float et, float sv, float ev) {
-        if (st == et)
-            return sv;
+        if (st == et) return sv;
         return sv + (t - st) / (et - st) * (ev - sv);
     }
 
-    float randf(const std::vector<float>& seeds, float min, float max) {
-        uint64_t seed = 0;
-        for (const auto& val : seeds) {
-            const uint32_t* float_as_uint = reinterpret_cast<const uint32_t*>(&val);
-            seed = seed * 31 + *float_as_uint;
-        }
-        const uint32_t* min_as_uint = reinterpret_cast<const uint32_t*>(&min);
-        const uint32_t* max_as_uint = reinterpret_cast<const uint32_t*>(&max);
-        seed = seed * 31 + *min_as_uint;
-        seed = seed * 31 + *max_as_uint;
-
-        std::mt19937 rng_engine(static_cast<unsigned int>(seed));
-
+    float randf(float min, float max) {
+        std::mt19937 rng_engine(std::random_device{}());
         std::uniform_real_distribution<float> dist(min, max);
-
         return dist(rng_engine);
-    }
-
-    float randf(float seed, float min, float max) {
-        std::mt19937 rng_engine(static_cast<unsigned int>(seed));
-
-        std::uniform_real_distribution<float> dist(min, max);
-
-        return dist(rng_engine);
-    }
-
-    std::vector<float> getSeeds(const std::vector<float> seeds, int count) {
-        std::vector<float> s;
-        for (size_t i = 0; i < seeds.size(); i++) {
-            float r = seeds[i];
-            for (int j = 0; j < count; j++) {
-                r = randf(r * 2.0f, 0.0f, 1007.0f);
-            }
-            s.push_back(r);
-        }
-        return s;
     }
 
     Vec2 rotatePoint(float x, float y, float r, float deg) {

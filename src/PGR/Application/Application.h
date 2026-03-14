@@ -41,7 +41,7 @@ namespace PGR {
         Vec2 holdAtlas;
         Vec2 holdAtlasMH;
 
-        float noteDelays[4] = {0};
+        float noteDelays[4] = { 0 };
 
         std::string title;
         std::string title2;
@@ -55,9 +55,9 @@ namespace PGR {
         NoteImgs noteImgs;
         std::vector<Texture*> hitFxImgs;
         Chart chart;
-        Texture* noteHeadImgs[4][2] = {0};
-        Texture* holdBodyImgs[2] = {0};
-        Texture* holdTailImgs[2] = {0};
+        Texture* noteHeadImgs[4][2] = { 0 };
+        Texture* holdBodyImgs[2] = { 0 };
+        Texture* holdTailImgs[2] = { 0 };
 
         std::string ChartDir;
         std::string WorkDir;
@@ -103,24 +103,24 @@ namespace PGR {
 
     public:
 
-        std::string GetDir() {
+        std::string GetDir() const {
             char dir[MAX_PATH];
             if (!_getcwd(dir, MAX_PATH)) Exit("Failed to get Working Directory", 1);
             return dir;
         }
 
-        void ToDir(const std::string& dir) {
+        void ToDir(const std::string& dir) const {
             if (_chdir(dir.c_str())) Exit("Failed to change directory to " + dir, 1);
         }
 
-        std::string GetFileName(const std::string path) {
+        std::string GetFileName(const std::string path) const {
             size_t pos = path.find_last_of("/\\");
             std::string tmp = path.substr(pos + 1);
             pos = tmp.find_last_of(".");
             return tmp.substr(0, pos);
         }
 
-        std::string GetFilePath(const std::string& path) {
+        std::string GetFilePath(const std::string& path) const {
             std::string result = path;
             size_t pos = result.find_last_of("/\\");
             if (pos != std::string::npos) result = result.substr(0, pos + 1);
@@ -139,13 +139,13 @@ namespace PGR {
         void LoadMusics();
 
         void Render(float t, Framebuffer* fb, bool drawBack = true, bool cover = false);
-        void RenderBack(Framebuffer* fb);
+        void RenderBack(Framebuffer* fb) const;
 
         void RenderVideo();
         void MixMusic();
 
         bool Overwritea(const std::string& path, const char* file, int line, const char* func);
-        void Removea(const char* path, const char* file, int line, const char* func);
+        void Removea(const char* path, const char* file, int line, const char* func) const;
 
     private:
         int argc;

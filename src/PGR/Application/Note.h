@@ -58,11 +58,11 @@ namespace PGR {
 
     };
 
-    struct NoteMap {
-        NoteMap() = default;
+    struct HitFx {
+        HitFx() = default;
 
-        Note note;
         float time;
+        Note note;
         Particles particles;
     };
 }

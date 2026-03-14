@@ -33,7 +33,7 @@ namespace PGR {
         void DrawCharTTF(int x, int y, wchar_t c, const Vec4& color, float fontSize);
         void DrawTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float xOffset = 0.0f, float yOffset = 0.0f);
         void DrawRotatedTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float rotation);
-        void GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw = false, bool baseLine = true);
+        void GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw = false, bool baseLine = true) const;
         Texture* TextToTexture(const std::string& text, const Vec4& color, float fontSize);
 
         void DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color);

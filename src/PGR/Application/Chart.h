@@ -21,12 +21,12 @@ namespace PGR {
         ChartData() = default;
 
         std::vector<JudgeLine> judgeLines;
-        std::vector<NoteMap> clickEffectCollection;
-        std::vector<NoteMap> clickCollection;
+        std::vector<HitFx> clickEffectCollection;
+        std::vector<HitFx> clickCollection;
         int noteCount = 0;
         float time = 0.0f;
         float offset = 0.0f;
-        bool oneBPM = true;
+        bool sameBPM = true;
     };
 
     struct Chart {

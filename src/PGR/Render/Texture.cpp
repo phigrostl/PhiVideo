@@ -123,7 +123,7 @@ namespace PGR {
     }
 
 
-    Texture* Texture::ClipBlockImg(int x0, int y0, int x1, int y1, bool reserve) {
+    Texture* Texture::ClipBlockImg(int x0, int y0, int x1, int y1, bool reserve) const {
         if (!this || x0 < 0 || y0 < 0 || x1 <= x0 || y1 <= y0 || x1 > this->GetWidth() || y1 > this->GetHeight()) {
             return new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
         }
@@ -144,13 +144,12 @@ namespace PGR {
             }
         }
 
-        if (!reserve)
-            delete this;
+        if (!reserve) delete this;
 
         return newTexture;
     }
 
-    Texture* Texture::ColorTexture(Vec4 color, bool reserve) {
+    Texture* Texture::ColorTexture(Vec4 color, bool reserve) const {
         Texture* newTexture = new Texture(color);
         newTexture->m_Width = this->GetWidth();
         newTexture->m_Height = this->GetHeight();
@@ -167,15 +166,15 @@ namespace PGR {
             }
         }
 
-        if (!reserve)
-            delete this;
+        if (!reserve) delete this;
 
         return newTexture;
     }
 
-    Texture* Texture::GetShaderImg(float radius, bool reserve) {
-        if (!this || m_Data == nullptr || radius <= 0.0f)
+    Texture* Texture::GetShaderImg(float radius, bool reserve) const {
+        if (!this || m_Data == nullptr || radius <= 0.0f) {
             return new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+        }
 
         int w = this->GetWidth();
         int h = this->GetHeight();
@@ -199,8 +198,7 @@ namespace PGR {
                 newTexture->SetColor(x, y, this->GetColor(x, y) * a);
             }
         }
-        if (!reserve)
-            delete this;
+        if (!reserve) delete this;
 
         return newTexture;
     }
