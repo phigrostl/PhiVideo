@@ -1,3 +1,6 @@
 build/
 .vs/
 .vscode/
+src/cJSON/
+src/stb_image/
+src/CLI
