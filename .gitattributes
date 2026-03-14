@@ -1,7 +1,3 @@
-resources/**/* linguist-vendored linguist-generated linguist-detectable=false
-src/cJSON/**/* linguist-vendored linguist-generated linguist-detectable=false
-src/stb_image/**/* linguist-vendored linguist-generated linguist-detectable=false
-
-/resources/ export-ignore
-/src/cJSON/ export-ignore
-/src/stb_image/ export-ignore
+*.h linguist-language=C++
+*.cpp linguist-language=C++
+*.c linguist-language=C++
