@@ -42,7 +42,7 @@ namespace PGR {
             file.close();
             m_UI = UI(json);
         } catch (std::exception e) {
-            Exit("UI.json not found or format error.", 1);
+            Exit("Please clear or rename the file: %s", 1);
         }
 
         try {
@@ -77,7 +77,7 @@ namespace PGR {
             }
 
             if (!file.is_open()) {
-                Exit("Please select a CORRECT ChartInfo file.", 1);
+                Exit("Please select a CORRECT ChartInfo file", 1);
             } else {
                 while (!file.eof()) {
                     std::string line;
@@ -98,7 +98,14 @@ namespace PGR {
                 throw std::exception();
             }
 
-            LogInfo("Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s", m_Info.chart.info.name.c_str(), m_Info.chart.info.level.c_str(), m_Info.chart.info.song.c_str(), m_Info.chart.info.picture.c_str(), m_Info.chart.info.chart.c_str());
+            LogInfo(
+                "Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s",
+                m_Info.chart.info.name.c_str(),
+                m_Info.chart.info.level.c_str(),
+                m_Info.chart.info.song.c_str(),
+                m_Info.chart.info.picture.c_str(),
+                m_Info.chart.info.chart.c_str()
+            );
         } catch (std::exception e) {
             Exit("ChartInfo file format error.", 1);
         }
@@ -106,7 +113,7 @@ namespace PGR {
         try {
             LoadChartJson();
         } catch (std::exception e) {
-            Exit("Chart file format error.", 1);
+            Exit("Chart file format error", 1);
         }
 
         ToDir(m_Info.ChartDir);

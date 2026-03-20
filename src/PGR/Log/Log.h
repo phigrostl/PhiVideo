@@ -4,10 +4,13 @@
 #include <iomanip>
 #include <string>
 #include <vector>
-#include <ctime>
 #include <sstream>
+#include <ctime>
 #include <cstdarg>
 #include <chrono>
+#include <fstream>
+#include <filesystem>
+#include <regex>
 #include <windows.h>
 
 enum class LogLevel {
@@ -19,10 +22,24 @@ enum class LogLevel {
     Fatal
 };
 
+struct Language {
+    std::string name;
+    std::string file;
+    std::vector<std::string> before;
+    std::vector<std::string> after;
+
+    void Init(const std::string& file);
+    std::string Translate(const std::string& str);
+};
+
+void InitLog(const std::string& folder);
+void SetLanguage(int code);
+std::string GetLanguages();
+
 std::string getCurrentTime();
 std::string logLevelToString(LogLevel level);
 std::string getColoredLogLevel(LogLevel level);
-void log(LogLevel level, const char* file, int line, const char* func, const std::string format, ...);
+void log(LogLevel level, const char* file, int line, const char* func, const char* format, ...);
 
 LogLevel getLogLevel();
 void setLogLevel(LogLevel level);

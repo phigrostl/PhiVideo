@@ -79,7 +79,7 @@ namespace PGR {
         float notesVolume = 0.5f;
         float musicVolume = 1.0f;
         bool overwrite = false;
-        int aas = 1.0f;
+        unsigned int aas = 1;
         float bitrate = 10.0f;
     };
 
@@ -110,7 +110,7 @@ namespace PGR {
         }
 
         void ToDir(const std::string& dir) const {
-            if (_chdir(dir.c_str())) Exit("Failed to change directory to " + dir, 1);
+            if (_chdir(dir.c_str())) Exit("Failed to change directory to %s", 1, dir.c_str());
         }
 
         std::string GetFileName(const std::string path) const {

@@ -1,0 +1,43 @@
+#日本語
+Chart file format error	チャートファイル形式エラー
+ChartInfo file format error	チャート情報ファイル形式エラー
+Ctrl-C	Ctrl-C
+Console closed	コンソールが閉じられました
+Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	ファイルを上書きしますか: %s\\%s? (はい/いいえ/すべてはい) (Y/N/A): 
+Ending thread %d	スレッド %d を終了
+Error while logging:	ロギング中にエラーが発生:
+Exiting application	アプリケーションを終了
+Exiting with code: %d	コード %d で終了
+Failed to change directory to %s	ディレクトリ %s に変更できませんでした
+Failed to create temp directory	一時ディレクトリの作成に失敗
+Failed to get Working Directory	作業ディレクトリを取得できませんでした
+Failed to get executable path	実行ファイルのパスを取得できませんでした
+Failed to get resources directory	リソースディレクトリを取得できませんでした
+Failed to get working directory	作業ディレクトリを取得できませんでした
+Failed to load music	音楽の読み込みに失敗
+Failed to remove file spec from executable path	実行ファイルパスからファイル仕様を削除できませんでした
+Failed to set console control handler	コンソール制御ハンドラーの設定に失敗
+Failed to set current directory to executable path	現在のディレクトリを実行ファイルパスに設定できませんでした
+Failed to set current directory to resources path	現在のディレクトリをリソースパスに設定できませんでした
+File is opened by other process: %s	ファイルが他のプロセスによって開かれています: %s
+Font file not found	フォントファイルが見つかりません
+Font file not found: %s	フォントファイルが見つかりません: %s
+Language switched to %s(%s)	言語が %s(%s) に切り替わりました
+Languages: %s	言語: %s
+Line: %d, Notes: %zd, Events: %zd	行: %d, ノート: %zd, イベント: %zd
+Loaded FxImages	Fx画像を読み込みました
+Loaded Images	画像を読み込みました
+Loaded Music	音楽を読み込みました
+Mixed music	ミックスミュージック
+Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s	名前: %s\nレベル: %s\n曲: %s\n画像: %s\nチャート: %s
+Organized Notes	ノートを整理
+Overwrite file: %s	ファイルを上書き: %s
+Please delete or rename the file	ファイルを削除または名前を変更してください
+Please close the process which is using the file.	ファイルを使用しているプロセスを閉じてください。
+Please select a CORRECT ChartInfo file	正しい ChartInfo ファイルを選択してください
+Remove file: %s	ファイルを削除: %s
+Render Cover Error: %s	表紙のレンダリングエラー: %s
+Render Picture Error: %s	画像のレンダリングエラー: %s
+Render Video Error: %s	動画のレンダリングエラー: %s
+Rendered videos in %.2fs, total frames: %d, average FPS: %.2f	動画のレンダリングに %.2fs かかりました, 総フレーム数: %d, 平均 FPS: %.2f
+\rProcessing batch %d/%d	\rバッチ %d/%d を処理中

@@ -28,8 +28,11 @@ namespace PGR {
     }
 
     void Application::Init() {
+        InitLog(m_Info.ResDir + "\\Languages\\");
+
         CLI::App app("PhiVideo", "PhiVideo");
         std::string log_level_str = "Debug";
+        int language = 0;
         app.add_option("File", m_Info.InfoPath, "The Path of the Chart file")->required(false);
 
         app.add_flag("-d,--debug", DEBUG, "Debug Mode");
@@ -52,6 +55,7 @@ namespace PGR {
         app.add_option("-b,--bitrate", m_Info.bitrate, "Bitrate")->check(CLI::PositiveNumber);
 
         app.add_option("-l,--logLevel", log_level_str, "Log level");
+        app.add_option("-L,--language", language, "Language");
         app.add_option("--FPS", m_Info.FPS, "FPS")->check(CLI::PositiveNumber);
         app.add_option("--CPU", m_Info.CPUNum, "CPU Core Num")->check(CLI::Range(1, 24));
 
@@ -68,6 +72,8 @@ namespace PGR {
         }
 
         setLogLevel(stringToLogLevel(log_level_str));
+        SetLanguage(language);
+        LogInfo("Languages: %s", GetLanguages().c_str());
 
         if (app.count("-p") > 0) m_Info.RenderPic = true;
         if (app.count("-a") > 0) {
@@ -187,7 +193,7 @@ namespace PGR {
         std::string utf8path = gbk2utf8(path);
 
         if (isFileOpenedByOtherProcess(path)) {
-            log(LogLevel::Error, file, line, func, "File is opened by other process: " + utf8path);
+            log(LogLevel::Error, file, line, func, "File is opened by other process: %s", utf8path.c_str());
             log(LogLevel::Error, file, line, func, "Please close the process which is using the file.");
             while (isFileOpenedByOtherProcess(path)) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -198,14 +204,16 @@ namespace PGR {
         if (File.is_open()) {
             File.close();
             if (m_Info.overwrite) {
-                log(LogLevel::Notice, file, line, func, "Overwrite file: " + utf8path);
+                log(LogLevel::Notice, file, line, func, "Overwrite file: %s", utf8path.c_str());
             } else {
                 LogLevel l = getLogLevel();
                 setLogEnd("");
                 setLogLevel(LogLevel::Warning);
-                log(LogLevel::Warning, file, line, func,
-                    "Do you want to overwrite file: " + gbk2utf8(GetDir()) + "\\" +
-                    utf8path + "? (Yes/No/All yes): ");
+                log(
+                    LogLevel::Warning, file, line, func,
+                    "Do you want to overwrite file: %s\\%s? (Yes/No/All yes): ",
+                    gbk2utf8(GetDir()).c_str(), utf8path.c_str()
+                );
                 setLogEnd();
                 setLogLevel(l);
                 std::string input;
@@ -220,7 +228,7 @@ namespace PGR {
                     return true;
                 } else {
                     putchar('\n');
-                    Exit("Please clear or rename the file: " + path, 1);
+                    Exit("Please delete or rename the file", 1);
                     return false;
                 }
             }
@@ -230,7 +238,7 @@ namespace PGR {
 
     void Application::Removea(const char* path, const char* file, int line, const char* func) const {
         remove(path);
-        log(LogLevel::Notice, file, line, func, (std::string)"Remove file: " + path);
+        log(LogLevel::Notice, file, line, func, "Remove file: %s", path);
     }
 
 }

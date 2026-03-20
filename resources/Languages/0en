@@ -1,0 +1,43 @@
+#English
+Chart file format error	Chart file format error
+ChartInfo file format error	ChartInfo file format error
+Ctrl-C	Ctrl-C
+Console closed	Console closed
+Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	Do you want to overwrite file: %s\\%s? (Yes/No/All yes): 
+Ending thread %d	Ending thread %d
+Error while logging:	Error while logging: 
+Exiting application	Exiting application
+Exiting with code: %d	Exiting with code: %d
+Failed to change directory to %s	Failed to change directory to %s
+Failed to create temp directory	Failed to create temp directory
+Failed to get Working Directory	Failed to get Working Directory
+Failed to get executable path	Failed to get executable path
+Failed to get resources directory	Failed to get resources directory
+Failed to get working directory	Failed to get working directory
+Failed to load music	Failed to load music
+Failed to remove file spec from executable path	Failed to remove file spec from executable path
+Failed to set console control handler	Failed to set console control handler
+Failed to set current directory to executable path	Failed to set current directory to executable path
+Failed to set current directory to resources path	Failed to set current directory to resources pathFailed to set current directory to resources
+File is opened by other process: %s	File is opened by other process: %s
+Font file not found	Font file not found
+Font file not found: %s	Font file not found: %s
+Language switched to %s(%s)	Language switched to %s(%s)
+Languages: %s	Languages: %s
+Line: %d, Notes: %zd, Events: %zd	Line: %d, Notes: %zd, Events: %zd
+Loaded FxImages	Loaded FxImages
+Loaded Images	Loaded Images
+Loaded Music	Loaded Music
+Mixed music	Mixed music
+Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s	Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s
+Organized Notes	Organized Notes
+Overwrite file: %s	Overwrite file: %s
+Please delete or rename the file	Please delete or rename the file
+Please close the process which is using the file.	Please close the process which is using the file.
+Please select a CORRECT ChartInfo file	Please select a CORRECT ChartInfo file
+Remove file: %s	Remove file: %s
+Render Cover Error: %s	Render Cover Error: %s
+Render Picture Error: %s	Render Picture Error: %s
+Render Video Error: %s	Render Video Error: %s
+Rendered videos in %.2fs, total frames: %d, average FPS: %.2f	Rendered videos in %.2fs, total frames: %d, average FPS: %.2f
+\rProcessing batch %d/%d	\rProcessing batch %d/%d

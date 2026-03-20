@@ -1,8 +1,6 @@
 #include "Application.h"
-#include <immintrin.h>
 
 #pragma warning(disable:6386)
-#pragma warning(disable:4996)
 
 namespace PGR {
 
@@ -87,8 +85,7 @@ namespace PGR {
                 );
 
                 FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
-                const size_t dstPixelCount = dstWidth * dstHeight;
-                const size_t dstFrameSize = dstPixelCount * 3;
+                const size_t dstFrameSize = dstWidth * dstHeight * 3;
 
                 unsigned char* frameData = new unsigned char[dstFrameSize];
                 memset(frameData, 0, dstFrameSize);
@@ -121,9 +118,10 @@ namespace PGR {
                         for (size_t y = 0; y < dstHeight; y++) {
                             for (size_t x = 0; x < dstWidth; x++) {
                                 const Vec3& color = colorBuffer[y * srcWidth + x];
-                                frameData[y * width3 + x * 3] = (unsigned char)(color.X * 255.0f);
-                                frameData[y * width3 + x * 3 + 1] = (unsigned char)(color.Y * 255.0f);
-                                frameData[y * width3 + x * 3 + 2] = (unsigned char)(color.Z * 255.0f);
+                                int index = y * width3 + x * 3;
+                                frameData[index + 0] = (unsigned char)(color.X * 255.0f);
+                                frameData[index + 1] = (unsigned char)(color.Y * 255.0f);
+                                frameData[index + 2] = (unsigned char)(color.Z * 255.0f);
                             }
                         }
                     }
@@ -918,8 +916,7 @@ namespace PGR {
             );
         }
 
-        float score = (float)combo / m_Info.chart.data.noteCount * 1000000.0f + 0.5f;
-        if (m_Info.chart.data.noteCount == 0) score = 0.0f;
+        float score = m_Info.chart.data.noteCount == 0 ? 1000000.0f : (float)combo / m_Info.chart.data.noteCount * 1000000.0f + 0.5f;
         char scoreStr[10];
         sprintf(scoreStr, "%07d", (int)score);
 

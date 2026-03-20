@@ -56,18 +56,82 @@ std::string getColoredLogLevel(LogLevel level) {
     }
 }
 
-char ls = '\0';
+std::vector<Language> g_languages;
+int g_language_code = 0;
+void Language::Init(const std::string& file) {
+    std::ifstream in(file);
+    std::string line;
+    this->file = file;
+    while (std::getline(in, line)) {
+        if (line.empty() || line[0] == '#') {
+            name = line.substr(1);
+            continue;
+        }
+        line = std::regex_replace(line, std::regex("\\\\n"), "\n");
+        line = std::regex_replace(line, std::regex("\\\\r"), "\r");
+        line = std::regex_replace(line, std::regex("\\\\\\\\"), "\\");
+        size_t tab_pos = line.find('\t');
+        if (tab_pos != std::string::npos) {
+            std::string before_str = line.substr(0, tab_pos);
+            std::string after_str = line.substr(tab_pos + 1);
+            before.push_back(before_str);
+            after.push_back(after_str);
+        }
+    }
+    if (name.empty()) name = "Language " + std::to_string(g_languages.size());
+    g_languages.push_back(*this);
+}
 
-void log(LogLevel level, const char* file, int line, const char* func, const std::string format, ...) {
+std::string Language::Translate(const std::string& str) {
+    static std::string translated;
+
+    for (size_t i = 0; i < before.size(); i++) {
+        size_t pos = str.find(before[i]);
+        if (pos == 0) return after[i];
+    }
+    return str;
+}
+
+void InitLog(const std::string& folder) {
+    for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+        if (entry.is_regular_file()) {
+            Language lang;
+            lang.Init(entry.path().string());
+        }
+    }
+}
+
+void SetLanguage(int code) {
+    g_language_code = code;
+    Language lang = g_languages[code];
+    log(LogLevel::Info, __FILE__, __LINE__, __FUNCTION__, "Language switched to %s(%s)", lang.name.c_str(), lang.file.c_str());
+}
+
+std::string GetLanguages() {
+    std::ostringstream oss;
+    for (size_t i = 0; i < g_languages.size(); i++) {
+        oss << i << "(" << g_languages[i].name << ")";
+        if (i != g_languages.size() - 1) oss << ", ";
+    }
+    return oss.str();
+}
+
+char ls = '\0';
+void log(LogLevel level, const char* file, int line, const char* func, const char* format, ...) {
     if (level < g_log_level) return;
+
+    std::string fileCut = file;
+    fileCut = fileCut.substr(20);
 
     try {
         const size_t buffer_size = 1024;
         char buffer[buffer_size] = { 0 };
 
+        std::string translated_format = g_languages[g_language_code].Translate(format);
+
         va_list va_args;
         va_start(va_args, format);
-        vsnprintf(buffer, buffer_size - 1, format.c_str(), va_args);
+        vsnprintf(buffer, buffer_size - 1, translated_format.c_str(), va_args);
         va_end(va_args);
 
         if (strlen(buffer) == 0) return;
@@ -86,7 +150,7 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
 
             oss << "\033[2K\r[" << getCurrentTime() << "]"
                 << getColoredLogLevel(level)
-                << "[\033[38;2;180;000;158m" << file << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
+                << "[\033[38;2;180;000;158m" << fileCut << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
                 << std::string(buffer).substr(1);
 
             std::string log_str = oss.str();
@@ -136,7 +200,7 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
 
             oss1 << "\n[" << getCurrentTime() << "]"
                 << getColoredLogLevel(level)
-                << "[\033[38;2;180;000;158m" << file << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
+                << "[\033[38;2;180;000;158m" << fileCut << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
                 << oss2.str();
 
             std::cout << oss1.str() << g_log_end;
@@ -150,7 +214,7 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
 
             oss << "[" << getCurrentTime() << "]"
                 << getColoredLogLevel(level)
-                << "[\033[38;2;180;000;158m" << file << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
+                << "[\033[38;2;180;000;158m" << fileCut << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
                 << buffer;
 
             std::cout << oss.str() << g_log_end;
@@ -159,8 +223,8 @@ void log(LogLevel level, const char* file, int line, const char* func, const std
     } catch (const std::exception& e) {
         std::cerr << "[" << getCurrentTime() << "]"
             << getColoredLogLevel(LogLevel::Error)
-            << "[\033[38;2;180;000;158m" << file << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
-            << "Error while logging: " << e.what() << g_log_end;
+            << "[\033[38;2;180;000;158m" << fileCut << "\033[0m @ \033[38;2;249;241;165m" << func << "()\033[0m : \033[38;2;097;214;214m" << line << "\033[0m] "
+            << g_languages[g_language_code].Translate("Error while logging: ") << e.what() << g_log_end;
     }
 }
 

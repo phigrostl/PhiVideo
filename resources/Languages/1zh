@@ -1,0 +1,43 @@
+#中文
+Chart file format error	谱面文件格式错误
+ChartInfo file format error	谱面信息文件格式错误
+Ctrl-C	Ctrl-C
+Console closed	控制台已关闭
+Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	您是否要覆盖文件: %s\\%s? (是/否/全部是) (Y/N/A): 
+Ending thread %d	结束线程 %d
+Error while logging:	日志记录时出错: 
+Exiting application	退出了应用程序
+Exiting with code: %d	退出代码: %d
+Failed to change directory to %s	无法切换到目录: %s
+Failed to create temp directory	无法创建临时目录
+Failed to get Working Directory	无法获取工作目录
+Failed to get executable path	无法获取可执行文件路径
+Failed to get resources directory	无法获取资源目录
+Failed to get working directory	无法获取工作目录
+Failed to load music	无法加载音乐
+Failed to remove file spec from executable path	无法从可执行文件路径中移除文件规范
+Failed to set console control handler	无法设置控制台控制处理程序
+Failed to set current directory to executable path	无法将当前目录设置为可执行文件路径
+Failed to set current directory to resources path	无法将当前目录设置为资源路径
+File is opened by other process: %s	文件被其他进程打开: %s
+Font file not found	未找到字体文件
+Font file not found: %s	未找到字体文件: %s
+Language switched to %s(%s)	语言切换到 %s(%s)
+Languages: %s	语言: %s
+Line: %d, Notes: %zd, Events: %zd	行: %d, 音符: %zd, 事件: %zd
+Loaded FxImages	已加载特效图像
+Loaded Images	已加载图像
+Loaded Music	已加载音乐
+Mixed music	混合音乐
+Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s	名称: %s\n等级: %s\n歌曲: %s\n图片: %s\n谱面: %s
+Organized Notes	已整理音符
+Overwrite file: %s	覆盖文件: %s
+Please delete or rename the file	请删除或重命名文件
+Please close the process which is using the file.	请关闭正在使用该文件的进程。
+Please select a CORRECT ChartInfo file	请选择正确的 ChartInfo 文件
+Remove file: %s	删除文件: %s
+Render Cover Error: %s	渲染封面错误: %s
+Render Picture Error: %s	渲染图片错误: %s
+Render Video Error: %s	渲染视频错误: %s
+Rendered videos in %.2fs, total frames: %d, average FPS: %.2f	渲染视频耗时 %.2fs, 总帧数: %d, 平均 FPS: %.2f
+\rProcessing batch %d/%d	\r正在处理批次 %d/%d

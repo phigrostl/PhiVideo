@@ -1,11 +1,14 @@
 #include "Base.h"
 
-void Exita(std::string message, const int code, const char* file, int line, const char* func) {
+void Exita(const char* file, int line, const char* func, const char* format, const int code, ...) {
     setLogLevel(LogLevel::Debug);
+    va_list va_args;
+    va_start(va_args, code);
     if (code != 0) {
-        log(LogLevel::Fatal, file, line, func, message);
+        log(LogLevel::Fatal, file, line, func, format, va_args);
         log(LogLevel::Notice, file, line, func, "Exiting with code: %d", code);
-    } else log(LogLevel::Notice, file, line, func, message);
+    } else log(LogLevel::Notice, file, line, func, format, va_args);
+    va_end(va_args);
     exit(code);
 }
 

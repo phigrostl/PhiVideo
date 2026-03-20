@@ -1,0 +1,43 @@
+#繁體中文
+Chart file format error	譜面檔案格式錯誤
+ChartInfo file format error	譜面資訊檔案格式錯誤
+Ctrl-C	Ctrl-C
+Console closed	控制台已關閉
+Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	您是否要覆蓋檔案: %s\\%s? (是/否/全部是) (Y/N/A): 
+Ending thread %d	結束執行緒 %d
+Error while logging:	記錄日誌時出錯:
+Exiting application	退出應用程式
+Exiting with code: %d	退出代碼: %d
+Failed to change directory to %s	無法切換到目錄: %s
+Failed to create temp directory	無法建立暫存目錄
+Failed to get Working Directory	無法取得工作目錄
+Failed to get executable path	無法取得可執行檔路徑
+Failed to get resources directory	無法取得資源目錄
+Failed to get working directory	無法取得工作目錄
+Failed to load music	無法載入音樂
+Failed to remove file spec from executable path	無法從可執行檔路徑中移除檔案規範
+Failed to set console control handler	無法設定主控台控制處理程序
+Failed to set current directory to executable path	無法將目前目錄設定為可執行檔路徑
+Failed to set current directory to resources path	無法將目前目錄設定為資源路徑
+File is opened by other process: %s	檔案被其他程序開啟: %s
+Font file not found	未找到字型檔案
+Font file not found: %s	未找到字型檔案: %s
+Language switched to %s(%s)	語言切換到 %s(%s)
+Languages: %s	語言: %s
+Line: %d, Notes: %zd, Events: %zd	行: %d, 音符: %zd, 事件: %zd
+Loaded FxImages	已載入特效圖像
+Loaded Images	已載入圖像
+Loaded Music	已載入音樂
+Mixed music	混合音樂
+Name: %s\nLevel: %s\nSong: %s\nPicture: %s\nChart: %s	名稱: %s\n等級: %s\n歌曲: %s\n圖片: %s\n譜面: %s
+Organized Notes	已整理音符
+Overwrite file: %s	覆蓋檔案: %s
+Please delete or rename the file	請刪除或重新命名檔案
+Please close the process which is using the file.	請關閉正在使用該檔案的程序。
+Please select a CORRECT ChartInfo file	請選擇正確的 ChartInfo 檔案
+Remove file: %s	刪除檔案: %s
+Render Cover Error: %s	渲染封面錯誤: %s
+Render Picture Error: %s	渲染圖片錯誤: %s
+Render Video Error: %s	渲染影片錯誤: %s
+Rendered videos in %.2fs, total frames: %d, average FPS: %.2f	渲染影片耗時 %.2fs, 總幀數: %d, 平均 FPS: %.2f
+\rProcessing batch %d/%d	\r正在處理批次 %d/%d
