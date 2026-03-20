@@ -35,6 +35,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
 -a, --aas                    INT           1        抗锯齿比例
 -b, --bitrate              FLOAT        10.0        视频码率(Mbps)
 -l, --logLevel              TEXT        info        日志等级
+-L, --language               INT           0        日志语言
     --FPS           INT:POSITIVE          60        视频帧率
     --CPU      INT:INT in [1 32]           4        使用的CPU核心数
 ```
