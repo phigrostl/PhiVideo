@@ -8,8 +8,7 @@
 
 ### Release
 - 下载 [`Release`](https://github.com/phigrostl/PhiVideo/releases) 页面中的 `PhiVideo.zip` 文件并解压
-
--  安装 [`FFmpeg`](https://ffmpeg.org/download.html) 并将其添加到系统环境变量中
+- 将该文件夹添加至系统环境变量 `PATH` 中
 
 #### 命令行参数
 ``` args
