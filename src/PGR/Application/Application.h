@@ -4,6 +4,16 @@
 #include "PGR/Render/Framebuffer.h"
 #include "PGR/Log/Log.h"
 
+#include <chrono>
+#include <codecvt>
+#include <fstream>
+#include <filesystem>
+#include <locale>
+#include <map>
+#include <mutex>
+#include <queue>
+#include <thread>
+
 #include <climits>
 #include <csignal>
 #include <cstdlib>
@@ -13,15 +23,6 @@
 #include <shlwapi.h>
 #include <strsafe.h>
 #include <tchar.h>
-
-#include <chrono>
-#include <codecvt>
-#include <fstream>
-#include <filesystem>
-#include <locale>
-#include <map>
-#include <mutex>
-#include <thread>
 
 #include "cJSON/cJSON.h"
 #include "CLI/CLI11.h"
@@ -74,7 +75,7 @@ namespace PGR {
         float endTime = -1.0f;
         int CPUNum = 4;
         int FPS = 60;
-        bool showWindow = true;
+        bool gpu = true;
         float size = 1.0f;
         float notesVolume = 0.5f;
         float musicVolume = 1.0f;

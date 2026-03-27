@@ -1,4 +1,4 @@
-#include "Application.h"
+﻿#include "Application.h"
 
 #pragma warning(disable:6386)
 
@@ -38,7 +38,6 @@ namespace PGR {
         std::vector<std::string> tempVideoFiles(CPUNum);
         std::vector<Framebuffer*> fbs(CPUNum);
         std::mutex tempVFilesMutex;
-        std::string str;
         Framebuffer back = Framebuffer(m_Width, m_Height);
         stbtt_fontinfo* FontInfo;
         auto lastTime = std::chrono::steady_clock::now();
@@ -63,84 +62,232 @@ namespace PGR {
         back.Clear();
         RenderBack(&back);
 
+        std::vector<std::atomic<int>> threadFrameCounters(CPUNum);
         for (int i = 0; i < CPUNum; i++) {
-            threads.emplace_back([this, i, &fbs, &frameCounter, &lastFrameCounter, &lastTime, &currentFPS, frameNum, &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex, back, time]() {
-                const int startFrame = threadStart[i];
-                const int endFrame = threadEnd[i];
+            threadFrameCounters[i] = threadStart[i];
+        }
+
+        const bool useAA = m_Info.aas > 1;
+        const size_t srcWidth = m_Width;
+        const size_t srcHeight = m_Height;
+        const size_t dstWidth = useAA ? (size_t)(m_Width / m_Info.aas) : m_Width;
+        const size_t dstHeight = useAA ? (size_t)(m_Height / m_Info.aas) : m_Height;
+        const size_t fps = m_Info.FPS;
+        const size_t dstFrameSize = dstWidth * dstHeight * 3;
+
+        std::mutex workStealMutex;
+        std::vector<FILE*> ffmpegPipes(CPUNum, nullptr);
+        std::vector<std::mutex> pipeMutexes(CPUNum);
+        
+        struct FrameData {
+            int frameIndex;
+            std::vector<unsigned char> data;
+        };
+
+        std::vector<std::map<int, std::vector<unsigned char>>> frameBuffers(CPUNum);
+        std::vector<std::atomic<int>> nextFrameToWrite(CPUNum);
+        std::vector<std::mutex> bufferMutexes(CPUNum);
+        
+        for (int i = 0; i < CPUNum; i++) {
+            nextFrameToWrite[i] = 0;
+        }
+
+        for (int i = 0; i < CPUNum; i++) {
+            if (threadStart[i] < threadEnd[i]) {
+                char tempVideoFile[64];
+                sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
+
+                char ffmpegCmd[512];
+                if (m_Info.gpu) {
+                    sprintf_s(
+                        ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads %d -video_size %zdx%zd -framerate %zd -i - -c:v h264_nvenc -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
+                        CPUNum, dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile
+                    );
+                } else {
+                    sprintf_s(
+                        ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads %d -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
+                        CPUNum, dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile
+                    );
+                }
+
+                ffmpegPipes[i] = _popen(ffmpegCmd, "wb");
+            }
+        }
+
+        for (int i = 0; i < CPUNum; i++) {
+            threads.emplace_back([this, i, &fbs, &frameCounter, &lastFrameCounter, &lastTime, &currentFPS, frameNum, &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex, back, &threadFrameCounters, &workStealMutex, &ffmpegPipes, &pipeMutexes, &frameBuffers, &nextFrameToWrite, &bufferMutexes, CPUNum, useAA, srcWidth, srcHeight, dstWidth, dstHeight, fps, dstFrameSize]() {
+                const size_t width3 = dstWidth * 3;
 
                 char tempVideoFile[64];
                 sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
 
-                const bool useAA = m_Info.aas > 1;
-                const size_t srcWidth = m_Width;
-                const size_t srcHeight = m_Height;
-                const size_t dstWidth = useAA ? (size_t)(m_Width / m_Info.aas) : m_Width;
-                const size_t dstHeight = useAA ? (size_t)(m_Height / m_Info.aas) : m_Height;
-                const size_t fps = m_Info.FPS;
-
-                char ffmpegCmd[512];
-                sprintf_s(
-                    ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24 -threads 1 -video_size %zdx%zd -framerate %zd -i - -c:v libx264 -pix_fmt yuv420p -r %zd -preset medium -b:v %fM %s",
-                    dstWidth, dstHeight, fps, fps, m_Info.bitrate, tempVideoFile
-                );
-
-                FILE* ffmpegPipe = _popen(ffmpegCmd, "wb");
-                const size_t dstFrameSize = dstWidth * dstHeight * 3;
-
                 unsigned char* frameData = new unsigned char[dstFrameSize];
                 memset(frameData, 0, dstFrameSize);
-                const size_t width3 = dstWidth * 3;
 
-                for (int j = startFrame; j < endFrame; j++) {
-                    fbs[i]->Clear(back);
-                    Render(((float)(j) / (float)(fps)) + m_Info.startTime, fbs[i], false);
-
-                    const Vec3* colorBuffer = fbs[i]->GetColorData();
-
-                    if (useAA) {
-                        for (size_t y = 0; y < dstHeight; y++) {
-                            for (size_t x = 0; x < dstWidth; x++) {
-                                size_t r = 0, g = 0, b = 0;
-                                for (size_t j = 0; j < (size_t)(m_Info.aas); j++) {
-                                    for (size_t i = 0; i < (size_t)(m_Info.aas); i++) {
-                                        const Vec3& color = colorBuffer[((y * (size_t)(m_Info.aas) + j) * srcWidth + (x * (size_t)(m_Info.aas) + i))];
-                                        r += (size_t)(color.X * 255.0f);
-                                        g += (size_t)(color.Y * 255.0f);
-                                        b += (size_t)(color.Z * 255.0f);
-                                    }
-                                }
-                                frameData[y * width3 + x * 3] = (unsigned char)(r / (m_Info.aas * m_Info.aas));
-                                frameData[y * width3 + x * 3 + 1] = (unsigned char)(g / (m_Info.aas * m_Info.aas));
-                                frameData[y * width3 + x * 3 + 2] = (unsigned char)(b / (m_Info.aas * m_Info.aas));
+                auto writeFramesToPipe = [&](int threadIndex) {
+                    if (ffmpegPipes[threadIndex] == nullptr) return;
+                    
+                    while (true) {
+                        int currentFrame = nextFrameToWrite[threadIndex].load(std::memory_order_relaxed);
+                        int expectedStart = threadStart[threadIndex];
+                        int frameIndex = expectedStart + currentFrame;
+                        
+                        {   
+                            std::lock_guard<std::mutex> lock(bufferMutexes[threadIndex]);
+                            auto it = frameBuffers[threadIndex].find(frameIndex);
+                            if (it == frameBuffers[threadIndex].end()) {
+                                break;
                             }
+                            
+                            std::lock_guard<std::mutex> pipeLock(pipeMutexes[threadIndex]);
+                            fwrite(it->second.data(), 1u, dstFrameSize, ffmpegPipes[threadIndex]);
+                            
+                            frameBuffers[threadIndex].erase(it);
+                            nextFrameToWrite[threadIndex].fetch_add(1, std::memory_order_relaxed);
                         }
-                    } else {
-                        for (size_t y = 0; y < dstHeight; y++) {
-                            for (size_t x = 0; x < dstWidth; x++) {
-                                const Vec3& color = colorBuffer[y * srcWidth + x];
-                                int index = y * width3 + x * 3;
-                                frameData[index + 0] = (unsigned char)(color.X * 255.0f);
-                                frameData[index + 1] = (unsigned char)(color.Y * 255.0f);
-                                frameData[index + 2] = (unsigned char)(color.Z * 255.0f);
+                    }
+                };
+
+                auto stealWork = [&]() -> std::pair<int, int> {
+                    std::lock_guard<std::mutex> lock(workStealMutex);
+                    for (int j = 0; j < CPUNum; j++) {
+                        if (j == i) continue;
+                        int current = threadFrameCounters[j].load(std::memory_order_relaxed);
+                        if (current < threadEnd[j]) {
+                            int next = current + 1;
+                            if (threadFrameCounters[j].compare_exchange_strong(current, next, std::memory_order_relaxed)) {
+                                return std::make_pair(current, j);
                             }
                         }
                     }
-                    fwrite(frameData, 1u, dstFrameSize, ffmpegPipe);
+                    return std::make_pair(-1, -1);
+                };
 
-                    frameCounter.fetch_add(1, std::memory_order_relaxed);
+                while (true) {
+                    int j = threadFrameCounters[i].load(std::memory_order_relaxed);
+                    if (j < threadEnd[i]) {
+                        if (threadFrameCounters[i].compare_exchange_strong(j, j + 1, std::memory_order_relaxed)) {
+                            fbs[i]->Clear(back);
+                            Render(((float)(j) / (float)(fps)) + m_Info.startTime, fbs[i], false);
 
-                    auto currentTime = std::chrono::steady_clock::now();
-                    static constexpr std::chrono::seconds updateInterval(1);
-                    if (currentTime - lastTime >= updateInterval) {
-                        int renderedFrames = frameCounter.load(std::memory_order_relaxed) - lastFrameCounter.load(std::memory_order_relaxed);
-                        currentFPS = (float)(renderedFrames) * 60.0f;
-                        lastFrameCounter.store(frameCounter.load(std::memory_order_relaxed), std::memory_order_relaxed);
-                        lastTime = currentTime;
+                            const Vec3* colorBuffer = fbs[i]->GetColorData();
+
+                            if (useAA) {
+                                for (size_t y = 0; y < dstHeight; y++) {
+                                    for (size_t x = 0; x < dstWidth; x++) {
+                                        size_t r = 0, g = 0, b = 0;
+                                        for (size_t j = 0; j < (size_t)(m_Info.aas); j++) {
+                                            for (size_t i = 0; i < (size_t)(m_Info.aas); i++) {
+                                                const Vec3& color = colorBuffer[((y * (size_t)(m_Info.aas) + j) * srcWidth + (x * (size_t)(m_Info.aas) + i))];
+                                                r += (size_t)(color.X * 255.0f);
+                                                g += (size_t)(color.Y * 255.0f);
+                                                b += (size_t)(color.Z * 255.0f);
+                                            }
+                                        }
+                                        frameData[y * width3 + x * 3 + 0] = (unsigned char)(r / ((unsigned long long)m_Info.aas * m_Info.aas));
+                                        frameData[y * width3 + x * 3 + 1] = (unsigned char)(g / ((unsigned long long)m_Info.aas * m_Info.aas));
+                                        frameData[y * width3 + x * 3 + 2] = (unsigned char)(b / ((unsigned long long)m_Info.aas * m_Info.aas));
+                                    }
+                                }
+                            } else {
+                                for (size_t y = 0; y < dstHeight; y++) {
+                                    for (size_t x = 0; x < dstWidth; x++) {
+                                        const Vec3& color = colorBuffer[y * srcWidth + x];
+                                        int index = y * width3 + x * 3;
+                                        frameData[index + 0] = (unsigned char)(color.X * 255.0f);
+                                        frameData[index + 1] = (unsigned char)(color.Y * 255.0f);
+                                        frameData[index + 2] = (unsigned char)(color.Z * 255.0f);
+                                    }
+                                }
+                            }
+                            
+                            {   
+                                std::lock_guard<std::mutex> lock(bufferMutexes[i]);
+                                std::vector<unsigned char> data(frameData, frameData + dstFrameSize);
+                                frameBuffers[i][j] = std::move(data);
+                            }
+                            
+                            writeFramesToPipe(i);
+
+                            frameCounter.fetch_add(1, std::memory_order_relaxed);
+
+                            auto currentTime = std::chrono::steady_clock::now();
+                            static constexpr std::chrono::seconds updateInterval(1);
+                            if (currentTime - lastTime >= updateInterval) {
+                                int renderedFrames = frameCounter.load(std::memory_order_relaxed) - lastFrameCounter.load(std::memory_order_relaxed);
+                                currentFPS = (float)(renderedFrames) * 60.0f;
+                                lastFrameCounter.store(frameCounter.load(std::memory_order_relaxed), std::memory_order_relaxed);
+                                lastTime = currentTime;
+                            }
+                        }
+                    } else {
+                        auto [stolenFrame, targetThread] = stealWork();
+                        if (stolenFrame == -1) {
+                            break;
+                        }
+                        fbs[i]->Clear(back);
+                        Render(((float)(stolenFrame) / (float)(fps)) + m_Info.startTime, fbs[i], false);
+
+                        const Vec3* colorBuffer = fbs[i]->GetColorData();
+
+                        if (useAA) {
+                            for (size_t y = 0; y < dstHeight; y++) {
+                                for (size_t x = 0; x < dstWidth; x++) {
+                                    size_t r = 0, g = 0, b = 0;
+                                    for (size_t j = 0; j < (size_t)(m_Info.aas); j++) {
+                                        for (size_t i = 0; i < (size_t)(m_Info.aas); i++) {
+                                            const Vec3& color = colorBuffer[((y * (size_t)(m_Info.aas) + j) * srcWidth + (x * (size_t)(m_Info.aas) + i))];
+                                            r += (size_t)(color.X * 255.0f);
+                                            g += (size_t)(color.Y * 255.0f);
+                                            b += (size_t)(color.Z * 255.0f);
+                                        }
+                                    }
+                                    frameData[y * width3 + x * 3 + 0] = (unsigned char)(r / ((unsigned long long)m_Info.aas * m_Info.aas));
+                                    frameData[y * width3 + x * 3 + 1] = (unsigned char)(g / ((unsigned long long)m_Info.aas * m_Info.aas));
+                                    frameData[y * width3 + x * 3 + 2] = (unsigned char)(b / ((unsigned long long)m_Info.aas * m_Info.aas));
+                                }
+                            }
+                        } else {
+                            for (size_t y = 0; y < dstHeight; y++) {
+                                for (size_t x = 0; x < dstWidth; x++) {
+                                    const Vec3& color = colorBuffer[y * srcWidth + x];
+                                    int index = y * width3 + x * 3;
+                                    frameData[index + 0] = (unsigned char)(color.X * 255.0f);
+                                    frameData[index + 1] = (unsigned char)(color.Y * 255.0f);
+                                    frameData[index + 2] = (unsigned char)(color.Z * 255.0f);
+                                }
+                            }
+                        }
+
+                        {   
+                            std::lock_guard<std::mutex> lock(bufferMutexes[targetThread]);
+                            std::vector<unsigned char> data(frameData, frameData + dstFrameSize);
+                            frameBuffers[targetThread][stolenFrame] = std::move(data);
+                        }
+                        
+                        writeFramesToPipe(targetThread);
+
+                        frameCounter.fetch_add(1, std::memory_order_relaxed);
+
+                        auto currentTime = std::chrono::steady_clock::now();
+                        static constexpr std::chrono::seconds updateInterval(1);
+                        if (currentTime - lastTime >= updateInterval) {
+                            int renderedFrames = frameCounter.load(std::memory_order_relaxed) - lastFrameCounter.load(std::memory_order_relaxed);
+                            currentFPS = (float)(renderedFrames) * 60.0f;
+                            lastFrameCounter.store(frameCounter.load(std::memory_order_relaxed), std::memory_order_relaxed);
+                            lastTime = currentTime;
+                        }
+                    }
+                }
+
+                writeFramesToPipe(i);
+                for (int j = 0; j < CPUNum; j++) {
+                    if (j != i) {
+                        writeFramesToPipe(j);
                     }
                 }
 
                 delete[] frameData;
-                _pclose(ffmpegPipe);
 
                 LogInfo("Ending thread %d", i);
 
@@ -182,30 +329,44 @@ namespace PGR {
 
         for (auto& t : threads) t.join();
 
+        for (int i = 0; i < CPUNum; i++) {
+            if (ffmpegPipes[i] != nullptr) {
+                _pclose(ffmpegPipes[i]);
+            }
+        }
+
         std::ofstream inputListFile("input_list.txt");
         if (inputListFile.is_open()) {
-            for (const auto& file : tempVideoFiles) {
-                if (!file.empty()) {
-                    inputListFile << "file '" << file << "'" << std::endl;
+            for (int i = 0; i < CPUNum; i++) {
+                if (threadStart[i] < threadEnd[i] && !tempVideoFiles[i].empty()) {
+                    inputListFile << "file '" << tempVideoFiles[i] << "'" << std::endl;
                 }
             }
             inputListFile.close();
-            std::string concatCmd = "ffmpeg -y -loglevel error -f concat -safe 0 -i input_list.txt -c copy rendered.mp4";
-            system(concatCmd.c_str());
+            system("ffmpeg -y -loglevel error -f concat -safe 0 -i input_list.txt -c:v copy -pix_fmt yuv420p -preset medium -b:v 8M rendered.mp4");
         }
 
-        str = "ffmpeg -y -loglevel error -ss " + std::to_string(m_Info.startTime) + " -i \"" + m_Info.TempDir + "mixed.wav\" -t " + std::to_string(m_Info.endTime) + " -c copy mixed_cut.wav";
-        system(str.c_str());
+        system((
+            "ffmpeg -y -loglevel error -ss "
+            + std::to_string(m_Info.startTime)
+            + " -i \"" + m_Info.TempDir
+            + "mixed.wav\" -t "
+            + std::to_string(m_Info.endTime)
+            + " -c copy mixed_cut.wav")
+            .c_str()
+        );
 
         ToDir(m_Info.WorkDir);
         std::string filename = m_Info.OutPath + ".mp4";
-        str = "ffmpeg -y -loglevel error -i \""
-            + m_Info.TempDir + "rendered.mp4\" -i \""
-            + m_Info.TempDir + "mixed_cut.wav\" -c:v libx264 -pix_fmt yuv420p -preset medium -b:v "
-            + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest \""
-            + filename + "\"";
         Overwrite(filename);
-        system(str.c_str());
+        system((
+            "ffmpeg -y -loglevel error -i \""
+            + m_Info.TempDir + "rendered.mp4\" -i \""
+            + m_Info.TempDir + "mixed_cut.wav\" -c:v copy -pix_fmt yuv420p -preset medium -b:v "
+            + std::to_string(m_Info.bitrate) + "M -c:a aac -strict experimental -b:a 192k -shortest \""
+            + filename + "\""
+            ).c_str()
+        );
     }
 
     static Texture* GetHoldTexture(const Texture* head, const int headH, const Texture* body, const int bodyH, const Texture* tail, const int tailH, const int w, const int bh = -1) {
@@ -785,7 +946,8 @@ namespace PGR {
                 fb->DrawTextTTF(
                     0, (int)(Ly + 0.5f),
                     LineStrs[i],
-                    Vec4(Vec3(1.0f), 0.5f), LSize);
+                    Vec4(Vec3(1.0f), 0.5f), LSize
+                );
             }
 
             std::vector<std::string> InfoStrs;
@@ -808,10 +970,11 @@ namespace PGR {
                 ESpeed += (size_t)findEvent(line.sec2beat(t, m_Info.chart.data.offset), line.speedEvents) + 1u;
             }
             char Str[32];
-            if (m_Info.chart.data.sameBPM && m_Info.chart.data.judgeLines.size() > 0)
+            if (m_Info.chart.data.sameBPM && m_Info.chart.data.judgeLines.size() > 0) {
                 sprintf(Str, "Offset: %.2f BPM: %.2f", m_Info.chart.data.offset, m_Info.chart.data.judgeLines[0].bpm);
-            else
+            } else {
                 sprintf(Str, "Offset: %.2f", m_Info.chart.data.offset);
+            }
             InfoStrs.push_back(Str);
             InfoStrs.push_back("SpeedEvent : " + std::to_string(ESpeed) + " / " + std::to_string(ASpeed));
             InfoStrs.push_back("DisappearEvent : " + std::to_string(EDisappear) + " / " + std::to_string(ADisappear));

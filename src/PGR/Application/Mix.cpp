@@ -109,9 +109,7 @@ namespace PGR {
                 for (const auto& filter : filterComplexParts) batchCmd += filter;
                 batchCmd += "[0:a]";
                 for (int k = batchStart; k < batchEnd; k++) batchCmd += "[delayed" + std::to_string(k) + "]";
-                batchCmd += "amix=inputs=" +
-                    std::to_string(1 + (batchEnd - batchStart)) +
-                    ":duration=longest:normalize=0\" " + tempOutputFile;
+                batchCmd += "amix=inputs=" + std::to_string(1 + (batchEnd - batchStart)) + ":duration=longest:normalize=0\" " + tempOutputFile;
 
                 system(batchCmd.c_str());
 
@@ -137,13 +135,13 @@ namespace PGR {
             system(mergeCmd.c_str());
         } else system("ffmpeg -y -loglevel error -i empty.wav notes.wav");
 
-        std::string mixCmd = "ffmpeg -y -loglevel error -i \"" + music + "\" -i notes.wav "
-            + "-filter_complex \"[0:a]volume="
-            + std::to_string(m_Info.musicVolume)
-            + "[a0];[1:a]volume="
-            + std::to_string(m_Info.notesVolume)
-            + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" mixed.wav";
-        system(mixCmd.c_str());
+        system((
+            "ffmpeg -y -loglevel error -i \"" + music + "\" -i notes.wav "
+            + "-filter_complex \"[0:a]volume=" + std::to_string(m_Info.musicVolume)
+            + "[a0];[1:a]volume=" + std::to_string(m_Info.notesVolume)
+            + "[a1];[a0][a1]amix=inputs=2:duration=longest:normalize=0\" mixed.wav"
+            ).c_str()
+        );
 
         LogInfo("Mixed music");
     }

@@ -37,7 +37,6 @@ namespace PGR {
     }
 
     void Texture::Init() {
-
         std::ifstream file(m_Path.c_str());
         if (!file.is_open()) {
             m_Width = 1;
@@ -79,7 +78,6 @@ namespace PGR {
                 );
             }
             break;
-
         case 3:
             for (int i = 0; i < size; i++) {
                 const int idx = i * 3;
@@ -91,7 +89,6 @@ namespace PGR {
                 );
             }
             break;
-
         case 2:
             for (int i = 0; i < size; i++) {
                 const int idx = i * 2;
@@ -103,7 +100,6 @@ namespace PGR {
                 );
             }
             break;
-
         case 1:
             for (int i = 0; i < size; i++) {
                 m_Data[i] = Vec4(
@@ -114,7 +110,6 @@ namespace PGR {
                 );
             }
             break;
-
         default:
             break;
         }
@@ -145,7 +140,6 @@ namespace PGR {
         }
 
         if (!reserve) delete this;
-
         return newTexture;
     }
 
@@ -167,7 +161,6 @@ namespace PGR {
         }
 
         if (!reserve) delete this;
-
         return newTexture;
     }
 
@@ -199,7 +192,6 @@ namespace PGR {
             }
         }
         if (!reserve) delete this;
-
         return newTexture;
     }
 

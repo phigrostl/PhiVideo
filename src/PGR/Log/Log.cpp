@@ -121,7 +121,8 @@ void log(LogLevel level, const char* file, int line, const char* func, const cha
     if (level < g_log_level) return;
 
     std::string fileCut = file;
-    fileCut = fileCut.substr(20);
+    size_t pos = fileCut.rfind("src\\PGR");
+    fileCut = ".\\" + ((pos != std::string::npos) ? fileCut.substr(pos + 8) : fileCut);
 
     try {
         const size_t buffer_size = 1024;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "PGR/Base/Maths.h"
 
 namespace PGR {

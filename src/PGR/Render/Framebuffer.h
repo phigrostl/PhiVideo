@@ -3,11 +3,12 @@
 #include "PGR/Base/Maths.h"
 #include "PGR/Render/Texture.h"
 
-#include <stb_image/stb_truetype.h>
 #include <stb_image/stb_image_write.h>
+#include <stb_image/stb_truetype.h>
+
+#include <fstream>
 
 #include <Windows.h>
-#include <fstream>
 
 namespace PGR {
 

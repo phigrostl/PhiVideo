@@ -2,10 +2,6 @@
 
 #include <PGR/Log/Log.h>
 
-#include <iostream>
-#include <string>
-#include <Windows.h>
-
 void Exita(const char* file, int line, const char* func, const char* format, const int code, ...);
 
 std::string wstr2str(const std::wstring& wstr);

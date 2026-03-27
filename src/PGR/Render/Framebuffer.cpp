@@ -64,7 +64,7 @@ namespace PGR {
         unsigned int clearValue =
             ((unsigned char)(clearColor.Z * 255.0f) << 16) |
             ((unsigned char)(clearColor.Y * 255.0f) << 8) |
-            (unsigned char)(clearColor.X * 255.0f);
+            ((unsigned char)(clearColor.X * 255.0f));
 
         for (int i = 0; i < m_PixelSize; i++) {
             m_ColorBuffer[i] = clearColor;

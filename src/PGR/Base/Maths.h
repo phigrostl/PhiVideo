@@ -2,12 +2,10 @@
 
 #include "PGR/Base/Base.h"
 
-#include <cmath>
-#include <string>
-#include <iostream>
 #include <algorithm>
-#include <vector>
 #include <random>
+
+#include <cmath>
 
 namespace PGR {
 

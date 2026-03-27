@@ -1,17 +1,19 @@
 #pragma once
 
-#include <iostream>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <string>
 #include <vector>
+#include <regex>
 #include <sstream>
+
 #include <ctime>
 #include <cstdarg>
-#include <chrono>
-#include <fstream>
-#include <filesystem>
-#include <regex>
-#include <windows.h>
+
+#include <Windows.h>
 
 enum class LogLevel {
     Debug,

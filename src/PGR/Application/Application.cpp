@@ -53,11 +53,13 @@ namespace PGR {
 
         app.add_option("-a,--aas", m_Info.aas, "Anti-Aliasing Scale")->check(CLI::PositiveNumber);
         app.add_option("-b,--bitrate", m_Info.bitrate, "Bitrate")->check(CLI::PositiveNumber);
+        app.add_option("-g,--gpu", m_Info.gpu, "Use GPU for rendering");
 
         app.add_option("-l,--logLevel", log_level_str, "Log level");
         app.add_option("-L,--language", language, "Language");
         app.add_option("--FPS", m_Info.FPS, "FPS")->check(CLI::PositiveNumber);
         app.add_option("--CPU", m_Info.CPUNum, "CPU Core Num")->check(CLI::Range(1, 24));
+
 
         try {
             app.parse(argc, argv);

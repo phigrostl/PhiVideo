@@ -2,8 +2,6 @@
 
 #include "PGR/Application/Note.h"
 
-#include <vector>
-
 namespace PGR {
 
     struct JudgeLine {

@@ -338,10 +338,10 @@ namespace PGR {
     }
 
     void Application::LoadFiles() {
-        LoadJsons();
+        if (m_Info.RenderVideo || m_Info.RenderPic) LoadJsons();
+        if (m_Info.RenderVideo) LoadMusics();
         LoadImgs();
         LoadFxImgs();
-        LoadMusics();
     }
 
     void Application::LoadImgs() {
