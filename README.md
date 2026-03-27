@@ -33,6 +33,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
 -H, --height                 INT        1080        输出视频高度
 -a, --aas                    INT           1        抗锯齿比例
 -b, --bitrate              FLOAT        10.0        视频码率(Mbps)
+-g, --gpu                BOOLEAN        true        是否使用GPU加速
 -l, --logLevel              TEXT        info        日志等级
 -L, --language               INT           0        日志语言
     --FPS           INT:POSITIVE          60        视频帧率
@@ -66,10 +67,11 @@ PhiVideo [FILE_PATH] [OPTIONS]
 ### 注意事项
  - 该程序会占用大量内存与 CPU 资源，请确保计算机性能足够
  - 可能会替换删除掉某些文件，请提前备份重要数据
+ - 若显卡不支持，请尝试将 `-g` 选项设为 `false`
      
 
 ### 自行编译
-1. 安装 [`Visual Studio 2019`](https://visualstudio.microsoft.com/zh-hans/downloads/) 或更高版本
+1. 安装 [`Visual Studio 2026`](https://visualstudio.microsoft.com/zh-hans/downloads/) 或更高版本
 2. 安装 [`CMake 3.18`](https://cmake.org/download/) 或更高版本
 3. 克隆或下载项目到本地
 4. 使用 `CMake` 生成 `Visual Studio` 解决方案
