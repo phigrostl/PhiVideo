@@ -154,6 +154,8 @@ namespace PhiVideo {
         int oy = (int)(yOffset * h);
 
         for (wchar_t c : wstr) {
+            if (c == L'\0') break;
+
             int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
             int ax, lsb;
 
@@ -206,6 +208,8 @@ namespace PhiVideo {
         int Dbaseline = int(Dascent * DScale);
 
         for (wchar_t c : wstr) {
+            if (c == L'\0') break;
+
             int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
 
             if (glyphIndex == 0) {
@@ -290,6 +294,8 @@ namespace PhiVideo {
         int Dbaseline = int(Dascent * DScale);
 
         for (wchar_t c : wstr) {
+            if (c == L'\0') break;
+
             int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
             stbtt_fontinfo* fontToUse = m_FontInfo;
             float currentScale = scale;
