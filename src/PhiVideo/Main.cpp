@@ -1,6 +1,6 @@
-#include "PGR/Application/Application.h"
+#include "PhiVideo/Application/Application.h"
 
-PGR::Application App;
+PhiVideo::Application App;
 
 static void CtrlC() {
     std::cout << "\n\n\r";
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
         Exit("Failed to get resources directory", 1);
     }
 
-    App = PGR::Application(argc, argv, workDir, ResDir);
+    App = PhiVideo::Application(argc, argv, (std::string)workDir, (std::string)ResDir);
     App.Run();
 
     LogNotice("Exiting application");

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "PGR/Base/Maths.h"
+#include "PhiVideo/Base/Maths.h"
 
 #include <vector>
 
-namespace PGR {
+namespace PhiVideo {
 
     struct JudgeLineMoveEvent {
         JudgeLineMoveEvent() = default;

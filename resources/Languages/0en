@@ -4,7 +4,6 @@ ChartInfo file format error	ChartInfo file format error
 Ctrl-C	Ctrl-C
 Console closed	Console closed
 Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	Do you want to overwrite file: %s\\%s? (Yes/No/All yes): 
-Ending thread %d	Ending thread %d
 Error while logging:	Error while logging: 
 Exiting application	Exiting application
 Exiting with code: %d	Exiting with code: %d

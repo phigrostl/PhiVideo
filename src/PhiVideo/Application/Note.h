@@ -1,12 +1,12 @@
 #pragma once
 
-#include "PGR/Application/Constant.h"
-#include "PGR/Application/Event.h"
-#include "PGR/Application/HitFx.h"
-#include "PGR/Base/Maths.h"
-#include "PGR/Render/Texture.h"
+#include "PhiVideo/Application/Constant.h"
+#include "PhiVideo/Application/Event.h"
+#include "PhiVideo/Application/HitFx.h"
+#include "PhiVideo/Base/Maths.h"
+#include "PhiVideo/Render/Texture.h"
 
-namespace PGR {
+namespace PhiVideo {
 
     struct Note {
         Note() = default;

@@ -121,11 +121,11 @@ void log(LogLevel level, const char* file, int line, const char* func, const cha
     if (level < g_log_level) return;
 
     std::string fileCut = file;
-    size_t pos = fileCut.rfind("src\\PGR");
-    fileCut = ".\\" + ((pos != std::string::npos) ? fileCut.substr(pos + 8) : fileCut);
+    size_t pos = fileCut.rfind("src\\PhiVideo");
+    fileCut = ".\\" + ((pos != std::string::npos) ? fileCut.substr(pos + 13) : fileCut);
 
     try {
-        const size_t buffer_size = 1024;
+        const size_t buffer_size = 4096;
         char buffer[buffer_size] = { 0 };
 
         std::string translated_format = g_languages[g_language_code].Translate(format);
@@ -166,21 +166,18 @@ void log(LogLevel level, const char* file, int line, const char* func, const cha
                     if (c == '\033') {
                         in_escape = true;
                         trimmed_str += c;
-                    } else if (in_escape && c == 'm') {
-                        in_escape = false;
+                    } else if (in_escape) {
                         trimmed_str += c;
-                    } else if (!in_escape) {
-                        if (current_length >= terminal_width - 13)
-                            break;
+                        if (c == 'm') in_escape = false;
+                    } else {
+                        if (current_length >= terminal_width - 13) break;
+                        trimmed_str += c;
                         current_length++;
-                        trimmed_str += c;
-                    } else
-                        trimmed_str += c;
+                    }
                 }
 
                 log_str = trimmed_str + "\033[0m...";
             }
-
             std::cout << log_str;
         } else if (std::string(buffer).find('\n') != std::string::npos) {
             std::istringstream iss(buffer);

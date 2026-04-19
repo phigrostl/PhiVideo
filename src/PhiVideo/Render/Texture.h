@@ -1,5 +1,5 @@
 #pragma once
-#include "PGR/Base/Maths.h"
+#include "PhiVideo/Base/Maths.h"
 
 #include <stb_image/stb_image.h>
 #include <stb_image/stb_image_resize2.h>
@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 
-namespace PGR {
+namespace PhiVideo {
 
     class Texture {
     public:
@@ -22,7 +22,6 @@ namespace PGR {
 
         int GetWidth() const { return m_Width; }
         int GetHeight() const { return m_Height; }
-        std::string GetPath() const { return m_Path; }
         const Vec4* GetData() const { return m_Data; }
 
         Texture* ClipBlockImg(int x0, int y0, int x1, int y1, bool reserve = true) const;
@@ -30,11 +29,10 @@ namespace PGR {
         Texture* GetShaderImg(float radius, bool reserve = true) const;
 
     private:
-        void Init();
+        void Init(std::string path);
 
     private:
         int m_Width, m_Height, m_Channels;
-        std::string m_Path;
         Vec4* m_Data;
     };
 

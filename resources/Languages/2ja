@@ -4,7 +4,6 @@ ChartInfo file format error	チャート情報ファイル形式エラー
 Ctrl-C	Ctrl-C
 Console closed	コンソールが閉じられました
 Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	ファイルを上書きしますか: %s\\%s? (はい/いいえ/すべてはい) (Y/N/A): 
-Ending thread %d	スレッド %d を終了
 Error while logging:	ロギング中にエラーが発生:
 Exiting application	アプリケーションを終了
 Exiting with code: %d	コード %d で終了

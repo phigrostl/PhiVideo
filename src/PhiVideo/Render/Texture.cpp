@@ -1,10 +1,9 @@
 #include "Texture.h"
 
-namespace PGR {
+namespace PhiVideo {
 
-    Texture::Texture(const std::string& path)
-        : m_Path(path) {
-        Init();
+    Texture::Texture(const std::string& path) {
+        Init(path);
     }
 
     Texture::Texture(const float value) {
@@ -36,8 +35,8 @@ namespace PGR {
         m_Data = nullptr;
     }
 
-    void Texture::Init() {
-        std::ifstream file(m_Path.c_str());
+    void Texture::Init(std::string path) {
+        std::ifstream file(path);
         if (!file.is_open()) {
             m_Width = 1;
             m_Height = 1;
@@ -49,7 +48,7 @@ namespace PGR {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(1);
         stbi_uc* data = nullptr;
-        data = stbi_load(m_Path.c_str(), &width, &height, &channels, 0);
+        data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
         if (!data) {
             m_Width = 1;
@@ -66,52 +65,14 @@ namespace PGR {
 
         const float inv255 = 1.0f / 255.0f;
 
-        switch (channels) {
-        case 4:
-            for (int i = 0; i < size; i++) {
-                const int idx = i * 4;
-                m_Data[i] = Vec4(
-                    data[idx] * inv255,
-                    data[idx + 1] * inv255,
-                    data[idx + 2] * inv255,
-                    data[idx + 3] * inv255
-                );
-            }
-            break;
-        case 3:
-            for (int i = 0; i < size; i++) {
-                const int idx = i * 3;
-                m_Data[i] = Vec4(
-                    data[idx] * inv255,
-                    data[idx + 1] * inv255,
-                    data[idx + 2] * inv255,
-                    1.0f
-                );
-            }
-            break;
-        case 2:
-            for (int i = 0; i < size; i++) {
-                const int idx = i * 2;
-                m_Data[i] = Vec4(
-                    data[idx] * inv255,
-                    data[idx + 1] * inv255,
-                    0.0f,
-                    0.0f
-                );
-            }
-            break;
-        case 1:
-            for (int i = 0; i < size; i++) {
-                m_Data[i] = Vec4(
-                    data[i] * inv255,
-                    0.0f,
-                    0.0f,
-                    0.0f
-                );
-            }
-            break;
-        default:
-            break;
+        for (int i = 0; i < size; i++) {
+            const int idx = i * channels;
+            m_Data[i] = Vec4(0.0f);
+            if (channels > 0) m_Data[i].X = data[idx] * inv255;
+            if (channels > 1) m_Data[i].Y = data[idx + 1] * inv255;
+            if (channels > 2) m_Data[i].Z = data[idx + 2] * inv255;
+            if (channels > 3) m_Data[i].W = data[idx + 3] * inv255;
+            if (channels == 3) m_Data[i].W = 1.0f;
         }
 
         stbi_image_free(data);
@@ -127,7 +88,6 @@ namespace PGR {
         newTexture->m_Width = x1 - x0;
         newTexture->m_Height = y1 - y0;
         newTexture->m_Channels = this->m_Channels;
-        newTexture->m_Path = this->GetPath() + "_blockclipped";
 
         int newSize = newTexture->m_Width * newTexture->m_Height;
         newTexture->m_Data = new Vec4[newSize];
@@ -148,7 +108,6 @@ namespace PGR {
         newTexture->m_Width = this->GetWidth();
         newTexture->m_Height = this->GetHeight();
         newTexture->m_Channels = this->m_Channels;
-        newTexture->m_Path = this->GetPath();
 
         int newSize = newTexture->m_Width * newTexture->m_Height;
         delete[] newTexture->m_Data;
@@ -177,7 +136,6 @@ namespace PGR {
         newTexture->m_Width = w;
         newTexture->m_Height = h;
         newTexture->m_Channels = channels;
-        newTexture->m_Path = this->GetPath();
 
         int size = w * h;
         delete[] newTexture->m_Data;

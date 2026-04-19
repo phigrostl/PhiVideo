@@ -4,7 +4,6 @@ ChartInfo file format error	譜面資訊檔案格式錯誤
 Ctrl-C	Ctrl-C
 Console closed	控制台已關閉
 Do you want to overwrite file: %s\\%s? (Yes/No/All yes):	您是否要覆蓋檔案: %s\\%s? (是/否/全部是) (Y/N/A): 
-Ending thread %d	結束執行緒 %d
 Error while logging:	記錄日誌時出錯:
 Exiting application	退出應用程式
 Exiting with code: %d	退出代碼: %d

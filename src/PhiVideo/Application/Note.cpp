@@ -1,6 +1,6 @@
 #include "Note.h"
 
-namespace PGR {
+namespace PhiVideo {
 
 	Vec2 Note::getclickEffect(float w, float h, EventsValue ev) {
 		Vec2 pos = rotatePoint(

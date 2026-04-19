@@ -1,6 +1,6 @@
 #include "Maths.h"
 
-namespace PGR {
+namespace PhiVideo {
 
     Vec2 operator+ (const Vec2& left, const Vec2& right) {
         return Vec2{ left.X + right.X, left.Y + right.Y };
@@ -110,6 +110,12 @@ namespace PGR {
         return dist(rng_engine);
     }
 
+    float randf(float min, float max, float seed) {
+        std::mt19937 rng_engine((unsigned int)(seed * RAND_NUM));
+        std::uniform_real_distribution<float> dist(min, max);
+        return dist(rng_engine);
+    }
+
     Vec2 rotatePoint(float x, float y, float r, float deg) {
         const float rad = deg * PI_OVER_180;
         const float cos_rad = cos(rad);
@@ -119,6 +125,26 @@ namespace PGR {
             x + r * cos_rad,
             y + r * sin_rad
         };
+    }
+
+    Vec3 HSV2RGB(const Vec3& hsv) {
+        float h = hsv.X;
+        float s = hsv.Y;
+        float v = hsv.Z;
+        int i = (int)(h * 6.0f);
+        float f = h * 6.0f - i;
+        float p = v * (1.0f - s);
+        float q = v * (1.0f - f * s);
+        float t = v * (1.0f - (1.0f - f) * s);
+        switch (i % 6) {
+        case 0: return Vec3{ v, t, p };
+        case 1: return Vec3{ q, v, p };
+        case 2: return Vec3{ p, v, t };
+        case 3: return Vec3{ p, q, v };
+        case 4: return Vec3{ t, p, v };
+        case 5: return Vec3{ v, p, q };
+        default: return Vec3{ 0.0f, 0.0f, 0.0f };
+        }
     }
 
 }

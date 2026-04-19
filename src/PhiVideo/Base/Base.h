@@ -1,8 +1,9 @@
 #pragma once
 
-#include <PGR/Log/Log.h>
+#include <PhiVideo/Log/Log.h>
 
 void Exita(const char* file, int line, const char* func, const char* format, const int code, ...);
+std::string FfmpegBaseCmd();
 
 std::string wstr2str(const std::wstring& wstr);
 std::wstring str2wstr(const std::string& str);

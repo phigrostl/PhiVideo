@@ -1,16 +1,58 @@
-{
-	"HitFx": [ 5, 6 ],
-	"HoldAtlas": [ 50, 50 ],
-	"HoldAtlasMH": [ 100, 100 ],
+﻿{
+  "HitFx": [ 5, 6 ],
+  "HoldAtlas": [ 50, 50 ],
+  "HoldAtlasMH": [ 100, 100 ],
 
-	"Title": "谱面演示",
-	"Title2": "谱面揭秘",
-	"Info": "Code & File by たおりん on Bilibili | - Phigros - ",
-	"Combo": "AUTOPLAY",
+  "ParticleNum": 4,
 
-	"NoteDelay": [
-		0.00061239101845989,
-		0.03229180050666951,
-		0.00183683717307712
-	]
+  "RenderJudgeLines": true,
+  "RenderNotes": true,
+  "RenderEffects": true,
+  "RenderUI": true,
+  "RenderMainInfo": true,
+  "RenderSubInfo": true,
+  "RenderDebugInfo": true,
+  "RenderBack": true,
+
+  "Title": "谱面演示",
+  "Title2": "谱面揭秘",
+  "Info": "Code & File by たおりん on Bilibili | - Phigros - ",
+  "Combo": "AUTOPLAY",
+
+  "SYM": [
+    "\u001B[38;2;180;0;0m%",
+    "\u001B[38;2;173;10;0ma",
+    "\u001B[38;2;166;20;0mb",
+    "\u001B[38;2;159;30;0mc",
+    "\u001B[38;2;152;40;0md",
+    "\u001B[38;2;145;50;0me",
+    "\u001B[38;2;138;60;0mf",
+    "\u001B[38;2;131;70;0mg",
+    "\u001B[38;2;124;80;0mh",
+    "\u001B[38;2;117;90;0mi",
+    "\u001B[38;2;110;100;0mj",
+    "\u001B[38;2;103;110;0mk",
+    "\u001B[38;2;96;120;0ml",
+    "\u001B[38;2;89;130;0mm",
+    "\u001B[38;2;82;140;0mn",
+    "\u001B[38;2;75;150;0mo",
+    "\u001B[38;2;68;160;0mp",
+    "\u001B[38;2;61;170;0mq",
+    "\u001B[38;2;54;180;0mr",
+    "\u001B[38;2;47;190;0ms",
+    "\u001B[38;2;40;200;0mt",
+    "\u001B[38;2;33;210;0mu",
+    "\u001B[38;2;26;220;0mv",
+    "\u001B[38;2;19;230;0mw",
+    "\u001B[38;2;12;240;0mx",
+    "\u001B[38;2;5;250;0my",
+    "\u001B[38;2;0;255;0mz",
+    "\u001B[38;2;0;255;0m#"
+  ],
+
+  "NoteDelay": [
+    0.00061239101845989,
+    0.03229180050666951,
+    0.00183683717307712
+  ]
 }

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "PGR/Application/JudgeLine.h"
+#include "PhiVideo/Application/JudgeLine.h"
 
-namespace PGR {
+namespace PhiVideo {
 
     struct ChartInfo {
         ChartInfo() = default;

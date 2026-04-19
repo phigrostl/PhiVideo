@@ -12,6 +12,8 @@ void Exita(const char* file, int line, const char* func, const char* format, con
     exit(code);
 }
 
+std::string FfmpegBaseCmd() { return "ffmpeg -y -loglevel error "; }
+
 std::string wstr2str(const std::wstring& wstr) {
     int bufferSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string str(bufferSize, 0);

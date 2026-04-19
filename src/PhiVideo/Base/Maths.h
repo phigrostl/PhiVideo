@@ -1,13 +1,15 @@
 #pragma once
 
-#include "PGR/Base/Base.h"
+#include "PhiVideo/Base/Base.h"
 
 #include <algorithm>
 #include <random>
 
 #include <cmath>
 
-namespace PGR {
+#define RAND_NUM 999983.0f
+
+namespace PhiVideo {
 
     constexpr float PI = 3.14159265359f;
     constexpr float EPSILON = 1e-5f;
@@ -100,6 +102,9 @@ namespace PGR {
 
     float linear(float t, float st, float et, float sv, float ev);
     float randf(float min, float max);
+    float randf(float min, float max, float seed);
     Vec2 rotatePoint(float x, float y, float r, float deg);
+
+    Vec3 HSV2RGB(const Vec3& hsv);
 
 }

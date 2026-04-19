@@ -1,8 +1,8 @@
 #pragma once
 
-#include "PGR/Application/Note.h"
+#include "PhiVideo/Application/Note.h"
 
-namespace PGR {
+namespace PhiVideo {
 
     struct JudgeLine {
         JudgeLine() = default;
@@ -15,11 +15,11 @@ namespace PGR {
 
         std::vector<Note> notes;
 
-        float sec2beat(float t, float offset) {
+        float sec2beat(float t, float offset) const {
             return (t - offset) / (PGRBEAT / bpm);
         }
 
-        float beat2sec(float t, float offset) {
+        float beat2sec(float t, float offset) const {
             return t * (PGRBEAT / bpm) + offset;
         }
 
@@ -43,9 +43,10 @@ namespace PGR {
             for (auto& n : notes) n.floorPosition = getFp(n.time);
         }
 
-        EventsValue getState(float t, float offset) {
-            float beatt = sec2beat(t, offset);
-            if (t < 0.0f) beatt = -t;
+        EventsValue getState(float t, float offset, bool IsBeat = false) const {
+            float beatt;
+            if (IsBeat) beatt = t;
+            else beatt = sec2beat(t, offset);
             float rotate = getEventValue(beatt, rotateEvents);
             float x = getEventValue(beatt, moveEvents);
             float y = getPosYEvent(beatt, moveEvents);

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PGR/Base/Maths.h"
-#include "PGR/Render/Texture.h"
+#include "PhiVideo/Base/Maths.h"
+#include "PhiVideo/Render/Texture.h"
 
 #include <stb_image/stb_image_write.h>
 #include <stb_image/stb_truetype.h>
@@ -10,7 +10,7 @@
 
 #include <Windows.h>
 
-namespace PGR {
+namespace PhiVideo {
 
     class Framebuffer {
     public:
@@ -25,6 +25,9 @@ namespace PGR {
         Vec3 GetColor(const int x, const int y) const;
         const Vec3* GetColorData() const { return m_ColorBuffer; }
 
+        void SetAlphaMode(bool mode) { m_AlphaMode = mode; }
+        bool GetAlphaMode() const { return m_AlphaMode; }
+
         void Clear(const Vec3& color = Vec3(0.0f, 0.0f, 0.0f));
         void Clear(const Framebuffer& other);
 
@@ -34,13 +37,15 @@ namespace PGR {
         void DrawCharTTF(int x, int y, wchar_t c, const Vec4& color, float fontSize);
         void DrawTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float xOffset = 0.0f, float yOffset = 0.0f);
         void DrawRotatedTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float rotation);
-        void GetTextSize(const std::string& text, float fontSize, int* width, int* height, bool draw = false, bool baseLine = true) const;
+        void GetTextSize(const std::string& text, float fontSize, int* width, int* height) const;
         Texture* TextToTexture(const std::string& text, const Vec4& color, float fontSize);
 
         void DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color);
         void FillRect(int x0, int y0, int x1, int y1, const Vec4& color);
         void FillSizeRect(int x, int y, int w, int h, const Vec4& color);
 
+        int GetSampleNum() const;
+        void SetSampleNum(int num);
         void DrawTexture(int x, int y, const Texture* texture, int w = -1.0f, int h = -1.0f, float rotation = 0.0f, const float alpha = 1.0f);
 
         void ToPNG(const std::string& path);
@@ -54,9 +59,9 @@ namespace PGR {
         int GetPixelIndex(const int x, const int y) const { return (y * m_Width + x) * 3; }
 
     private:
-        int m_Width;
-        int m_Height;
+        int m_Width, m_Height;
         int m_PixelSize;
+        bool m_AlphaMode;
         Vec3* m_ColorBuffer;
 
         stbtt_fontinfo* m_FontInfo = nullptr;
