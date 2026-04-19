@@ -465,13 +465,18 @@ namespace PhiVideo {
         try {
             ToDir(m_Info.ChartDir);
             std::string music = m_Info.chart.info.song;
-            std::string str = "open \"" + music + "\" alias music";
-            mciSendString(str.c_str(), NULL, 0, NULL);
-
-            char durationStr[256] = { 0 };
-            MCIERROR err = mciSendStringA("status music length", durationStr, sizeof(durationStr), NULL);
-            mciSendString("close music", NULL, 0, NULL);
-            m_Info.chart.data.time = atoi(durationStr) / 1000.0f;
+            char cmd[1024];
+            sprintf_s(cmd, "ffmpeg -i \"%s\" 2>&1", music.c_str());
+            FILE* pipe = _popen(cmd, "r");
+            char buf[4096] = { 0 };
+            std::string out;
+            while (fgets(buf, sizeof(buf), pipe)) out += buf;
+            _pclose(pipe);
+            size_t pos = out.find("Duration:");
+            int h, m, s;
+            float ms;
+            sscanf_s(out.c_str() + pos, "Duration: %d:%d:%d.%f", &h, &m, &s, &ms);
+            m_Info.chart.data.time = h * 3600 + m * 60 + s + ms / 100;
             if (m_Info.endTime == -1.0f) m_Info.endTime = m_Info.chart.data.time;
             LogInfo("Loaded Music");
         } catch (std::exception e) {

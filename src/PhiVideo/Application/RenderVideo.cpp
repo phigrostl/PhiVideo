@@ -3,8 +3,6 @@
 #include <mutex>
 #include <queue>
 
-#pragma warning(disable:6386)
-
 namespace PhiVideo {
 
     void Application::RenderVideo() {
@@ -65,7 +63,6 @@ namespace PhiVideo {
         const size_t dstWidth = useAA ? (size_t)(m_Width / m_Info.aas) : m_Width;
         const size_t dstHeight = useAA ? (size_t)(m_Height / m_Info.aas) : m_Height;
         const size_t fps = m_Info.FPS;
-        const size_t dstFrameSize = dstWidth * dstHeight * 3;
 
         std::mutex workStealMutex;
         std::vector<FILE*> ffmpegPipes(CPUNum, nullptr);
@@ -111,21 +108,22 @@ namespace PhiVideo {
         }
 
         for (int i = 0; i < CPUNum; i++) {
-            threads.emplace_back([
-                this, i, frameNum, back, CPUNum, useAA,
-                srcWidth, srcHeight, dstWidth, dstHeight, fps, dstFrameSize,
-                &fbs, &frameCounter, &lastFrameCounter, &lastTime, &currentFPS,
-                &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex,
-                &threadFrameCounters, &workStealMutex, &ffmpegPipes, &pipeMutexes,
-                &frameBuffers, &nextFrameToWrite, &bufferMutexes, &frameDone
-            ]() {
+            threads.emplace_back(
+                [
+                    this, i, frameNum, back, CPUNum, useAA,
+                    srcWidth, srcHeight, dstWidth, dstHeight, fps,
+                    &fbs, &frameCounter, &lastFrameCounter, &lastTime, &currentFPS,
+                    &threadStart, &threadEnd, &tempVideoFiles, &tempVFilesMutex,
+                    &threadFrameCounters, &workStealMutex, &ffmpegPipes, &pipeMutexes,
+                    &frameBuffers, &nextFrameToWrite, &bufferMutexes, &frameDone
+                ]() {
                 const size_t width3 = dstWidth * 3;
 
                 char tempVideoFile[64];
                 sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
 
-                unsigned char* frameData = new unsigned char[dstFrameSize];
-                memset(frameData, 0, dstFrameSize);
+                unsigned char* frameData = new unsigned char[dstWidth * dstHeight * 3];
+                memset(frameData, 0, dstWidth * dstHeight * 3);
 
                 auto writeFramesToPipe = [&](int threadIndex) {
                     if (ffmpegPipes[threadIndex] == nullptr) return;
@@ -145,7 +143,7 @@ namespace PhiVideo {
                             }
 
                             std::lock_guard<std::mutex> pipeLock(pipeMutexes[threadIndex]);
-                            fwrite(it->second.data(), 1u, dstFrameSize, ffmpegPipes[threadIndex]);
+                            fwrite(it->second.data(), 1u, dstWidth * dstHeight * 3, ffmpegPipes[threadIndex]);
                             frameDone[frameIndex] = true;
                             frameBuffers[threadIndex].erase(it);
                             nextFrameToWrite[threadIndex].fetch_add(1, std::memory_order_relaxed);
@@ -214,7 +212,7 @@ namespace PhiVideo {
 
                             {
                                 std::lock_guard<std::mutex> lock(bufferMutexes[i]);
-                                std::vector<unsigned char> data(frameData, frameData + dstFrameSize);
+                                std::vector<unsigned char> data(frameData, frameData + dstWidth * dstHeight * 3);
                                 frameBuffers[i][j] = std::move(data);
                             }
 
@@ -272,7 +270,7 @@ namespace PhiVideo {
 
                         {
                             std::lock_guard<std::mutex> lock(bufferMutexes[targetThread]);
-                            std::vector<unsigned char> data(frameData, frameData + dstFrameSize);
+                            std::vector<unsigned char> data(frameData, frameData + dstWidth * dstHeight * 3);
                             frameBuffers[targetThread][stolenFrame] = std::move(data);
                         }
 

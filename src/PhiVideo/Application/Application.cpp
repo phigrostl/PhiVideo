@@ -43,6 +43,7 @@ namespace PhiVideo {
 
         app.add_flag("-d,--debug", DEBUG, "Debug Mode");
         app.add_flag("-y,--overwrite", m_Info.overwrite, "Overwrite");
+        app.add_flag("-A,--alphaMode", alphaMode, "Alpha Mode");
         app.add_option("-v,--video", m_Info.RenderVideo, "Render Video");
         app.add_option("-c,--cover", m_Info.RenderCover, "Render Cover");
         app.add_option("-p,--picTime", m_Info.PicTime, "Render a Picture at the Time");
@@ -64,7 +65,6 @@ namespace PhiVideo {
         app.add_option("-l,--logLevel", log_level_str, "Log level");
         app.add_option("-L,--language", language, "Language");
         app.add_option("-F,--FPS", m_Info.FPS, "FPS")->check(CLI::PositiveNumber);
-        app.add_flag("-A,--alphaMode", alphaMode, "Alpha Mode");
 
         app.add_option("-G,--GPU", m_Info.GPUNum, "Use GPU for rendering");
         app.add_option("-C,--CPU", m_Info.CPUNum, "CPU Core Num")->check(CLI::Range(1, 24));
@@ -96,7 +96,7 @@ namespace PhiVideo {
         LoadFiles();
         ToDir(m_Info.ResDir);
         m_Framebuffer = Framebuffer::Create(m_Width, m_Height);
-        m_Framebuffer->LoadFontTTF("D:\\PhiVideo\\resources\\Font.ttf");
+        m_Framebuffer->LoadFontTTF(".\\Font.ttf");
         m_Framebuffer->SetSampleNum(sampleNum);
         m_Framebuffer->SetAlphaMode(alphaMode);
 
