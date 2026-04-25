@@ -51,6 +51,8 @@ namespace PhiVideo {
         app.add_option("-e,--endTime", m_Info.endTime, "Render to the Time");
         app.add_option("-o,--output", m_Info.OutPath, "Output Name");
 
+        app.add_option("-t,--title", m_Info.CoverTitle, "Cover Title");
+
         app.add_option("-N,--normalY", m_Info.NormalY, "Normal Chart Y");
         app.add_option("-V,--normalSpeed", m_Info.NormalSpeed, "Normal Chart Speed");
 
@@ -147,7 +149,8 @@ namespace PhiVideo {
 
     void Application::Run() {
         m_Inited = true;
-        if (DEBUG) m_UI.title = m_UI.title2;
+        if (!m_Info.CoverTitle.empty()) m_UI.title = m_Info.CoverTitle;
+        else if (DEBUG) m_UI.title = m_UI.title2;
 
         SYSTEM_INFO sysInfo;
         GetSystemInfo(&sysInfo);

@@ -74,6 +74,8 @@ namespace PhiVideo {
         std::string InfoPath;
         std::string OutPath;
 
+        std::string CoverTitle;
+
         bool RenderVideo = true;
         bool RenderCover = true;
         bool RenderPic = false;
