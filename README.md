@@ -21,11 +21,14 @@ PhiVideo [FILE_PATH] [OPTIONS]
 -d, --debug                                         开启谱面调试模式
 -y, --overwrite                                     是否总是覆盖输出文件
 -c, --cover              BOOLEAN        true        渲染封面
--p, --picTime              FLOAT         0.0        渲染图片时间
+-p, --picTime              FLOAT         0.0        渲染单帧图片时间，若此项未设置则不输出图片
 -s, --startTime            FLOAT         0.0        渲染开始时间
 -e, --endTime              FLOAT        -1.0        渲染结束时间
 -o, --output                TEXT     Unnamed        输出文件名
--A, --alphaMode                                     输出视频是否为ALPHA通道
+-t, --title                 TEXT   [UI.json]        封面标题
+-N, --normalY              FLOAT         0.0        渲染纯配置谱面判定线Y坐标，若此项未设置则不输出纯配置谱面
+-V, --normalSpeed          FLOAT        2.25        纯配置判定线速度
+-A, --alphaMode                                     输出视频是否为Alpha通道
 -v, --video              BOOLEAN        true        渲染视频
 -z, --zoom        FLOAT:POSITIVE         1.0        缩放比例
 -m, --musicVolume          FLOAT         1.0        音乐音量
