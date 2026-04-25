@@ -320,9 +320,6 @@ namespace PhiVideo {
                 jline.disappearEvents[i].startTime = jline.disappearEvents[i - 1u].endTime;
             }
 
-            jline.initSpeedEvents();
-            jline.initNoteFp();
-
             std::sort(jline.notes.begin(), jline.notes.end(), [](Note a, Note b) { return a.time < b.time; });
 
             for (auto& n : jline.notes) {
@@ -347,6 +344,12 @@ namespace PhiVideo {
             );
         }
 
+        for (auto &l : m_Info.chart.data.judgeLines) {
+            for (auto &n : l.notes) {
+                n.morebets = noteSectCounter[n.secTime] > 1;
+            }
+        }
+
         if (m_Info.chart.data.judgeLines.size() != 0) {
             for (long long i = 0; i < m_Info.chart.data.judgeLines.size() - 1; i++) {
                 if (m_Info.chart.data.judgeLines[i].bpm != m_Info.chart.data.judgeLines[i + 1llu].bpm) {
@@ -356,9 +359,54 @@ namespace PhiVideo {
             }
         }
 
+        if (m_Info.NormalChart) {
+            JudgeLine l;
+            for (auto& li : m_Info.chart.data.judgeLines) {
+                for (auto& n : li.notes) {
+                    EventsValue ev = li.getState(n.time, m_Info.chart.data.offset, true);
+                    const float noteAtlineX = ((ev.x + n.positionX * PGRW * cos(ev.rotate * PI_OVER_180) - 0.5f)) / PGRW;
+                    n.positionX = noteAtlineX;
+                    n.line = 0;
+                    n.isAbove = true;
+                    n.speed = n.isHold ? m_Info.NormalSpeed : 1.0f;
+                    n.holdLength = n.secHoldTime * n.speed * PGRH;
+                    l.notes.push_back(n);
+                }
+            }
+            JudgeLine m = m_Info.chart.data.judgeLines[0];
+            l.bpm = m.bpm;
+
+            JudgeLineDisappearEvent de = {
+                -999999.0f, 999999.0f,
+                1.0f, 1.0f
+            };
+
+            JudgeLineRotateEvent re = {
+                -999999.0f, 999999.0f,
+                0.0f, 0.0f
+            };
+
+            JudgeLineMoveEvent me = {
+                -999999.0f, 999999.0f,
+                0.5f, 0.5f, m_Info.NormalY, m_Info.NormalY
+            };
+
+            SpeedEvent se = {
+                0.0f, 999999.0f,
+                2.25f
+            };
+
+            l.disappearEvents.push_back(de);
+            l.rotateEvents.push_back(re);
+            l.moveEvents.push_back(me);
+            l.speedEvents.push_back(se);
+
+            m_Info.chart.data.judgeLines.clear();
+            m_Info.chart.data.judgeLines.push_back(l);
+        }
+
         for (auto& line : m_Info.chart.data.judgeLines) {
             for (auto& n : line.notes) {
-                n.morebets = noteSectCounter[n.secTime] > 1;
                 EventsValue ev = line.getState(n.time, m_Info.chart.data.offset);
                 Vec2 pos = rotatePoint(
                     ev.x * m_Width, ev.y * m_Height,
@@ -375,6 +423,8 @@ namespace PhiVideo {
                     }
                 }
             }
+            line.initSpeedEvents();
+            line.initNoteFp();
         }
 
         std::sort(
@@ -383,8 +433,7 @@ namespace PhiVideo {
             [this](HitFx a, HitFx b) {
             return m_Info.chart.data.judgeLines[a.note.line].beat2sec(a.time, m_Info.chart.data.offset) <
                 m_Info.chart.data.judgeLines[b.note.line].beat2sec(b.time, m_Info.chart.data.offset);
-        }
-        );
+        });
 
         LogInfo("Organized Notes");
     }

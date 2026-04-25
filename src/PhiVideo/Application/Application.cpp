@@ -51,6 +51,9 @@ namespace PhiVideo {
         app.add_option("-e,--endTime", m_Info.endTime, "Render to the Time");
         app.add_option("-o,--output", m_Info.OutPath, "Output Name");
 
+        app.add_option("-N,--normalY", m_Info.NormalY, "Normal Chart Y");
+        app.add_option("-V,--normalSpeed", m_Info.NormalSpeed, "Normal Chart Speed");
+
         app.add_option("-m,--musicVolume", m_Info.musicVolume, "Music Volume");
         app.add_option("-n,--notesVolume", m_Info.notesVolume, "Notes Volume");
 
@@ -88,6 +91,7 @@ namespace PhiVideo {
         LogInfo("Languages: %s", GetLanguages().c_str());
 
         if (app.count("-p") > 0) m_Info.RenderPic = true;
+        if (app.count("-N") > 0) m_Info.NormalChart = true;
         if (app.count("-a") > 0) {
             m_Width = (int)(m_Width * m_Info.aas);
             m_Height = (int)(m_Height * m_Info.aas);

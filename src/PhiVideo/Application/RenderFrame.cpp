@@ -91,7 +91,6 @@ namespace PhiVideo {
         std::vector<EventsValue>& evs, std::vector<float>& beats, std::vector<float>& fps,
         std::vector<float>& sins, std::vector<float>& coss, int& combo
     ) {
-
         combo = 0;
         const int numJudgeLines = (int)(m_Info.chart.data.judgeLines.size());
         for (size_t i = 0; i < numJudgeLines; i++) {
@@ -209,16 +208,14 @@ namespace PhiVideo {
 
                 float thisNoteWidth = NOTE_SIZE * m_Info.size;
                 if (note.morebets) {
-                    const float widthRatio = (float)m_Info.noteHeadImgs[note.type - 1][1]
-                        ->GetWidth() / (float)m_Info.noteHeadImgs[note.type - 1][0]
-                        ->GetWidth();
+                    const float widthRatio = (float)m_Info.noteHeadImgs[note.type - 1][1]->GetWidth()
+                        / (float)m_Info.noteHeadImgs[note.type - 1][0]->GetWidth();
                     thisNoteWidth *= widthRatio;
                 }
 
                 const float headImgWidth = (float)noteHeadImg->GetWidth();
                 const float headImgHeight = (float)noteHeadImg->GetHeight();
-                const float drawHeadHeight = thisNoteWidth * m_Width
-                    / headImgWidth * headImgHeight;
+                const float drawHeadHeight = thisNoteWidth * m_Width / headImgWidth * headImgHeight;
                 const float posX = note.positionX * PGRW * m_Width * m_Info.size;
 
                 const float noteDrawRotate = ev.rotate - (note.isAbove ? 0.0f : 180.0f);
@@ -237,8 +234,7 @@ namespace PhiVideo {
                 Texture* noteBodyImg = m_Info.holdBodyImgs[note.morebets];
                 Texture* noteTailImg = m_Info.holdTailImgs[note.morebets];
 
-                const float noteTillHeight = thisNoteWidth * m_Width / noteTailImg->GetWidth()
-                    * noteTailImg->GetHeight();
+                const float noteTillHeight = thisNoteWidth * m_Width / noteTailImg->GetWidth() * noteTailImg->GetHeight();
                 float noteHeadHeight = thisNoteWidth * m_Width / headImgWidth * headImgHeight;
 
                 const float holdProgress = clicked ?
@@ -280,10 +276,8 @@ namespace PhiVideo {
                     drawY = headY + sinDrawRad * headImgWidth * texScale / 2.0f
                         + drawHeadHeight * cosDrawRad - holdImg->GetHeight() * cosDrawRad;
                 } else {
-                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale
-                        / 2.0f - holdImg->GetHeight() * sinDrawRad;
-                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale
-                        / 2.0f - holdImg->GetHeight() * cosDrawRad;
+                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f - holdImg->GetHeight() * sinDrawRad;
+                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f - holdImg->GetHeight() * cosDrawRad;
                 }
 
                 fb->DrawTexture(
@@ -368,9 +362,8 @@ namespace PhiVideo {
 
                 float thisNoteWidth = NOTE_SIZE * m_Info.size;
                 if (note.morebets) {
-                    const float widthRatio = (float)m_Info.noteHeadImgs[note.type - 1][1]
-                        ->GetWidth() / (float)m_Info.noteHeadImgs[note.type - 1][0]
-                        ->GetWidth();
+                    const float widthRatio = (float)m_Info.noteHeadImgs[note.type - 1][1]->GetWidth()
+                        / (float)m_Info.noteHeadImgs[note.type - 1][0]->GetWidth();
                     thisNoteWidth *= widthRatio;
                 }
 
@@ -685,9 +678,8 @@ namespace PhiVideo {
             for (size_t i = 0; i < m_Info.chart.data.judgeLines.size(); i++) {
                 bool has = false;
                 for (size_t j = 0; j < BpmIndexes.size(); j++) {
-                    if (
-                           m_Info.chart.data.judgeLines[BpmIndexes[j]].bpm
-                        == m_Info.chart.data.judgeLines[i].bpm) {
+                    if (m_Info.chart.data.judgeLines[BpmIndexes[j]].bpm ==
+                        m_Info.chart.data.judgeLines[i].bpm) {
                         has = true;
                         break;
                     }
@@ -803,8 +795,7 @@ namespace PhiVideo {
 
             float beatt = line.sec2beat(t, m_Info.chart.data.offset);
             float lineFp = line.getFp(beatt);
-            float noteFp = (nm.note.floorPosition - lineFp) * PGRH * (PGRBEAT / line.bpm)
-                * m_Height * size;
+            float noteFp = (nm.note.floorPosition - lineFp) * PGRH * (PGRBEAT / line.bpm) * m_Height * size;
 
             EventsValue nev = line.getState(Max(t, nm.note.secTime), m_Info.chart.data.offset);
 

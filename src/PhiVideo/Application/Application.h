@@ -77,9 +77,12 @@ namespace PhiVideo {
         bool RenderVideo = true;
         bool RenderCover = true;
         bool RenderPic = false;
+        bool NormalChart = false;
         float PicTime = 0.0f;
         float startTime = 0.0f;
         float endTime = -1;
+        float NormalY = 0.0f;
+        float NormalSpeed = 2.25f;
         int GPUNum = 8;
         int CPUNum = 4;
         int FPS = 60;
