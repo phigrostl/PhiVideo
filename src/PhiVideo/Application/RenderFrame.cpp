@@ -8,7 +8,26 @@ namespace PhiVideo {
         fb->Clear();
         if (!m_UI.RenderBack) return;
 
-        fb->DrawTexture(0, 0, m_Info.chart.imageBlur, m_Width, m_Height);
+        float x = 0, y = 0, w = 0, h = 0;
+
+        if ((float)m_Info.chart.imageBlur->GetWidth() / (float)m_Width > (float)m_Info.chart.imageBlur->GetHeight() / (float)m_Height) {
+            w = m_Height / (float)m_Info.chart.imageBlur->GetHeight() * m_Info.chart.imageBlur->GetWidth();
+            h = m_Height;
+        }
+        else {
+            w = m_Width;
+            h = m_Width / (float)m_Info.chart.imageBlur->GetWidth() * m_Info.chart.imageBlur->GetHeight();
+        }
+
+        x = m_Width / 2.0f - w / 2.0f;
+        y = m_Height / 2.0f - h / 2.0f;
+
+        fb->DrawTexture(
+            (int)(x + 0.5f), (int)(y + 0.5f),
+            m_Info.chart.imageBlur,
+            (int)(w + 0.5f), (int)(h + 0.5f)
+        );
+
         fb->FillRect(
             (int)(m_Width / 2.0f - m_Width / 2.0 * m_Info.size + 0.5f),
             (int)(m_Height / 2.0f - m_Height / 2.0f * m_Info.size + 0.5f),
@@ -989,8 +1008,12 @@ namespace PhiVideo {
         }
     }
 
-    void Application::RenderCover(Framebuffer* fb) const {
-        fb->DrawTexture(0, 0, m_Info.chart.imageBlur, m_Width, m_Height);
+    void Application::RenderCover(Framebuffer* fb) {
+        float tmp = m_Info.size;
+        m_Info.size = 1.0f;
+        RenderBack(fb);
+        m_Info.size = tmp;
+
         fb->DrawTexture(
             (int)(m_Width / 4.0f + 0.5f), (int)(m_Height * 138.0f / 1080.0f),
             m_Info.chart.image, (int)(m_Width / 2.0f)

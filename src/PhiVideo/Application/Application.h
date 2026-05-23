@@ -161,7 +161,7 @@ namespace PhiVideo {
         void RenderVideo();
 
         void Render(float t, Framebuffer* fb, bool drawBack = true);
-        void RenderCover(Framebuffer* fb) const;
+        void RenderCover(Framebuffer* fb);
         void RenderBack(Framebuffer* fb) const;
 
         void RenderPrepare(
