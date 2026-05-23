@@ -1,6 +1,6 @@
 #include "PhiVideo/Application/Application.h"
 
-PhiVideo::Application App;
+PhiVideo::Application* App = nullptr;
 
 static void CtrlC() {
     std::cout << "\n\n\r";
@@ -57,9 +57,13 @@ int main(int argc, char** argv) {
         Exit("Failed to get resources directory", 1);
     }
 
-    App = PhiVideo::Application(argc, argv, (std::string)workDir, (std::string)ResDir);
-    App.Run();
+    App = new PhiVideo::Application(argc, argv, (std::string)workDir, (std::string)ResDir);
+    App->Run();
 
     LogNotice("Exiting application");
+
+    delete App;
+    App = nullptr;
+
     return 0;
 }
