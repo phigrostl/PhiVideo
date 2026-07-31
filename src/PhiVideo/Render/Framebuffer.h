@@ -47,6 +47,7 @@ namespace PhiVideo {
         int GetSampleNum() const;
         void SetSampleNum(int num);
         void DrawTexture(int x, int y, const Texture* texture, int w = -1.0f, int h = -1.0f, float rotation = 0.0f, const float alpha = 1.0f);
+        void DrawTexture(int x, int y, const Texture* textures[3], int w, const int h[3], float rotation = 0.0f, const float alpha = 1.0f);
 
         void ToPNG(const std::string& path);
 

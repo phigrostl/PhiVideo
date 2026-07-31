@@ -407,11 +407,6 @@ namespace PhiVideo {
 
         for (auto& line : m_Info.chart.data.judgeLines) {
             for (auto& n : line.notes) {
-                EventsValue ev = line.getState(n.time, m_Info.chart.data.offset);
-                Vec2 pos = rotatePoint(
-                    ev.x * m_Width, ev.y * m_Height,
-                    n.positionX * m_Width * PGRW, ev.rotate
-                );
                 m_Info.chart.data.clickEffectCollection.push_back({ n.time, n, Particles((float)m_Width, (float)m_Height, m_UI.ParticleNum) });
                 m_Info.chart.data.clickCollection.push_back({ n.time, n, Particles((float)m_Width, (float)m_Height, m_UI.ParticleNum) });
                 if (n.isHold) {

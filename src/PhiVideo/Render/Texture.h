@@ -32,7 +32,7 @@ namespace PhiVideo {
         void Init(std::string path);
 
     private:
-        int m_Width, m_Height, m_Channels;
+        int m_Width, m_Height;
         Vec4* m_Data;
     };
 

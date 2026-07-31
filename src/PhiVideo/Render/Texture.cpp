@@ -9,7 +9,6 @@ namespace PhiVideo {
     Texture::Texture(const float value) {
         m_Width = 1;
         m_Height = 1;
-        m_Channels = 4;
         m_Data = new Vec4[1];
         m_Data[0] = Vec4(value);
     }
@@ -17,7 +16,6 @@ namespace PhiVideo {
     Texture::Texture(const Vec4& value) {
         m_Width = 1;
         m_Height = 1;
-        m_Channels = 4;
         m_Data = new Vec4[1];
         m_Data[0] = value;
     }
@@ -25,7 +23,6 @@ namespace PhiVideo {
     Texture::Texture(const size_t w, const size_t h) {
         m_Width = (int)w;
         m_Height = (int)h;
-        m_Channels = 4;
         m_Data = new Vec4[w * h];
         memset(m_Data, 0, w * h * sizeof(Vec4));
     }
@@ -87,7 +84,6 @@ namespace PhiVideo {
         Texture* newTexture = new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
         newTexture->m_Width = x1 - x0;
         newTexture->m_Height = y1 - y0;
-        newTexture->m_Channels = this->m_Channels;
 
         int newSize = newTexture->m_Width * newTexture->m_Height;
         newTexture->m_Data = new Vec4[newSize];
@@ -107,7 +103,6 @@ namespace PhiVideo {
         Texture* newTexture = new Texture(color);
         newTexture->m_Width = this->GetWidth();
         newTexture->m_Height = this->GetHeight();
-        newTexture->m_Channels = this->m_Channels;
 
         int newSize = newTexture->m_Width * newTexture->m_Height;
         delete[] newTexture->m_Data;
@@ -130,12 +125,10 @@ namespace PhiVideo {
 
         int w = this->GetWidth();
         int h = this->GetHeight();
-        int channels = this->m_Channels;
 
         Texture* newTexture = new Texture(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
         newTexture->m_Width = w;
         newTexture->m_Height = h;
-        newTexture->m_Channels = channels;
 
         int size = w * h;
         delete[] newTexture->m_Data;

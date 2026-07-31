@@ -46,65 +46,6 @@ namespace PhiVideo {
         ev.y = height - ((ev.y - height / 2.0f) * size + height / 2.0f);
     }
 
-    static Texture* GetHoldTexture(
-        const Texture* head, const int headH,
-        const Texture* body, const int bodyH,
-        const Texture* tail, const int tailH,
-        const int w, const int bh = -1
-    ) {
-        if (bh == -1) {
-            const int h = headH + bodyH + tailH;
-            Texture* tex = new Texture(w, h);
-
-            const int headWidth = head->GetWidth();
-            const int headHeight = head->GetHeight();
-            const int bodyHeight = body->GetHeight();
-            const int tailHeight = tail->GetHeight();
-
-            for (int i = 0; i < w; i++) {
-                const int headX = (int)((float)i / w * headWidth);
-
-                for (int j = 0; j < headH; j++) {
-                    const int headY = (int)((float)j / headH * headHeight);
-                    tex->SetColor(i, j, head->GetColor(headX, headY));
-                }
-
-                for (int j = headH; j < headH + bodyH; j++) {
-                    const int bodyY = (int)((float)(j - headH) / bodyH * bodyHeight);
-                    tex->SetColor(i, j, body->GetColor(headX, bodyY));
-                }
-
-                for (int j = headH + bodyH; j < h; j++) {
-                    const int tailY = (int)((float)(j - headH - bodyH) / tailH * tailHeight);
-                    tex->SetColor(i, j, tail->GetColor(headX, tailY));
-                }
-            }
-            return tex;
-        } else {
-            const int h = headH + bh;
-            Texture* tex = new Texture(w, h);
-
-            const int headWidth = head->GetWidth();
-            const int headHeight = head->GetHeight();
-            const int bodyHeight = body->GetHeight();
-
-            for (int i = 0; i < w; i++) {
-                const int headX = (int)((float)i / w * headWidth);
-
-                for (int j = 0; j < headH; j++) {
-                    const int headY = (int)((float)j / headH * headHeight);
-                    tex->SetColor(i, j, head->GetColor(headX, headY));
-                }
-
-                for (int j = headH; j < h; j++) {
-                    const int bodyY = (int)((float)(j - headH) / bodyH * bodyHeight);
-                    tex->SetColor(i, j, body->GetColor(headX, bodyY));
-                }
-            }
-            return tex;
-        }
-    }
-
     void Application::RenderPrepare(
         float t,
         std::vector<EventsValue>& evs, std::vector<float>& beats, std::vector<float>& fps,
@@ -133,7 +74,6 @@ namespace PhiVideo {
                 if (note.secTime <= t && !note.isHold) combo++;
                 else if (note.secHoldEndTime <= t && note.isHold) combo++;
             }
-
         }
     }
 
@@ -142,17 +82,15 @@ namespace PhiVideo {
         std::vector<float>& beats, std::vector<EventsValue>& evs, std::vector<float>& fps,
         std::vector<float>& sins, std::vector<float>& coss
     ) {
-
-        const int numJudgeLines = (int)(m_Info.chart.data.judgeLines.size());
-
+        const size_t numJudgeLines = (m_Info.chart.data.judgeLines.size());
         for (size_t i = 0; i < numJudgeLines; i++) {
             JudgeLine line = m_Info.chart.data.judgeLines[i];
-
             EventsValue ev = evs[i];
 
+            float r = m_Height * LINEH * m_Info.size;
             Vec2 linePos[2] = {
-                rotatePoint(ev.x, ev.y, m_Height * LINEH * m_Info.size, -ev.rotate),
-                rotatePoint(ev.x, ev.y, m_Height * LINEH * m_Info.size, -ev.rotate + 180.0f)
+                Vec2(ev.x + r * coss[i], ev.y - r * sins[i]),
+                Vec2(ev.x - r * coss[i], ev.y + r * sins[i])
             };
 
             fb->DrawLine(
@@ -189,8 +127,8 @@ namespace PhiVideo {
         const std::vector<EventsValue>& evs, const std::vector<float>& fps,
         const std::vector<float>& sins, const std::vector<float>& coss, float viewFp
     ) {
-        const int numJudgeLines = (int)evs.size();
-        for (int i = 0; i < numJudgeLines; i++) {
+        const size_t numJudgeLines = evs.size();
+        for (size_t i = 0; i < numJudgeLines; i++) {
             EventsValue ev = evs[i];
             const float beatt = beats[i];
             const float lineFp = fps[i];
@@ -205,9 +143,7 @@ namespace PhiVideo {
                 const Note& note = notes[j];
 
                 bool clicked = note.secTime <= t;
-
                 if (!note.isHold) continue;
-
                 if (note.secHoldEndTime <= t) {
                     continue;
                 }
@@ -238,9 +174,9 @@ namespace PhiVideo {
                 const float posX = note.positionX * PGRW * m_Width * m_Info.size;
 
                 const float noteDrawRotate = ev.rotate - (note.isAbove ? 0.0f : 180.0f);
-                const float noteDrawRotateRad = noteDrawRotate * PI_OVER_180;
-                const float cosDrawRad = cos(noteDrawRotateRad);
-                const float sinDrawRad = sin(noteDrawRotateRad);
+                float flip = note.isAbove ? 1.f : -1.f;
+                float cosDrawRad = flip * cosEvRotate;
+                float sinDrawRad = flip * sinEvRotate;
 
                 const float noteAtlineX = ev.x + posX * cosEvRotate;
                 const float noteAtlineY = ev.y - posX * sinEvRotate;
@@ -277,36 +213,30 @@ namespace PhiVideo {
                     noteFp = 0.0f;
                 }
 
-                const float noteTailFp = noteFp + noteBodyHeight;
-                Texture* holdImg = GetHoldTexture(
-                    noteHeadImg,
-                    (int)noteHeadHeight, noteBodyImg,
-                    (int)noteBodyHeight, noteTailImg,
-                    (int)noteTillHeight, (int)(thisNoteWidth * m_Width),
-                    (int)(noteTailFp <= viewFp ? -1 : viewFp - noteFp)
-                );
+                const Texture* textures[3] = { noteTailImg, noteBodyImg, noteHeadImg };
+                const int heights[3] = { (int)noteTillHeight,(int)noteBodyHeight,(int)noteHeadHeight };
+                const int height = heights[0] + heights[1] + heights[2];
 
                 float drawX = 0.0f;
                 float drawY = 0.0f;
 
                 if (drawHead) {
                     drawX = headX - cosDrawRad * headImgWidth * texScale / 2.0f
-                        + drawHeadHeight * sinDrawRad - holdImg->GetHeight() * sinDrawRad;
+                        + drawHeadHeight * sinDrawRad - height * sinDrawRad;
                     drawY = headY + sinDrawRad * headImgWidth * texScale / 2.0f
-                        + drawHeadHeight * cosDrawRad - holdImg->GetHeight() * cosDrawRad;
+                        + drawHeadHeight * cosDrawRad - height * cosDrawRad;
                 } else {
-                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f - holdImg->GetHeight() * sinDrawRad;
-                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f - holdImg->GetHeight() * cosDrawRad;
+                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f - height * sinDrawRad;
+                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f - height * cosDrawRad;
                 }
 
                 fb->DrawTexture(
                     (int)(drawX + 0.5f),
                     (int)(drawY + 0.5f),
-                    holdImg,
-                    -1, -1,
+                    textures,
+                    (int)(thisNoteWidth * m_Width), heights,
                     noteDrawRotate, isHide ? 0.5f : 1.0f
                 );
-                delete holdImg;
 
                 if (DEBUG) {
                     EventsValue nev = line.getState(Max(t, note.secTime), m_Info.chart.data.offset);
@@ -324,9 +254,9 @@ namespace PhiVideo {
                     noteStr += " / " + std::to_string((int)(note.time + note.holdTime + 0.5f));
 
                     const float debugX = (!drawHead ? noteAtlineX : headX)
-                        + sin(noteDrawRotateRad) * (m_Width * (0.005f * m_Info.size + 0.005f));
+                        + sinDrawRad * (m_Width * (0.005f * m_Info.size + 0.005f));
                     const float debugY = (!drawHead ? noteAtlineY : headY)
-                        + cos(noteDrawRotateRad) * (m_Width * (0.005f * m_Info.size + 0.005f));
+                        + cosDrawRad * (m_Width * (0.005f * m_Info.size + 0.005f));
 
                     fb->DrawRotatedTextTTF(
                         (int)(debugX + 0.5f),
@@ -346,8 +276,8 @@ namespace PhiVideo {
         const std::vector<float>& sins, const std::vector<float>& coss, float viewFp
     ) {
 
-        const int numJudgeLines = (int)evs.size();
-        for (int i = 0; i < numJudgeLines; i++) {
+        const size_t numJudgeLines = evs.size();
+        for (size_t i = 0; i < numJudgeLines; i++) {
             EventsValue ev = evs[i];
             const float beatt = beats[i];
             const float lineFp = fps[i];
@@ -393,18 +323,18 @@ namespace PhiVideo {
                 const float noteAtlineX = ev.x + posX * cosEvRotate;
                 const float noteAtlineY = ev.y - posX * sinEvRotate;
 
+                const float noteDrawRotate = ev.rotate - (note.isAbove ? 0.0f : 180.0f);
+                float flip = note.isAbove ? 1.f : -1.f;
+                float cosDrawRad = flip * cosEvRotate;
+                float sinDrawRad = flip * sinEvRotate;
+
                 const float l2nRotate = ev.rotate - (note.isAbove ? -90.0f : 90.0f);
                 const float l2nRotateRad = l2nRotate * PI_OVER_180;
-                const float cosL2n = cos(l2nRotateRad);
-                const float sinL2n = sin(l2nRotateRad);
+                const float cosL2n = flip * -sinEvRotate;
+                const float sinL2n = flip * -cosEvRotate;
 
                 const float headX = noteAtlineX + noteFp * cosL2n;
-                const float headY = noteAtlineY - noteFp * sinL2n;
-
-                const float noteDrawRotate = ev.rotate - (note.isAbove ? 0.0f : 180.0f);
-                const float noteDrawRotateRad = noteDrawRotate * PI_OVER_180;
-                const float cosDrawRad = cos(noteDrawRotateRad);
-                const float sinDrawRad = sin(noteDrawRotateRad);
+                const float headY = noteAtlineY + noteFp * sinL2n;
 
                 const float drawWidth = thisNoteWidth * m_Width / headImgWidth;
                 const float offsetX = drawWidth * headImgWidth / 2.0f * cosDrawRad
