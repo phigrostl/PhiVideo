@@ -42,14 +42,14 @@ namespace PhiVideo {
         Vec3& target = m_ColorBuffer[index];
 
         if (m_AlphaMode) {
-            float srcAlpha = color.W;
-            float targetAlpha = target.X;
+            float srcAlpha = Clamp(color.W, 0.0f, 1.0f);
+            float targetAlpha = Clamp(target.X, 0.0f, 1.0f);
             float resultAlpha = Clamp(srcAlpha + targetAlpha * (1.0f - srcAlpha), 0.0f, 1.0f);
             target = Vec3(resultAlpha);
         }
         else {
             Vec3 srcColor = Vec3(color);
-            float alpha = color.W;
+            float alpha = Clamp(color.W, 0.0f, 1.0f);
             float invAlpha = 1.0f - alpha;
 
             target.X = Clamp(target.X * invAlpha + srcColor.X * alpha, 0.0f, 1.0f);
