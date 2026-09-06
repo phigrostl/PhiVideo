@@ -220,13 +220,13 @@ namespace PhiVideo {
                 float drawY = 0.0f;
 
                 if (drawHead) {
-                    drawX = headX - cosDrawRad * headImgWidth * texScale / 2.0f
+                    drawX = headX + cosDrawRad * headImgWidth * texScale / 2.0f
                         + drawHeadHeight * sinDrawRad;
-                    drawY = headY + sinDrawRad * headImgWidth * texScale / 2.0f
+                    drawY = headY - sinDrawRad * headImgWidth * texScale / 2.0f
                         + drawHeadHeight * cosDrawRad;
                 } else {
-                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f;
-                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f;
+                    drawX = noteAtlineX + cosDrawRad * headImgWidth * texScale / 2.0f;
+                    drawY = noteAtlineY - sinDrawRad * headImgWidth * texScale / 2.0f;
                 }
 
                 fb->DrawTexture(
@@ -234,7 +234,7 @@ namespace PhiVideo {
                     (int)(drawY + 0.5f),
                     textures,
                     (int)(thisNoteWidth * m_Width), heights,
-                    -noteDrawRotate, isHide ? 0.5f : 1.0f
+                    noteDrawRotate + 180.0f, isHide ? 0.5f : 1.0f
                 );
 
                 if (DEBUG) {
