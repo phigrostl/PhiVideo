@@ -560,19 +560,15 @@ namespace PhiVideo {
 
     void Framebuffer::DrawTexture(int x, int y, const Texture* textures[3], int w, const int h[3], float rotation, const float alpha) {
         if (alpha <= 0.0f) return;
-
         const int totalH = h[0] + h[1] + h[2];
         if (totalH <= 0 || w <= 0) return;
-
         const float h0 = (float)h[0];
         const float h01 = (float)(h[0] + h[1]);
         const float totalHf = (float)totalH;
-
         const float texWidth0 = (float)textures[0]->GetWidth();
         const float texHeight0 = (float)textures[0]->GetHeight();
         const float texHeight1 = (float)textures[1]->GetHeight();
         const float texHeight2 = (float)textures[2]->GetHeight();
-
         const float sx = (float)w / texWidth0;
         const float sy0 = (float)h[0] / texHeight0;
         const float sy1 = (float)h[1] / texHeight1;
@@ -580,197 +576,251 @@ namespace PhiVideo {
         const float invSy0 = 1.0f / sy0;
         const float invSy1 = 1.0f / sy1;
         const float invSy2 = 1.0f / sy2;
-
         const float srcW = texWidth0;
-
         const float rad = -rotation * PI_OVER_180;
         float cosA = cosf(rad);
         float sinA = sinf(rad);
-
-        if (cosA > 0.999f) cosA = 1.0f;
-        else if (cosA < -0.999f) cosA = -1.0f;
-        else if (cosA < 0.001f && cosA > -0.001f) cosA = 0.0f;
-        if (sinA > 0.999f) sinA = 1.0f;
-        else if (sinA < -0.999f) sinA = -1.0f;
-        else if (sinA < 0.001f && sinA > -0.001f) sinA = 0.0f;
-
+        const float kOneThreshold = 0.999f;
+        const float kZeroThreshold = 0.001f;
+        if (fabsf(cosA) > kOneThreshold)
+            cosA = copysignf(1.0f, cosA);
+        else if (fabsf(cosA) < kZeroThreshold)
+            cosA = 0.0f;
+        if (fabsf(sinA) > kOneThreshold)
+            sinA = copysignf(1.0f, sinA);
+        else if (fabsf(sinA) < kZeroThreshold)
+            sinA = 0.0f;
         float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
         int corners[4][2] = { {0, 0}, {w, 0}, {0, totalH}, {w, totalH} };
         for (int k = 0; k < 4; ++k) {
-            float rx = (float)corners[k][0] * cosA - (float)corners[k][1] * sinA;
-            float ry = (float)corners[k][0] * sinA + (float)corners[k][1] * cosA;
+            float cx = (float)corners[k][0];
+            float cy = (float)corners[k][1];
+            float rx = fmaf(cx, cosA, -cy * sinA);
+            float ry = fmaf(cx, sinA, cy * cosA);
             minX = Min(minX, rx);
             minY = Min(minY, ry);
             maxX = Max(maxX, rx);
             maxY = Max(maxY, ry);
         }
-
         int startX = (int)(std::floor(minX - 1));
         int endX = (int)(std::ceil(maxX + 1));
         int startY = (int)(std::floor(minY - 1));
         int endY = (int)(std::ceil(maxY + 1));
-
         if (startX > endX || startY > endY) return;
-
         const int windowWidth = m_Width;
         const int windowHeight = m_Height;
-
         const float invSx = 1.0f / sx;
         const float cosAInvSx = cosA * invSx;
         const float sinAInvSx = sinA * invSx;
         const float negSinA = -sinA;
+        const float blendHalf = 0.5f;
+        const float blendWidth = 2.0f * blendHalf;
+        const float invBlendWidth = 1.0f / blendWidth;
+        const float h0_blendStart = h0 - blendHalf;
+        const float h0_blendEnd = h0 + blendHalf;
+        const float h01_blendStart = h01 - blendHalf;
+        const float h01_blendEnd = h01 + blendHalf;
+
+        const float fh0 = (float)h[2];
+        const float fh01 = (float)(h[2] + h[1]);
+        const float fh0_blendStart = fh0 - blendHalf;
+        const float fh0_blendEnd = fh0 + blendHalf;
+        const float fh01_blendStart = fh01 - blendHalf;
+        const float fh01_blendEnd = fh01 + blendHalf;
 
         const int yStart = std::clamp(y + startY, 0, windowHeight - 1);
         const int yEnd = std::clamp(y + endY, 0, windowHeight - 1);
         const int xStart = std::clamp(x + startX, 0, windowWidth - 1);
         const int xEnd = std::clamp(x + endX, 0, windowWidth - 1);
-
         const int numSamples = Max(1, sampleNum);
         const int totalSamples = numSamples * numSamples;
         const float invTotalSamples = 1.0f / totalSamples;
 
-        const Vec4* texData0 = textures[0]->GetData();
-        const Vec4* texData1 = textures[1]->GetData();
-        const Vec4* texData2 = textures[2]->GetData();
-        const int texW0 = textures[0]->GetWidth();
-        const int texW1 = textures[1]->GetWidth();
-        const int texW2 = textures[2]->GetWidth();
-        const int tH0 = textures[0]->GetHeight();
-        const int tH1 = textures[1]->GetHeight();
-        const int tH2 = textures[2]->GetHeight();
+        const Vec4* texData2Rev = textures[0]->GetData();
+        const Vec4* texData1Rev = textures[1]->GetData();
+        const Vec4* texData0Rev = textures[2]->GetData();
 
-        const float blendHalf = 0.5f;
+        const int texW2Rev = textures[0]->GetWidth();
+        const int texW1Rev = textures[1]->GetWidth();
+        const int texW0Rev = textures[2]->GetWidth();
+
+        const int tH2Rev = textures[0]->GetHeight();
+        const int tH1Rev = textures[1]->GetHeight();
+        const int tH0Rev = textures[2]->GetHeight();
+
+        const float texYOffset2Rev = (float)(tH2Rev - 1);
+        const float texYOffset1Rev = (float)(tH1Rev - 1);
+        const float texYOffset0Rev = (float)(tH0Rev - 1);
+
+        const float invSy2Rev = invSy0;
+        const float invSy1Rev = invSy1;
+        const float invSy0Rev = invSy2;
+
         for (int dstY = yStart; dstY <= yEnd; ++dstY) {
             const float j = (float)(dstY - y);
-
             for (int dstX = xStart; dstX <= xEnd; ++dstX) {
                 const float i = (float)(dstX - x);
-
                 float totalR = 0.0f, totalG = 0.0f, totalB = 0.0f, totalA = 0.0f;
-
+                float errR = 0.0f, errG = 0.0f, errB = 0.0f, errA = 0.0f;
                 for (int syIdx = 0; syIdx < numSamples; ++syIdx) {
                     const float jitteredJ = j + subPixelOffsetsY[syIdx];
                     const float baseTx = jitteredJ * sinAInvSx;
                     const float baseY = jitteredJ * cosA;
-
                     for (int sxIdx = 0; sxIdx < numSamples; ++sxIdx) {
                         const float jitteredI = i + subPixelOffsetsX[sxIdx];
-
-                        float texX = jitteredI * cosAInvSx + baseTx;
-                        float overallY = jitteredI * negSinA + baseY;
-
+                        float texX = fmaf(jitteredI, cosAInvSx, baseTx);
+                        float overallY = fmaf(jitteredI, negSinA, baseY);
                         if (overallY < 0.0f || overallY >= totalHf)
                             continue;
                         if (texX < 0.0f || texX >= srcW)
                             continue;
 
+                        float fy = totalHf - overallY;
+
                         const Vec4* texDataA;
                         int twA, thA;
                         float localYA, invSyA;
-                        float blendWeight = 1.0f;
+                        float texYOffsetA;
 
-                        if (overallY < h0 - blendHalf) {
-                            texDataA = texData0;
-                            twA = texW0;
-                            thA = tH0;
-                            localYA = overallY;
-                            invSyA = invSy0;
+                        if (fy < fh0_blendStart) {
+                            texDataA = texData0Rev;
+                            twA = texW0Rev;
+                            thA = tH0Rev;
+                            localYA = fy;
+                            invSyA = invSy0Rev;
+                            texYOffsetA = texYOffset0Rev;
                         }
-                        else if (overallY < h0 + blendHalf) {
-                            float t = (overallY - (h0 - blendHalf)) / (2.0f * blendHalf);
+                        else if (fy < fh0_blendEnd) {
+                            float t = (fy - fh0_blendStart) * invBlendWidth;
                             t = Clamp(t, 0.0f, 1.0f);
-
-                            texDataA = texData1;
-                            twA = texW1;
-                            thA = tH1;
-                            localYA = overallY - h0;
-                            invSyA = invSy1;
-
-                            float tyB = (float)(tH0 - 1) - (overallY)*invSy0;
+                            float tyB = fmaf(-fy, invSy0Rev, texYOffset0Rev);
                             int ixB = (int)(texX + 0.5f);
                             int iyB = (int)(tyB - 0.5f);
-                            ixB = Clamp(ixB, 0, texW0 - 1);
-                            iyB = Clamp(iyB, 0, tH0 - 1);
-                            const Vec4& colB = texData0[ixB + iyB * texW0];
+                            ixB = Clamp(ixB, 0, texW0Rev - 1);
+                            iyB = Clamp(iyB, 0, tH0Rev - 1);
+                            const Vec4& colB = texData0Rev[ixB + iyB * texW0Rev];
 
-                            float tyA = (float)(tH1 - 1) - (overallY - h0) * invSy1;
+                            float tyA = fmaf(-(fy - fh0), invSy1Rev, texYOffset1Rev);
                             int ixA = (int)(texX + 0.5f);
                             int iyA = (int)(tyA - 0.5f);
-                            ixA = Clamp(ixA, 0, texW1 - 1);
-                            iyA = Clamp(iyA, 0, tH1 - 1);
-                            const Vec4& colA = texData1[ixA + iyA * texW1];
+                            ixA = Clamp(ixA, 0, texW1Rev - 1);
+                            iyA = Clamp(iyA, 0, tH1Rev - 1);
+                            const Vec4& colA = texData1Rev[ixA + iyA * texW1Rev];
 
                             float aB = colB.W * alpha * (1.0f - t);
                             float aA = colA.W * alpha * t;
                             float aSum = aB + aA;
                             if (aSum > 0.0f) {
-                                totalR += (colB.X * aB + colA.X * aA);
-                                totalG += (colB.Y * aB + colA.Y * aA);
-                                totalB += (colB.Z * aB + colA.Z * aA);
-                                totalA += aSum;
+                                float valR = fmaf(colB.X, aB, colA.X * aA);
+                                float valG = fmaf(colB.Y, aB, colA.Y * aA);
+                                float valB = fmaf(colB.Z, aB, colA.Z * aA);
+                                float y = valR - errR;
+                                float t_sum = totalR + y;
+                                errR = (t_sum - totalR) - y;
+                                totalR = t_sum;
+                                y = valG - errG;
+                                t_sum = totalG + y;
+                                errG = (t_sum - totalG) - y;
+                                totalG = t_sum;
+                                y = valB - errB;
+                                t_sum = totalB + y;
+                                errB = (t_sum - totalB) - y;
+                                totalB = t_sum;
+                                y = aSum - errA;
+                                t_sum = totalA + y;
+                                errA = (t_sum - totalA) - y;
+                                totalA = t_sum;
                             }
                             continue;
                         }
-                        else if (overallY < h01 - blendHalf) {
-                            texDataA = texData1;
-                            twA = texW1;
-                            thA = tH1;
-                            localYA = overallY - h0;
-                            invSyA = invSy1;
+                        else if (fy < fh01_blendStart) {
+                            texDataA = texData1Rev;
+                            twA = texW1Rev;
+                            thA = tH1Rev;
+                            localYA = fy - fh0;
+                            invSyA = invSy1Rev;
+                            texYOffsetA = texYOffset1Rev;
                         }
-                        else if (overallY < h01 + blendHalf) {
-                            float t = (overallY - (h01 - blendHalf)) / (2.0f * blendHalf);
+                        else if (fy < fh01_blendEnd) {
+                            float t = (fy - fh01_blendStart) * invBlendWidth;
                             t = Clamp(t, 0.0f, 1.0f);
-
-                            float tyB = (float)(tH1 - 1) - (overallY - h0) * invSy1;
+                            float tyB = fmaf(-(fy - fh0), invSy1Rev, texYOffset1Rev);
                             int ixB = (int)(texX + 0.5f);
                             int iyB = (int)(tyB - 0.5f);
-                            ixB = Clamp(ixB, 0, texW1 - 1);
-                            iyB = Clamp(iyB, 0, tH1 - 1);
-                            const Vec4& colB = texData1[ixB + iyB * texW1];
+                            ixB = Clamp(ixB, 0, texW1Rev - 1);
+                            iyB = Clamp(iyB, 0, tH1Rev - 1);
+                            const Vec4& colB = texData1Rev[ixB + iyB * texW1Rev];
 
-                            float tyA = (float)(tH2 - 1) - (overallY - h01) * invSy2;
+                            float tyA = fmaf(-(fy - fh01), invSy2Rev, texYOffset2Rev);
                             int ixA = (int)(texX + 0.5f);
                             int iyA = (int)(tyA - 0.5f);
-                            ixA = Clamp(ixA, 0, texW2 - 1);
-                            iyA = Clamp(iyA, 0, tH2 - 1);
-                            const Vec4& colA = texData2[ixA + iyA * texW2];
+                            ixA = Clamp(ixA, 0, texW2Rev - 1);
+                            iyA = Clamp(iyA, 0, tH2Rev - 1);
+                            const Vec4& colA = texData2Rev[ixA + iyA * texW2Rev];
 
                             float aB = colB.W * alpha * (1.0f - t);
                             float aA = colA.W * alpha * t;
                             float aSum = aB + aA;
                             if (aSum > 0.0f) {
-                                totalR += (colB.X * aB + colA.X * aA);
-                                totalG += (colB.Y * aB + colA.Y * aA);
-                                totalB += (colB.Z * aB + colA.Z * aA);
-                                totalA += aSum;
+                                float valR = fmaf(colB.X, aB, colA.X * aA);
+                                float valG = fmaf(colB.Y, aB, colA.Y * aA);
+                                float valB = fmaf(colB.Z, aB, colA.Z * aA);
+                                float y = valR - errR;
+                                float t_sum = totalR + y;
+                                errR = (t_sum - totalR) - y;
+                                totalR = t_sum;
+                                y = valG - errG;
+                                t_sum = totalG + y;
+                                errG = (t_sum - totalG) - y;
+                                totalG = t_sum;
+                                y = valB - errB;
+                                t_sum = totalB + y;
+                                errB = (t_sum - totalB) - y;
+                                totalB = t_sum;
+                                y = aSum - errA;
+                                t_sum = totalA + y;
+                                errA = (t_sum - totalA) - y;
+                                totalA = t_sum;
                             }
                             continue;
                         }
                         else {
-                            texDataA = texData2;
-                            twA = texW2;
-                            thA = tH2;
-                            localYA = overallY - h01;
-                            invSyA = invSy2;
+                            texDataA = texData2Rev;
+                            twA = texW2Rev;
+                            thA = tH2Rev;
+                            localYA = fy - fh01;
+                            invSyA = invSy2Rev;
+                            texYOffsetA = texYOffset2Rev;
                         }
 
-                        float texY = (float)(thA - 1) - localYA * invSyA;
-
+                        float texY = fmaf(-localYA, invSyA, texYOffsetA);
                         int ix = (int)(texX + 0.5f);
                         int iy = (int)(texY - 0.5f);
                         ix = Clamp(ix, 0, twA - 1);
                         iy = Clamp(iy, 0, thA - 1);
-
                         const Vec4& texColor = texDataA[ix + iy * twA];
                         const float texAlpha = texColor.W * alpha;
-                        totalR += texColor.X * texAlpha;
-                        totalG += texColor.Y * texAlpha;
-                        totalB += texColor.Z * texAlpha;
-                        totalA += texAlpha;
+                        float valR = texColor.X * texAlpha;
+                        float valG = texColor.Y * texAlpha;
+                        float valB = texColor.Z * texAlpha;
+                        float y = valR - errR;
+                        float t_sum = totalR + y;
+                        errR = (t_sum - totalR) - y;
+                        totalR = t_sum;
+                        y = valG - errG;
+                        t_sum = totalG + y;
+                        errG = (t_sum - totalG) - y;
+                        totalG = t_sum;
+                        y = valB - errB;
+                        t_sum = totalB + y;
+                        errB = (t_sum - totalB) - y;
+                        totalB = t_sum;
+                        y = texAlpha - errA;
+                        t_sum = totalA + y;
+                        errA = (t_sum - totalA) - y;
+                        totalA = t_sum;
                     }
                 }
-
                 if (totalA > 0.0f) {
                     const float finalA = totalA * invTotalSamples;
                     const float invA = 1.0f / finalA;
@@ -785,6 +835,8 @@ namespace PhiVideo {
             }
         }
     }
+
+
 
     void Framebuffer::ToPNG(const std::string& path) {
         const size_t totalSize = (size_t)m_Width * (size_t)m_Height * 3;

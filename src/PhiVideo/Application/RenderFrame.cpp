@@ -213,21 +213,20 @@ namespace PhiVideo {
                     noteFp = 0.0f;
                 }
 
-                const Texture* textures[3] = { noteTailImg, noteBodyImg, noteHeadImg };
-                const int heights[3] = { (int)noteTillHeight,(int)noteBodyHeight,(int)noteHeadHeight };
-                const int height = heights[0] + heights[1] + heights[2];
+                const Texture* textures[3] = { noteHeadImg, noteBodyImg, noteTailImg };
+                const int heights[3] = { (int)noteHeadHeight,(int)noteBodyHeight,(int)noteTillHeight };
 
                 float drawX = 0.0f;
                 float drawY = 0.0f;
 
                 if (drawHead) {
                     drawX = headX - cosDrawRad * headImgWidth * texScale / 2.0f
-                        + drawHeadHeight * sinDrawRad - height * sinDrawRad;
+                        + drawHeadHeight * sinDrawRad;
                     drawY = headY + sinDrawRad * headImgWidth * texScale / 2.0f
-                        + drawHeadHeight * cosDrawRad - height * cosDrawRad;
+                        + drawHeadHeight * cosDrawRad;
                 } else {
-                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f - height * sinDrawRad;
-                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f - height * cosDrawRad;
+                    drawX = noteAtlineX - cosDrawRad * headImgWidth * texScale / 2.0f;
+                    drawY = noteAtlineY + sinDrawRad * headImgWidth * texScale / 2.0f;
                 }
 
                 fb->DrawTexture(
@@ -235,7 +234,7 @@ namespace PhiVideo {
                     (int)(drawY + 0.5f),
                     textures,
                     (int)(thisNoteWidth * m_Width), heights,
-                    noteDrawRotate, isHide ? 0.5f : 1.0f
+                    -noteDrawRotate, isHide ? 0.5f : 1.0f
                 );
 
                 if (DEBUG) {
