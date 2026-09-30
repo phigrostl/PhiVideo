@@ -807,9 +807,11 @@ namespace PhiVideo {
             float sy = ev.y / m_Height;
 
             if (sx < 0.1f || sx > 0.9f || sy < 0.1f || sy > 0.9f || ev.alpha < 0.0f) {
+                float ox = ((ev.x - m_Width / 2.0f) / m_Width + m_Width / 2.0f) / m_Width;
+                float oy = (((m_Height / 2.0f - ev.y) / m_Height) + m_Height / 2.0f) / m_Height;
                 sprintf(
                     Lbuf, "[%d](%.2f, %.2f) : %dd : %.2f : %.2f",
-                    i, ev.x, ev.y, (int)ev.rotate, ev.alpha, ev.speed
+                    i, ox, oy, (int)ev.rotate, ev.alpha, ev.speed
                 );
                 LineStrs.push_back(Lbuf);
             }
