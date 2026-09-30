@@ -48,7 +48,7 @@ namespace PhiVideo {
 
     void Application::RenderPrepare(
         float t,
-        std::vector<EventsValue>& evs, std::vector<float>& beats, std::vector<float>& fps,
+        std::vector<EventsValue>& evs, std::vector<EventsValue>& evso, std::vector<float>& beats, std::vector<float>& fps,
         std::vector<float>& sins, std::vector<float>& coss, int& combo
     ) {
         combo = 0;
@@ -56,6 +56,7 @@ namespace PhiVideo {
         for (size_t i = 0; i < numJudgeLines; i++) {
             JudgeLine line = m_Info.chart.data.judgeLines[i];
             EventsValue ev = line.getState(t, m_Info.chart.data.offset);
+            evso.push_back(ev);
 
             const float beatt = line.sec2beat(t, m_Info.chart.data.offset);
             const float lineFp = line.getFp(beatt);
@@ -679,7 +680,8 @@ namespace PhiVideo {
     void Application::RenderDebugInfo(
         float t, int& combo, Framebuffer* fb,
         const std::vector<float>& beats,
-        const std::vector<EventsValue>& evs, const std::vector<float>& fps,
+        const std::vector<EventsValue>& evs, const std::vector<EventsValue>& evso,
+        const std::vector<float>& fps,
         const std::vector<float>& sins, const std::vector<float>& coss,
         float viewFp, float size
     ) {
@@ -807,11 +809,9 @@ namespace PhiVideo {
             float sy = ev.y / m_Height;
 
             if (sx < 0.1f || sx > 0.9f || sy < 0.1f || sy > 0.9f || ev.alpha < 0.0f) {
-                float ox = ((ev.x - m_Width / 2.0f) / m_Width + m_Width / 2.0f) / m_Width;
-                float oy = (((m_Height / 2.0f - ev.y) / m_Height) + m_Height / 2.0f) / m_Height;
                 sprintf(
                     Lbuf, "[%d](%.2f, %.2f) : %dd : %.2f : %.2f",
-                    i, ox, oy, (int)ev.rotate, ev.alpha, ev.speed
+                    i, evso[i].x, evso[i].y, (int)ev.rotate, ev.alpha, ev.speed
                 );
                 LineStrs.push_back(Lbuf);
             }
@@ -962,12 +962,13 @@ namespace PhiVideo {
         int combo = 0;
         const float viewFp = m_Height * 2.0f * (DEBUG ? 1 : size);
         std::vector<EventsValue> evs;
+        std::vector<EventsValue> evso;
         std::vector<float> beats;
         std::vector<float> fps;
         std::vector<float> sins;
         std::vector<float> coss;
 
-        RenderPrepare(t, evs, beats, fps, sins, coss, combo);
+        RenderPrepare(t, evs, evso, beats, fps, sins, coss, combo);
         if (drawBack) RenderBack(fb);
         if (m_UI.RenderJudgeLines) RenderJudgeLines(t, fb, beats, evs, fps, sins, coss);
         if (m_UI.RenderNotes) {
@@ -979,7 +980,7 @@ namespace PhiVideo {
         if (m_UI.RenderMainInfo) RenderMainInfo(t, fb);
         if (m_UI.RenderSubInfo) RenderSubInfo(t, fb);
         if (DEBUG && m_UI.RenderDebugInfo) {
-            RenderDebugInfo(t, combo, fb, beats, evs, fps, sins, coss, viewFp, size);
+            RenderDebugInfo(t, combo, fb, beats, evs, evso, fps, sins, coss, viewFp, size);
         }
     }
 

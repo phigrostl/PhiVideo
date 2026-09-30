@@ -166,7 +166,7 @@ namespace PhiVideo {
 
         void RenderPrepare(
             float t,
-            std::vector<EventsValue>& evs, std::vector<float>& beats, std::vector<float>& fps,
+            std::vector<EventsValue>& evs, std::vector<EventsValue>& evso, std::vector<float>& beats, std::vector<float>& fps,
             std::vector<float>& sins, std::vector<float>& coss, int& combo
         );
 
@@ -197,7 +197,7 @@ namespace PhiVideo {
         void RenderDebugInfo(
             float t, int& combo, Framebuffer* fb,
             const std::vector<float>& beats,
-            const std::vector<EventsValue>& evs, const std::vector<float>& fps,
+            const std::vector<EventsValue>& evs, const std::vector<EventsValue>& evso, const std::vector<float>& fps,
             const std::vector<float>& sins, const std::vector<float>& coss,
             float viewFp, float size
         );
