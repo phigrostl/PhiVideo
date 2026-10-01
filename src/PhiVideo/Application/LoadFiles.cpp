@@ -162,9 +162,10 @@ namespace PhiVideo {
 
     void Application::LoadChartJson() {
         cJSON* root;
-        cJSON* legacyTemp;
         cJSON* lines;
         cJSON* line;
+        cJSON* blockAreas;
+        cJSON* blockArea;
         cJSON* events;
         cJSON* event;
 
@@ -174,6 +175,7 @@ namespace PhiVideo {
         file.close();
         root = cJSON_Parse(json.c_str());
 
+        m_Info.chart.data.formatVersion = cJSON_GetObjectItem(root, "formatVersion")->valueint;
         m_Info.chart.data.offset = (float)cJSON_GetObjectItem(root, "offset")->valuedouble;
         lines = cJSON_GetObjectItem(root, "judgeLineList");
 
@@ -192,8 +194,7 @@ namespace PhiVideo {
                 e.start = (float)cJSON_GetObjectItem(event, "start")->valuedouble;
                 e.end = (float)cJSON_GetObjectItem(event, "end")->valuedouble;
 
-                legacyTemp = cJSON_GetObjectItem(event, "start2");
-                if (legacyTemp != NULL) {
+                if (m_Info.chart.data.formatVersion >= 3) {
                     e.start2 = (float)cJSON_GetObjectItem(event, "start2")->valuedouble;
                     e.end2 = (float)cJSON_GetObjectItem(event, "end2")->valuedouble;
                 } else {
@@ -342,6 +343,70 @@ namespace PhiVideo {
                 "Line: %d, Notes: %zd, Events: %zd", i, jline.notes.size(),
                 jline.moveEvents.size() + jline.rotateEvents.size() + jline.disappearEvents.size() + jline.speedEvents.size()
             );
+        }
+
+        blockAreas = cJSON_GetObjectItem(root, "blockAreaList");
+        if (blockAreas != nullptr) {
+            for (int i = 0; i < cJSON_GetArraySize(blockAreas); i++) {
+                BlockAreaEvent ba;
+                blockArea = cJSON_GetArrayItem(blockAreas, i);
+                event = cJSON_GetObjectItem(blockArea, "topRightPercentage");
+                ba.topRightPercentage.X = (float)cJSON_GetArrayItem(event, 0)->valuedouble;
+                ba.topRightPercentage.Y = (float)cJSON_GetArrayItem(event, 1)->valuedouble;
+                event = cJSON_GetObjectItem(blockArea, "bottomLeftPercentage");
+                ba.bottomLeftPercentage.X = (float)cJSON_GetArrayItem(event, 0)->valuedouble;
+                ba.bottomLeftPercentage.Y = (float)cJSON_GetArrayItem(event, 1)->valuedouble;
+                ba.appearTime = (float)cJSON_GetObjectItem(blockArea, "appearTime")->valuedouble;
+                ba.disappearTime = (float)cJSON_GetObjectItem(blockArea, "disappearTime")->valuedouble;
+                ba.enableTime = (float)cJSON_GetObjectItem(blockArea, "enableTime")->valuedouble;
+                ba.disableTime = (float)cJSON_GetObjectItem(blockArea, "disableTime")->valuedouble;
+                ba.isSubtract = cJSON_GetObjectItem(blockArea, "isSubtract")->valueint != 0;
+
+                events = cJSON_GetObjectItem(blockArea, "rotateEvents");
+                for (int j = 0; j < cJSON_GetArraySize(events); j++) {
+                    BlockAreaRotateEvent e = BlockAreaRotateEvent();
+                    event = cJSON_GetArrayItem(events, j);
+                    line = cJSON_GetObjectItem(event, "anchor");
+                    e.anchor.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
+                    e.anchor.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
+                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble;
+                    e.easeType = cJSON_GetObjectItem(event, "easeType")->valueint;
+                    e.rotation = (float)cJSON_GetObjectItem(event, "rotation")->valuedouble;
+                    ba.rotateEvents.push_back(e);
+                }
+
+                events = cJSON_GetObjectItem(blockArea, "moveEvents");
+                for (int j = 0; j < cJSON_GetArraySize(events); j++) {
+                    BlockAreaMoveEvent e = BlockAreaMoveEvent();
+                    event = cJSON_GetArrayItem(events, j);
+                    line = cJSON_GetObjectItem(event, "endPosition");
+                    e.endPosition.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
+                    e.endPosition.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
+                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble;
+                    e.easeTypeX = cJSON_GetObjectItem(event, "easeTypeX")->valueint;
+                    e.easeTypeY = cJSON_GetObjectItem(event, "easeTypeY")->valueint;
+                    ba.moveEvents.push_back(e);
+                }
+
+                events = cJSON_GetObjectItem(blockArea, "scaleEvents");
+                for (int j = 0; j < cJSON_GetArraySize(events); j++) {
+                    BlockAreaScaleEvent e = BlockAreaScaleEvent();
+                    event = cJSON_GetArrayItem(events, j);
+                    line = cJSON_GetObjectItem(event, "endPosition");
+                    line = cJSON_GetObjectItem(event, "anchor");
+                    e.anchor.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
+                    e.anchor.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
+                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble;
+                    e.easeTypeX = cJSON_GetObjectItem(event, "easeTypeX")->valueint;
+                    e.easeTypeY = cJSON_GetObjectItem(event, "easeTypeY")->valueint;
+                    line = cJSON_GetObjectItem(event, "scale");
+                    e.scale.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
+                    e.scale.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
+                    ba.scaleEvents.push_back(e);
+                }
+
+                m_Info.chart.data.blockAreas.push_back(ba);
+            }
         }
 
         for (auto &l : m_Info.chart.data.judgeLines) {

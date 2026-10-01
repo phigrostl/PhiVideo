@@ -167,7 +167,7 @@ namespace PhiVideo {
         void RenderPrepare(
             float t,
             std::vector<EventsValue>& evs, std::vector<EventsValue>& evso, std::vector<float>& beats, std::vector<float>& fps,
-            std::vector<float>& sins, std::vector<float>& coss, int& combo
+            std::vector<float>& sins, std::vector<float>& coss, std::vector<BlockArea>& blockAreas, int& combo
         );
 
         void RenderJudgeLines(
@@ -190,7 +190,7 @@ namespace PhiVideo {
             const std::vector<float>& sins, const std::vector<float>& coss, float viewFp
         );
 
-        void RenderEffects(float t, Framebuffer* fb, float noteW, float size);
+        void RenderEffects(float t, Framebuffer* fb, const std::vector<BlockArea>& blockAreas, float noteW, float size);
         void RenderUI(float t, Framebuffer* fb, int combo, float size) const;
         void RenderMainInfo(float t, Framebuffer* fb) const;
         void RenderSubInfo(float t, Framebuffer* fb) const;

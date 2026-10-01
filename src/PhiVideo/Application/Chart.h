@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PhiVideo/Application/JudgeLine.h"
+#include "PhiVideo/Application/BlockArea.h"
 
 namespace PhiVideo {
 
@@ -20,7 +21,9 @@ namespace PhiVideo {
     struct ChartData {
         ChartData() = default;
 
+        int formatVersion = 3;
         std::vector<JudgeLine> judgeLines;
+        std::vector<BlockAreaEvent> blockAreas;
         std::vector<HitFx> clickEffectCollection;
         std::vector<HitFx> clickCollection;
         int noteCount = 0;

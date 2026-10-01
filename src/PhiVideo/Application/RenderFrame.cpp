@@ -46,7 +46,7 @@ namespace PhiVideo {
     void Application::RenderPrepare(
         float t,
         std::vector<EventsValue>& evs, std::vector<EventsValue>& evso, std::vector<float>& beats, std::vector<float>& fps,
-        std::vector<float>& sins, std::vector<float>& coss, int& combo
+        std::vector<float>& sins, std::vector<float>& coss, std::vector<BlockArea>& blockAreas, int& combo
     ) {
         combo = 0;
         const int numJudgeLines = (int)(m_Info.chart.data.judgeLines.size());
@@ -71,6 +71,47 @@ namespace PhiVideo {
             for (const auto& note : line.notes) {
                 if (note.secTime <= t && !note.isHold) combo++;
                 else if (note.secHoldEndTime <= t && note.isHold) combo++;
+            }
+        }
+
+        for (const auto& blockArea : m_Info.chart.data.blockAreas) {
+            if (t >= blockArea.appearTime && t <= blockArea.disappearTime) {
+                BlockArea ba;
+                ba.topRightPercentage = blockArea.topRightPercentage;
+                ba.bottomLeftPercentage = blockArea.bottomLeftPercentage;
+                ba.topRightPercentage.X *= (float)m_Width;
+                ba.bottomLeftPercentage.X *= (float)m_Width;
+                ba.topRightPercentage.Y *= (float)m_Height;
+                ba.bottomLeftPercentage.Y *= (float)m_Height;
+                ba.topRightPercentage = Vec2(
+                    (ba.topRightPercentage.X - m_Width / 2.0f) * m_Info.size + m_Width / 2.0f,
+                    m_Height - ((ba.topRightPercentage.Y - m_Height / 2.0f) * m_Info.size + m_Height / 2.0f)
+                );
+                ba.bottomLeftPercentage = Vec2(
+                    (ba.bottomLeftPercentage.X - m_Width / 2.0f) * m_Info.size + m_Width / 2.0f,
+                    m_Height - ((ba.bottomLeftPercentage.Y - m_Height / 2.0f) * m_Info.size + m_Height / 2.0f)
+                );
+                if (ba.topRightPercentage.X < ba.bottomLeftPercentage.X) std::swap(ba.topRightPercentage.X, ba.bottomLeftPercentage.X);
+                if (ba.topRightPercentage.Y < ba.bottomLeftPercentage.Y) std::swap(ba.topRightPercentage.Y, ba.bottomLeftPercentage.Y);
+                ba.isEnabled = (t >= blockArea.enableTime && t <= blockArea.disableTime);
+                for (const auto& rotateEvent : blockArea.rotateEvents) {
+                    if (t >= rotateEvent.time) {
+                        ba.rotation = rotateEvent.rotation;
+                        ba.rotationAnchor = rotateEvent.anchor;
+                    }
+                }
+                for (const auto& moveEvent : blockArea.moveEvents) {
+                    if (t >= moveEvent.time) {
+                        ba.position = moveEvent.endPosition;
+                    }
+                }
+                for (const auto& scaleEvent : blockArea.scaleEvents) {
+                    if (t >= scaleEvent.time) {
+                        ba.scale = scaleEvent.scale;
+                        ba.scaleAnchor = scaleEvent.anchor;
+                    }
+                }
+                blockAreas.push_back(ba);
             }
         }
     }
@@ -382,11 +423,27 @@ namespace PhiVideo {
         }
     }
 
-    void Application::RenderEffects(float t, Framebuffer* fb, float noteW, float size) {
+    void Application::RenderEffects(float t, Framebuffer* fb, const std::vector<BlockArea>& blockAreas, float noteW, float size) {
         float effectDur = 0.5f;
         const auto& hitFxImgs = m_Info.hitFxImgs;
         size_t effectCount = m_Info.chart.data.clickEffectCollection.size();
         size_t hitFxImgsCount = hitFxImgs.size();
+
+        for (int x = 0; x < m_Width; x++) {
+            for (int y = 0; y < m_Height; y++) {
+                for (const auto& blockArea : blockAreas) {
+                    if (x >= blockArea.bottomLeftPercentage.X && x <= blockArea.topRightPercentage.X && y >= blockArea.bottomLeftPercentage.Y && y <= blockArea.topRightPercentage.Y) {
+                        if (blockArea.isEnabled) {
+                            fb->SetColor(x, y, Vec4(1.0f, 0.0f, 0.0f, 0.5f));
+                        }
+                        else {
+                            fb->SetColor(x, y, Vec4(1.0f, 0.0f, 0.0f, 0.25f));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
         for (size_t effectIdx = 0; effectIdx < effectCount; effectIdx++) {
             const HitFx& nm = m_Info.chart.data.clickEffectCollection[effectIdx];
@@ -514,11 +571,6 @@ namespace PhiVideo {
             Vec4(1.0f, DEBUG ? 0.75f : 1.0f),
             m_Width * 56.0f / 1920.0f,
             1.0f
-        );
-
-        fb->DrawTextTTF(
-            m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info,
-            Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
         );
 
         if (size < 1.0f) {
@@ -666,6 +718,11 @@ namespace PhiVideo {
                 Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f
             );
         }
+
+        fb->DrawTextTTF(
+            m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info,
+            Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
+        );
     }
 
     void Application::RenderDebugInfo(
@@ -958,15 +1015,16 @@ namespace PhiVideo {
         std::vector<float> fps;
         std::vector<float> sins;
         std::vector<float> coss;
+        std::vector<BlockArea> blockAreas;
 
-        RenderPrepare(t, evs, evso, beats, fps, sins, coss, combo);
+        RenderPrepare(t, evs, evso, beats, fps, sins, coss, blockAreas, combo);
         if (drawBack) RenderBack(fb);
         if (m_UI.RenderJudgeLines) RenderJudgeLines(t, fb, beats, evs, fps, sins, coss);
         if (m_UI.RenderNotes) {
             RenderHoldNotes(t, fb, beats, evs, fps, sins, coss, viewFp);
             RenderTapNotes(t, fb, beats, evs, fps, sins, coss, viewFp);
         }
-        if (m_UI.RenderEffects) RenderEffects(t, fb, noteW, size);
+        if (m_UI.RenderEffects) RenderEffects(t, fb, blockAreas, noteW, size);
         if (m_UI.RenderUI) RenderUI(t, fb, combo, size);
         if (m_UI.RenderMainInfo) RenderMainInfo(t, fb);
         if (m_UI.RenderSubInfo) RenderSubInfo(t, fb);
