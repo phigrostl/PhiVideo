@@ -646,7 +646,7 @@ namespace PhiVideo {
                     bpmStr += std::to_string(beat1) + "/" + std::to_string(beat2);
                 }
                 else {
-                    bpmStr += "[" + std::to_string(line.bpm) + "] " + std::to_string(beat1) + "/" + std::to_string(beat2);
+                    bpmStr += "[" + fmt(line.bpm) + "] " + std::to_string(beat1) + "/" + std::to_string(beat2);
                 }
 
                 if (i != BpmIndexes.size() - 1) bpmStr += " ";
