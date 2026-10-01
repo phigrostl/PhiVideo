@@ -616,12 +616,9 @@ namespace PhiVideo {
             );
         }
 
-        char timeStr[32];
+        std::string timeStr;
         if (!DEBUG || m_Info.chart.data.judgeLines.size() == 0) {
-            sprintf(
-                timeStr, "%.2f%% %.2fs/%.2fs",
-                (double)t / (double)m_Info.chart.data.time * 100.0, t, m_Info.chart.data.time
-            );
+            timeStr = std::to_string(t / m_Info.chart.data.time * 100.0) + "% " + std::to_string(t) + "s/" + std::to_string(m_Info.chart.data.time) + "s";
         } else {
             std::vector<size_t> BpmIndexes;
             for (size_t i = 0; i < m_Info.chart.data.judgeLines.size(); i++) {
@@ -635,43 +632,33 @@ namespace PhiVideo {
                 }
                 if (!has) BpmIndexes.push_back(i);
             }
-            std::string bpmStr = "";
+            std::string bpmStr;
             for (size_t i = 0; i < BpmIndexes.size(); i++) {
-                char buf[32];
+                auto& line = m_Info.chart.data.judgeLines[BpmIndexes[i]];
+                int beat1 = (int)(line.sec2beat(t, m_Info.chart.data.offset));
+                int beat2 = (int)(line.sec2beat(m_Info.chart.data.time, m_Info.chart.data.offset));
+
                 if (BpmIndexes.size() == 1) {
-                    sprintf(buf, "%d/%d ",
-                        (int)m_Info.chart.data.judgeLines[BpmIndexes[i]]
-                        .sec2beat(t, m_Info.chart.data.offset),
-                        (int)m_Info.chart.data.judgeLines[BpmIndexes[i]]
-                        .sec2beat(m_Info.chart.data.time, m_Info.chart.data.offset)
-                    );
-                } else {
-                    sprintf(buf, "[%.2f] %d/%d ",
-                        m_Info.chart.data.judgeLines[BpmIndexes[i]].bpm,
-                        (int)m_Info.chart.data.judgeLines[BpmIndexes[i]]
-                        .sec2beat(t, m_Info.chart.data.offset),
-                        (int)m_Info.chart.data.judgeLines[BpmIndexes[i]]
-                        .sec2beat(m_Info.chart.data.time, m_Info.chart.data.offset)
-                    );
+                    bpmStr += std::to_string(beat1) + "/" + std::to_string(beat2);
                 }
-                bpmStr += buf;
-                if (i == BpmIndexes.size() - 1) bpmStr.pop_back();
+                else {
+                    bpmStr += "[" + std::to_string(line.bpm) + "] " + std::to_string(beat1) + "/" + std::to_string(beat2);
+                }
+
+                if (i != BpmIndexes.size() - 1) bpmStr += " ";
             }
-            sprintf(
-                timeStr, "%.2f%% %.2fs/%.2fs (%s)",
-                (double)t / (double)m_Info.chart.data.time * 100.0,
-                t, m_Info.chart.data.time, bpmStr.c_str()
-            );
+            float percent = t / m_Info.chart.data.time * 100.0;
+            timeStr = std::to_string(percent) + "% " + std::to_string(t) + "s/" + std::to_string(m_Info.chart.data.time) + "s (" + bpmStr + ")";
         }
 
         int w;
         fb->GetTextSize(timeStr, m_Width * 0.01f, &w, NULL);
         if (w >= m_Width * 0.5f) {
-            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr,
+            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr.c_str(),
                 Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f / (w / (m_Width * 0.5f))
             );
         } else {
-            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr,
+            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr.c_str(),
                 Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f
             );
         }
