@@ -1,8 +1,5 @@
 #include "Application.h"
 
-#include <mutex>
-#include <queue>
-
 namespace PhiVideo {
     void Application::RenderBack(Framebuffer* fb) const {
         fb->Clear();
@@ -617,8 +614,15 @@ namespace PhiVideo {
         }
 
         std::string timeStr;
+
+        auto fmt = [](float v) -> std::string {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(2) << v;
+            return oss.str();
+        };
+
         if (!DEBUG || m_Info.chart.data.judgeLines.size() == 0) {
-            timeStr = std::to_string(t / m_Info.chart.data.time * 100.0) + "% " + std::to_string(t) + "s/" + std::to_string(m_Info.chart.data.time) + "s";
+            timeStr = fmt(t / m_Info.chart.data.time * 100.0) + "% " + fmt(t) + "s/" + fmt(m_Info.chart.data.time) + "s";
         } else {
             std::vector<size_t> BpmIndexes;
             for (size_t i = 0; i < m_Info.chart.data.judgeLines.size(); i++) {
@@ -647,8 +651,8 @@ namespace PhiVideo {
 
                 if (i != BpmIndexes.size() - 1) bpmStr += " ";
             }
-            float percent = t / m_Info.chart.data.time * 100.0;
-            timeStr = std::to_string(percent) + "% " + std::to_string(t) + "s/" + std::to_string(m_Info.chart.data.time) + "s (" + bpmStr + ")";
+            float percent = t / m_Info.chart.data.time * 100.0f;
+            timeStr = fmt(percent) + "% " + fmt(t) + "s/" + fmt(m_Info.chart.data.time) + "s (" + bpmStr + ")";
         }
 
         int w;
