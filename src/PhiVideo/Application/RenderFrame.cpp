@@ -572,17 +572,6 @@ namespace PhiVideo {
             m_Width * 56.0f / 1920.0f,
             1.0f
         );
-
-        if (size < 1.0f) {
-            int x1 = (int)((m_Width - m_Width * size) / 2.0f);
-            int y1 = (int)((m_Height - m_Height * size) / 2.0f);
-            int x2 = m_Width - x1;
-            int y2 = m_Height - y1;
-            fb->DrawLine(x1, y1, x1, y2, 1.0f, Vec4(1.0f, 0.5f));
-            fb->DrawLine(x1, y1, x2, y1, 1.0f, Vec4(1.0f, 0.5f));
-            fb->DrawLine(x2, y2, x1, y2, 1.0f, Vec4(1.0f, 0.5f));
-            fb->DrawLine(x2, y2, x2, y1, 1.0f, Vec4(1.0f, 0.5f));
-        }
     }
 
     void Application::RenderMainInfo(float t, Framebuffer* fb) const {
@@ -723,6 +712,17 @@ namespace PhiVideo {
             m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info,
             Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
         );
+
+        if (m_Info.size < 1.0f) {
+            int x1 = (int)((m_Width - m_Width * m_Info.size) / 2.0f);
+            int y1 = (int)((m_Height - m_Height * m_Info.size) / 2.0f);
+            int x2 = m_Width - x1;
+            int y2 = m_Height - y1;
+            fb->DrawLine(x1, y1, x1, y2, 1.0f, Vec4(1.0f, 0.5f));
+            fb->DrawLine(x1, y1, x2, y1, 1.0f, Vec4(1.0f, 0.5f));
+            fb->DrawLine(x2, y2, x1, y2, 1.0f, Vec4(1.0f, 0.5f));
+            fb->DrawLine(x2, y2, x2, y1, 1.0f, Vec4(1.0f, 0.5f));
+        }
     }
 
     void Application::RenderDebugInfo(
