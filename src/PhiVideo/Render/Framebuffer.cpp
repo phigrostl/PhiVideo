@@ -400,6 +400,8 @@ namespace PhiVideo {
     }
 
     void Framebuffer::DrawRect(Vec2 pos, Vec2 size, float rotation, Vec4 color) {
+        size = Vec2(abs(size.X), abs(size.Y));
+
         const float halfW = size.X * 0.5f;
         const float halfH = size.Y * 0.5f;
 

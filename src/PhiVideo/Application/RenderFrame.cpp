@@ -182,7 +182,7 @@ namespace PhiVideo {
                 bpos = bpos + ToScreenPos(md, m_Width, m_Height, m_Info.size) - Vec2((0.5f - 0.5f * m_Info.size) * m_Width, (0.5f + 0.5f * m_Info.size) * m_Height);
 
                 ba.pos = bpos;
-                ba.size = m_Info.size * bsize * Vec2(abs(scale.X) * m_Width, abs(scale.Y) * m_Height);
+                ba.size = m_Info.size * bsize * Vec2(scale.X * m_Width, scale.Y * m_Height);
                 ba.rotation = r;
                 ba.isEnabled = (t >= blockArea.enableTime && t < blockArea.disableTime);
                 if (ba.isEnabled) ba.enableProgress = 1.0f;
@@ -506,6 +506,8 @@ namespace PhiVideo {
     }
 
     void DrawRect(int* buffer, int width, int height, Vec2 pos, Vec2 size, float rotation, int num) {
+        size = Vec2(abs(size.X), abs(size.Y));
+
         const float halfW = size.X * 0.5f;
         const float halfH = size.Y * 0.5f;
 
