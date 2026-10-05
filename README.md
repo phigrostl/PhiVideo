@@ -133,7 +133,7 @@ PhiVideo [FILE_PATH] [OPTIONS]
   - [`FFmpeg`](https://ffmpeg.org/download.html)
   - [`CLI11`](https://github.com/CLIUtils/CLI11)
   - [`cJSON`](https://github.com/DaveGamble/cJSON)
-  - [`stbtt`](https://github.com/nothings/stb)
+  - [`stb`](https://github.com/nothings/stb)
 
 ## 特殊字符
  - `中文字符`，`空格`，`终端特殊字元(不含下文特殊字符)`，可正常使用
