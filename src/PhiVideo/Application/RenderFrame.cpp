@@ -552,8 +552,8 @@ namespace PhiVideo {
                 const float localY = -sx * sinA + sy * cosA;
                 if (fabsf(localX) <= halfW && fabsf(localY) <= halfH) {
                     int idx = py * width + px;
-                    if (num > 0) buffer[idx] += num;
-                    if (num < 0) buffer[idx] = -buffer[idx] + (buffer[idx] > 0 ? -1 : 1);
+                    if (num < 0 && buffer[idx] != 0) buffer[idx] = -buffer[idx] + (buffer[idx] > 0 ? -1 : 1);
+                    else buffer[idx] += num;
                 }
             }
         }
