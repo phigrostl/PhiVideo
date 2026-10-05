@@ -108,10 +108,12 @@ namespace PhiVideo {
                             auto& e2 = blockArea.scaleEvents[i + 1];
                             if (t >= e2.time) bscale = e2.scale;
                             else {
-                                bscale = Vec2(
-                                    ease(t, e1.time, e2.time, e1.scale.X, e2.scale.X, e1.easeTypeX),
-                                    ease(t, e1.time, e2.time, e1.scale.Y, e2.scale.Y, e1.easeTypeY)
+                                float p = (t - e1.time) / (e2.time - e1.time);
+                                Vec2 ep = Vec2(
+                                    ease(p, 0.0f, 1.0f, 0.0f, 1.0f, e1.easeTypeX),
+                                    ease(p, 0.0f, 1.0f, 0.0f, 1.0f, e1.easeTypeY)
                                 );
+                                bscale = e1.scale * (Vec2(1.0f, 1.0f) - ep) + e2.scale * ep;
                                 scale = bscale;
                             }
                         }
@@ -141,7 +143,9 @@ namespace PhiVideo {
                             auto& e2 = blockArea.rotateEvents[i + 1];
                             if (t >= e2.time) br = e2.rotation;
                             else {
-                                br = ease(t, e1.time, e2.time, e1.rotation, e2.rotation, e1.easeType);
+                                float p = (t - e1.time) / (e2.time - e1.time);
+                                float ep = ease(p, 0.0f, 1.0f, 0.0f, 1.0f, e1.easeType);
+                                br = e1.rotation * (1.0f - ep) + e2.rotation * ep;
                                 r = br;
                             }
                         }
@@ -163,9 +167,10 @@ namespace PhiVideo {
                             auto& e2 = blockArea.moveEvents[i + 1];
                             if (t >= e2.time) continue;
                             else {
+                                float p = (t - e1.time) / (e2.time - e1.time);
                                 Vec2 ep = Vec2(
-                                    ease(t, e1.time, e2.time, e1.endPosition.X, e2.endPosition.X, e1.easeTypeX),
-                                    ease(t, e1.time, e2.time, e1.endPosition.Y, e2.endPosition.Y, e1.easeTypeY)
+                                    ease(p, 0.0f, 1.0f, 0.0f, 1.0f, e1.easeTypeX),
+                                    ease(p, 0.0f, 1.0f, 0.0f, 1.0f, e1.easeTypeY)
                                 );
                                 bm = e1.endPosition * (Vec2(1.0f, 1.0f) - ep) + e2.endPosition * ep;
                             }
@@ -508,6 +513,7 @@ namespace PhiVideo {
         const float cosA = cosf(rad);
         const float sinA = sinf(rad);
 
+        // compute axis-aligned bounding box of rotated rectangle
         float minXf = FLT_MAX, minYf = FLT_MAX, maxXf = -FLT_MAX, maxYf = -FLT_MAX;
         float corners[4][2] = {
             { -halfW, -halfH },
@@ -536,11 +542,14 @@ namespace PhiVideo {
         minY = Max(minY, 0);
         maxY = Min(maxY, height - 1);
 
+        // inverse rotate point into rectangle local space and test against half extents
         for (int py = minY; py <= maxY; ++py) {
             for (int px = minX; px <= maxX; ++px) {
+                // sample at pixel center
                 const float sx = (float)px + 0.5f - pos.X;
                 const float sy = (float)py + 0.5f - pos.Y;
 
+                // rotate by -rotation: local.x = sx * cos + sy * sin; local.y = -sx * sin + sy * cos
                 const float localX = sx * cosA + sy * sinA;
                 const float localY = -sx * sinA + sy * cosA;
 
