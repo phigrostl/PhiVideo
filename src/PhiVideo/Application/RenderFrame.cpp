@@ -544,22 +544,16 @@ namespace PhiVideo {
         minY = Max(minY, 0);
         maxY = Min(maxY, height - 1);
 
-        // inverse rotate point into rectangle local space and test against half extents
         for (int py = minY; py <= maxY; ++py) {
             for (int px = minX; px <= maxX; ++px) {
-                // sample at pixel center
                 const float sx = (float)px + 0.5f - pos.X;
                 const float sy = (float)py + 0.5f - pos.Y;
-
-                // rotate by -rotation: local.x = sx * cos + sy * sin; local.y = -sx * sin + sy * cos
                 const float localX = sx * cosA + sy * sinA;
                 const float localY = -sx * sinA + sy * cosA;
-
                 if (fabsf(localX) <= halfW && fabsf(localY) <= halfH) {
                     int idx = py * width + px;
-                    if (buffer[idx] > 0 && num < 0) buffer[idx] = num;
-                    else if (buffer[idx] == 0 && num < 0) buffer[idx] = abs(num);
-                    else buffer[idx] += num;
+                    if (num > 0) buffer[idx] += num;
+                    if (num < 0) buffer[idx] = -buffer[idx] + (buffer[idx] > 0 ? -1 : 1);
                 }
             }
         }
@@ -660,7 +654,7 @@ namespace PhiVideo {
                         fb->SetColor(i, j, Vec4(1.0f, 0.0f, 0.0f, (DEBUG ? (0.75f - pow(0.75f, blockNum[idx]) * 0.75f) : 0.5f)));
                     }
                     else if (blockNum[idx] < 0) {
-                        fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, (DEBUG ? (0.75f - pow(0.75f, -blockNum[idx]) * 0.75f) : 0.0f)));
+                        fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, (DEBUG ? 0.5f : 0.0f)));
                     }
                 }
             }
