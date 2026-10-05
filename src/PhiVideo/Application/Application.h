@@ -196,6 +196,7 @@ namespace PhiVideo {
         void RenderSubInfo(float t, Framebuffer* fb) const;
         void RenderDebugInfo(
             float t, int& combo, Framebuffer* fb,
+            const std::vector<BlockArea>& blockAreas,
             const std::vector<float>& beats,
             const std::vector<EventsValue>& evs, const std::vector<EventsValue>& evso, const std::vector<float>& fps,
             const std::vector<float>& sins, const std::vector<float>& coss,

@@ -8,6 +8,15 @@ namespace PhiVideo {
     Vec2 operator- (const Vec2& left, const Vec2& right) {
         return Vec2{ left.X - right.X, left.Y - right.Y };
     }
+    Vec2 operator* (const float left, const Vec2& right) {
+        return Vec2{ left * right.X, left * right.Y };
+    }
+    Vec2 operator* (const Vec2& left, const Vec2& right) {
+        return Vec2{ left.X * right.X, left.Y * right.Y };
+    }
+    Vec2 operator/ (const Vec2& left, const Vec2& right) {
+        return Vec2{ left.X / right.X, left.Y / right.Y };
+    }
 
     Vec3 operator+ (const Vec3& left, const Vec3& right) {
         return Vec3{ left.X + right.X, left.Y + right.Y, left.Z + right.Z };
@@ -99,9 +108,33 @@ namespace PhiVideo {
         return (float)c / 255.0f;
     }
 
-    float linear(float t, float st, float et, float sv, float ev) {
+    float ease(float t, float st, float et, float sv, float ev, int ease) {
         if (st == et) return sv;
-        return sv + (t - st) / (et - st) * (ev - sv);
+
+        float p = (t - st) / (et - st);
+        p = Clamp(p, 0.0f, 1.0f);
+
+        float e = 0.0f;
+        switch (ease) {
+        case 0:  e = p; break;
+        case 1:  e = p * p; break;
+        case 2:  e = 1.0f - (1.0f - p) * (1.0f - p); break;
+        case 3:  e = p < 0.5f ? 0.5f * (2.0f * p) * (2.0f * p) : 1.0f - 0.5f * (2.0f - 2.0f * p) * (2.0f - 2.0f * p); break;
+        case 4:  e = p * p * p; break;
+        case 5:  e = 1.0f - (1.0f - p) * (1.0f - p) * (1.0f - p); break;
+        case 6:  e = p < 0.5f ? 0.5f * (2.0f * p) * (2.0f * p) * (2.0f * p) : 1.0f - 0.5f * (2.0f - 2.0f * p) * (2.0f - 2.0f * p) * (2.0f - 2.0f * p); break;
+        case 7:  e = p * p * p * p; break;
+        case 8:  e = 1.0f - (1.0f - p) * (1.0f - p) * (1.0f - p) * (1.0f - p); break;
+        case 9:  e = p < 0.5f ? 0.5f * (2.0f * p) * (2.0f * p) * (2.0f * p) * (2.0f * p) : 1.0f - 0.5f * (2.0f - 2.0f * p) * (2.0f - 2.0f * p) * (2.0f - 2.0f * p) * (2.0f - 2.0f * p); break;
+        case 10: e = p * p * p * p * p; break;
+        case 11: e = 1.0f - (1.0f - p) * (1.0f - p) * (1.0f - p) * (1.0f - p) * (1.0f - p); break;
+        case 12: e = p < 0.5f ? 0.5f * (2.0f * p) * (2.0f * p) * (2.0f * p) * (2.0f * p) * (2.0f * p) : 1.0f - 0.5f * (2.0f - 2.0f * p) * (2.0f - 2.0f * p) * (2.0f - 2.0f * p) * (2.0f - 2.0f * p) * (2.0f - 2.0f * p); break;
+        case 13: e = 0.0f; break;
+        case 14: e = 1.0f; break;
+        default: e = p; break;
+        }
+
+        return sv + e * (ev - sv);
     }
 
     float randf(float min, float max) {

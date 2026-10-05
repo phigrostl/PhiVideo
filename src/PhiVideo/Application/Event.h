@@ -83,7 +83,7 @@ namespace PhiVideo {
         const int i = findEvent(t, es);
         if (i == -1) return 0.0f;
         const T& e = es[i];
-        return linear(t, e.startTime, e.endTime, e.start, e.end);
+        return ease(t, e.startTime, e.endTime, e.start, e.end);
     }
 
     float getPosYEvent(float t, std::vector<JudgeLineMoveEvent> es);

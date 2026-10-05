@@ -405,6 +405,10 @@ namespace PhiVideo {
                     ba.scaleEvents.push_back(e);
                 }
 
+                std::sort(ba.rotateEvents.begin(), ba.rotateEvents.end(), [](BlockAreaRotateEvent a, BlockAreaRotateEvent b) { return a.time < b.time; });
+                std::sort(ba.moveEvents.begin(), ba.moveEvents.end(), [](BlockAreaMoveEvent a, BlockAreaMoveEvent b) { return a.time < b.time; });
+                std::sort(ba.scaleEvents.begin(), ba.scaleEvents.end(), [](BlockAreaScaleEvent a, BlockAreaScaleEvent b) { return a.time < b.time; });
+
                 m_Info.chart.data.blockAreas.push_back(ba);
             }
         }

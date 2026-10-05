@@ -86,7 +86,7 @@ namespace PhiVideo {
                 char tempVideoFile[64];
                 sprintf_s(tempVideoFile, "temp_video_%d.mp4", i);
 
-                char ffmpegCmd[512];
+                char ffmpegCmd[1024];
                 if (i < m_Info.GPUNum) {
                     sprintf_s(
                         ffmpegCmd, "ffmpeg -y -loglevel error -f rawvideo -pixel_format rgb24"

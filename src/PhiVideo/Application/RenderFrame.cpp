@@ -36,11 +36,23 @@ namespace PhiVideo {
         fb->FillRect(0, 0, m_Width, m_Height, Vec4(0.0f, 0.0f, 0.0f, 0.3f));
     }
 
+    static inline float ToScreenX(float x, int width, float size) {
+        x *= (float)width;
+        return (x - width / 2.0f) * size + width / 2.0f;
+    }
+    
+    static inline float ToScreenY(float y, int height, float size) {
+        y *= (float)height;
+        return height - ((y - height / 2.0f) * size + height / 2.0f);
+    }
+
+    static Vec2 ToScreenPos(const Vec2& pos, int width, int height, float size) {
+        return Vec2(ToScreenX(pos.X, width, size), ToScreenY(pos.Y, height, size));
+    }
+
     static inline void ApplyScreenTransform(EventsValue& ev, int width, int height, float size) {
-        ev.x *= (float)width;
-        ev.y *= (float)height;
-        ev.x = (ev.x - width / 2.0f) * size + width / 2.0f;
-        ev.y = height - ((ev.y - height / 2.0f) * size + height / 2.0f);
+        ev.x = ToScreenX(ev.x, width, size);
+        ev.y = ToScreenY(ev.y, height, size);
     }
 
     void Application::RenderPrepare(
@@ -75,45 +87,110 @@ namespace PhiVideo {
         }
 
         for (const auto& blockArea : m_Info.chart.data.blockAreas) {
-            if (t >= blockArea.appearTime && t <= blockArea.disappearTime) {
+            if (t >= blockArea.appearTime && t < blockArea.disappearTime) {
                 BlockArea ba;
-                ba.topRightPercentage = blockArea.topRightPercentage;
-                ba.bottomLeftPercentage = blockArea.bottomLeftPercentage;
-                ba.topRightPercentage.X *= (float)m_Width;
-                ba.bottomLeftPercentage.X *= (float)m_Width;
-                ba.topRightPercentage.Y *= (float)m_Height;
-                ba.bottomLeftPercentage.Y *= (float)m_Height;
-                ba.topRightPercentage = Vec2(
-                    (ba.topRightPercentage.X - m_Width / 2.0f) * m_Info.size + m_Width / 2.0f,
-                    m_Height - ((ba.topRightPercentage.Y - m_Height / 2.0f) * m_Info.size + m_Height / 2.0f)
-                );
-                ba.bottomLeftPercentage = Vec2(
-                    (ba.bottomLeftPercentage.X - m_Width / 2.0f) * m_Info.size + m_Width / 2.0f,
-                    m_Height - ((ba.bottomLeftPercentage.Y - m_Height / 2.0f) * m_Info.size + m_Height / 2.0f)
-                );
-                if (ba.topRightPercentage.X < ba.bottomLeftPercentage.X) std::swap(ba.topRightPercentage.X, ba.bottomLeftPercentage.X);
-                if (ba.topRightPercentage.Y < ba.bottomLeftPercentage.Y) std::swap(ba.topRightPercentage.Y, ba.bottomLeftPercentage.Y);
-                ba.isEnabled = (t >= blockArea.enableTime && t <= blockArea.disableTime);
-                for (const auto& rotateEvent : blockArea.rotateEvents) {
-                    if (t >= rotateEvent.time) {
-                        ba.rotation = rotateEvent.rotation;
-                        ba.rotationAnchor = rotateEvent.anchor;
+                Vec2 bcenter = 0.5f * Vec2(blockArea.topRightPercentage + blockArea.bottomLeftPercentage);
+                Vec2 bpos = ToScreenPos(bcenter, m_Width, m_Height, m_Info.size);
+                Vec2 bsize = blockArea.topRightPercentage - blockArea.bottomLeftPercentage;
+                Vec2 scale = Vec2(1.0f, 1.0f);
+                Vec2 lastScale = blockArea.scaleEvents.empty() ? Vec2(1.0f, 1.0f) : blockArea.scaleEvents[0].scale;
+                for (int i = 0; i < blockArea.scaleEvents.size(); i++) {
+                    auto& e1 = blockArea.scaleEvents[i];
+                    if (t < e1.time) break;
+                    Vec2 bscale = Vec2(1.0f, 1.0f);
+                    Vec2 bascale = bcenter;
+                    if (t >= e1.time) {
+                        if (i == blockArea.scaleEvents.size() - 1) {
+                            scale = e1.scale;
+                            bscale = e1.scale;
+                        }
+                        else {
+                            auto& e2 = blockArea.scaleEvents[i + 1];
+                            if (t >= e2.time) bscale = e2.scale;
+                            else {
+                                bscale = Vec2(
+                                    ease(t, e1.time, e2.time, e1.scale.X, e2.scale.X, e1.easeTypeX),
+                                    ease(t, e1.time, e2.time, e1.scale.Y, e2.scale.Y, e1.easeTypeY)
+                                );
+                                scale = bscale;
+                            }
+                        }
+                        bascale = e1.anchor;
+                        Vec2 l = Vec2(
+                            abs(lastScale.X) > 1e-6 ? (bscale.X - lastScale.X) / lastScale.X : 1.0f,
+                            abs(lastScale.Y) > 1e-6 ? (bscale.Y - lastScale.Y) / lastScale.Y : 1.0f
+                        );
+                        bpos = bpos + (bpos - ToScreenPos(bascale, m_Width, m_Height, m_Info.size)) * l;
+                        lastScale = bscale;
                     }
                 }
-                for (const auto& moveEvent : blockArea.moveEvents) {
-                    if (t >= moveEvent.time) {
-                        ba.position = moveEvent.endPosition;
+
+                float r = 0.0f;
+                float lastr = blockArea.rotateEvents.empty() ? 0.0f : blockArea.rotateEvents[0].rotation;
+                for (int i = 0; i < blockArea.rotateEvents.size(); i++) {
+                    auto& e1 = blockArea.rotateEvents[i];
+                    if (t < e1.time) break;
+                    float br = 0.0f;
+                    Vec2 bar = bcenter;
+                    if (t >= e1.time) {
+                        if (i == blockArea.rotateEvents.size() - 1) {
+                            r = e1.rotation;
+                            br = r;
+                        }
+                        else {
+                            auto& e2 = blockArea.rotateEvents[i + 1];
+                            if (t >= e2.time) br = e2.rotation;
+                            else {
+                                br = ease(t, e1.time, e2.time, e1.rotation, e2.rotation, e1.easeType);
+                                r = br;
+                            }
+                        }
+                    }
+                    bar = e1.anchor;
+                    float rad = (br - lastr) * PI_OVER_180;
+                    float c = cos(rad), s = sin(rad);
+                    Vec2 rd = bpos - ToScreenPos(bar, m_Width, m_Height, m_Info.size);
+                    bpos = bpos + Vec2(rd.X * c + rd.Y * s - rd.X, rd.X * s + rd.Y * c - rd.Y);
+                    lastr = br;
+                }
+
+                Vec2 bm = bcenter;
+                for (int i = 0; i < blockArea.moveEvents.size(); i++) {
+                    auto& e1 = blockArea.moveEvents[i];
+                    if (t >= e1.time) {
+                        if (i == blockArea.moveEvents.size() - 1) bm = e1.endPosition;
+                        else {
+                            auto& e2 = blockArea.moveEvents[i + 1];
+                            if (t >= e2.time) continue;
+                            else {
+                                Vec2 ep = Vec2(
+                                    ease(t, e1.time, e2.time, e1.endPosition.X, e2.endPosition.X, e1.easeTypeX),
+                                    ease(t, e1.time, e2.time, e1.endPosition.Y, e2.endPosition.Y, e1.easeTypeY)
+                                );
+                                bm = e1.endPosition * (Vec2(1.0f, 1.0f) - ep) + e2.endPosition * ep;
+                            }
+                        }
                     }
                 }
-                for (const auto& scaleEvent : blockArea.scaleEvents) {
-                    if (t >= scaleEvent.time) {
-                        ba.scale = scaleEvent.scale;
-                        ba.scaleAnchor = scaleEvent.anchor;
-                    }
-                }
+
+                Vec2 md = bm - bcenter;
+                bpos = bpos + ToScreenPos(md, m_Width, m_Height, m_Info.size) - Vec2((0.5f - 0.5f * m_Info.size) * m_Width, (0.5f + 0.5f * m_Info.size) * m_Height);
+
+                ba.pos = bpos;
+                ba.size = m_Info.size * bsize * Vec2(abs(scale.X) * m_Width, abs(scale.Y) * m_Height);
+                ba.rotation = r;
+                ba.isEnabled = (t >= blockArea.enableTime && t < blockArea.disableTime);
+                if (ba.isEnabled) ba.enableProgress = 1.0f;
+                else if (t < blockArea.enableTime) ba.enableProgress = (t - blockArea.appearTime) / (blockArea.enableTime - blockArea.appearTime);
+                else if (t >= blockArea.disableTime) ba.enableProgress = (blockArea.disappearTime - t) / (blockArea.disappearTime - blockArea.disableTime);
+                ba.isSubtract = blockArea.isSubtract;
                 blockAreas.push_back(ba);
             }
         }
+        std::sort(blockAreas.begin(), blockAreas.end(), [](const BlockArea& a, const BlockArea& b) {
+            if (a.isEnabled != b.isEnabled) return a.isEnabled > b.isEnabled;
+            else return a.isSubtract < b.isSubtract;
+            });
     }
 
     void Application::RenderJudgeLines(
@@ -423,28 +500,65 @@ namespace PhiVideo {
         }
     }
 
+    void DrawRect(int* buffer, int width, int height, Vec2 pos, Vec2 size, float rotation, int num) {
+        const float halfW = size.X * 0.5f;
+        const float halfH = size.Y * 0.5f;
+
+        const float rad = -rotation * PI_OVER_180;
+        const float cosA = cosf(rad);
+        const float sinA = sinf(rad);
+
+        float minXf = FLT_MAX, minYf = FLT_MAX, maxXf = -FLT_MAX, maxYf = -FLT_MAX;
+        float corners[4][2] = {
+            { -halfW, -halfH },
+            {  halfW, -halfH },
+            { -halfW,  halfH },
+            {  halfW,  halfH }
+        };
+        for (int i = 0; i < 4; ++i) {
+            float rx = corners[i][0] * cosA - corners[i][1] * sinA + pos.X;
+            float ry = corners[i][0] * sinA + corners[i][1] * cosA + pos.Y;
+            minXf = Min(minXf, rx);
+            minYf = Min(minYf, ry);
+            maxXf = Max(maxXf, rx);
+            maxYf = Max(maxYf, ry);
+        }
+
+        int minX = (int)floorf(minXf);
+        int maxX = (int)ceilf(maxXf);
+        int minY = (int)floorf(minYf);
+        int maxY = (int)ceilf(maxYf);
+
+        if (minX > width - 1 || maxX < 0 || minY > height - 1 || maxY < 0) return;
+
+        minX = Max(minX, 0);
+        maxX = Min(maxX, width - 1);
+        minY = Max(minY, 0);
+        maxY = Min(maxY, height - 1);
+
+        for (int py = minY; py <= maxY; ++py) {
+            for (int px = minX; px <= maxX; ++px) {
+                const float sx = (float)px + 0.5f - pos.X;
+                const float sy = (float)py + 0.5f - pos.Y;
+
+                const float localX = sx * cosA + sy * sinA;
+                const float localY = -sx * sinA + sy * cosA;
+
+                if (fabsf(localX) <= halfW && fabsf(localY) <= halfH) {
+                    int idx = py * width + px;
+                    if (buffer[idx] > 0 && num < 0) buffer[idx] = num;
+                    else if (buffer[idx] == 0 && num < 0) buffer[idx] = abs(num);
+                    else buffer[idx] += num;
+                }
+            }
+        }
+    }
+
     void Application::RenderEffects(float t, Framebuffer* fb, const std::vector<BlockArea>& blockAreas, float noteW, float size) {
         float effectDur = 0.5f;
         const auto& hitFxImgs = m_Info.hitFxImgs;
         size_t effectCount = m_Info.chart.data.clickEffectCollection.size();
         size_t hitFxImgsCount = hitFxImgs.size();
-
-        for (int x = 0; x < m_Width; x++) {
-            for (int y = 0; y < m_Height; y++) {
-                for (const auto& blockArea : blockAreas) {
-                    if (x >= blockArea.bottomLeftPercentage.X && x <= blockArea.topRightPercentage.X && y >= blockArea.bottomLeftPercentage.Y && y <= blockArea.topRightPercentage.Y) {
-                        if (blockArea.isEnabled) {
-                            fb->SetColor(x, y, Vec4(1.0f, 0.0f, 0.0f, 0.5f));
-                        }
-                        else {
-                            fb->SetColor(x, y, Vec4(1.0f, 0.0f, 0.0f, 0.25f));
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
         for (size_t effectIdx = 0; effectIdx < effectCount; effectIdx++) {
             const HitFx& nm = m_Info.chart.data.clickEffectCollection[effectIdx];
 
@@ -508,6 +622,47 @@ namespace PhiVideo {
                     Vec4(PCOLOR, alpha)
                 );
             }
+        }
+
+        if (blockAreas.size() > 0) {
+            int* blockNum = new int[m_Width * m_Height];
+            memset(blockNum, 0, sizeof(int) * m_Width * m_Height);
+            for (const auto& ba : blockAreas) {
+                if (ba.isEnabled && !ba.isSubtract) {
+                    DrawRect(
+                        blockNum, m_Width, m_Height,
+                        ba.pos, ba.size, ba.rotation, 1
+                    );
+                }
+                else if (ba.isSubtract && ba.isEnabled) {
+                    DrawRect(
+                        blockNum, m_Width, m_Height,
+                        ba.pos, ba.size, ba.rotation, -1
+                    );
+                }
+            }
+
+            for (int j = 0; j < m_Height; j++) {
+                for (int i = 0; i < m_Width; i++) {
+                    int idx = j * m_Width + i;
+                    if (blockNum[idx] > 0) {
+                        fb->SetColor(i, j, Vec4(1.0f, 0.0f, 0.0f, (DEBUG ? (0.75f - pow(0.75f, blockNum[idx]) * 0.75f) : 0.5f)));
+                    }
+                    else if (blockNum[idx] < 0) {
+                        fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, (DEBUG ? (0.75f - pow(0.75f, -blockNum[idx]) * 0.75f) : 0.0f)));
+                    }
+                }
+            }
+
+            for (const auto& ba : blockAreas) {
+                if (!ba.isEnabled) {
+                    fb->DrawRect(
+                        ba.pos, ba.size, ba.rotation,
+                        Vec4(HSV2RGB(Vec3((1.0f - ba.enableProgress) / 3.0f, 1.0f, 1.0f)), DEBUG ? 0.25f : 0.5f)
+                    );
+                }
+            }
+            delete[] blockNum;
         }
     }
 
@@ -727,6 +882,7 @@ namespace PhiVideo {
 
     void Application::RenderDebugInfo(
         float t, int& combo, Framebuffer* fb,
+        const std::vector<BlockArea>& blockAreas,
         const std::vector<float>& beats,
         const std::vector<EventsValue>& evs, const std::vector<EventsValue>& evso,
         const std::vector<float>& fps,
@@ -1029,7 +1185,7 @@ namespace PhiVideo {
         if (m_UI.RenderMainInfo) RenderMainInfo(t, fb);
         if (m_UI.RenderSubInfo) RenderSubInfo(t, fb);
         if (DEBUG && m_UI.RenderDebugInfo) {
-            RenderDebugInfo(t, combo, fb, beats, evs, evso, fps, sins, coss, viewFp, size);
+            RenderDebugInfo(t, combo, fb, blockAreas, beats, evs, evso, fps, sins, coss, viewFp, size);
         }
     }
 

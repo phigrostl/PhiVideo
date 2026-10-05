@@ -399,6 +399,60 @@ namespace PhiVideo {
         }
     }
 
+    void Framebuffer::DrawRect(Vec2 pos, Vec2 size, float rotation, Vec4 color) {
+        const float halfW = size.X * 0.5f;
+        const float halfH = size.Y * 0.5f;
+
+        const float rad = -rotation * PI_OVER_180;
+        const float cosA = cosf(rad);
+        const float sinA = sinf(rad);
+
+        float minXf = FLT_MAX, minYf = FLT_MAX, maxXf = -FLT_MAX, maxYf = -FLT_MAX;
+        float corners[4][2] = {
+            { -halfW, -halfH },
+            { halfW, -halfH },
+            { -halfW,  halfH },
+            { halfW,  halfH }
+        };
+        for (int i = 0; i < 4; ++i) {
+            float rx = corners[i][0] * cosA - corners[i][1] * sinA + pos.X;
+            float ry = corners[i][0] * sinA + corners[i][1] * cosA + pos.Y;
+            minXf = Min(minXf, rx);
+            minYf = Min(minYf, ry);
+            maxXf = Max(maxXf, rx);
+            maxYf = Max(maxYf, ry);
+        }
+
+        int minX = (int)floorf(minXf);
+        int maxX = (int)ceilf(maxXf);
+        int minY = (int)floorf(minYf);
+        int maxY = (int)ceilf(maxYf);
+
+        if (minX > m_Width - 1 || maxX < 0 || minY > m_Height - 1 || maxY < 0) return;
+
+        minX = Max(minX, 0);
+        maxX = Min(maxX, m_Width - 1);
+        minY = Max(minY, 0);
+        maxY = Min(maxY, m_Height - 1);
+
+        for (int py = minY; py <= maxY; ++py) {
+            for (int px = minX; px <= maxX; ++px) {
+                const float sx = (float)px + 0.5f - pos.X;
+                const float sy = (float)py + 0.5f - pos.Y;
+
+                const float localX = sx * cosA + sy * sinA;
+                const float localY = -sx * sinA + sy * cosA;
+
+                if (fabsf(localX) <= halfW && fabsf(localY) <= halfH) {
+                    SetColor(
+                        px, py,
+                        Vec4(color.X, color.Y, color.Z, color.W)
+                    );
+                }
+            }
+        }
+    }
+
     void Framebuffer::FillRect(int x0, int y0, int x1, int y1, const Vec4& color) {
         if (x0 > x1) std::swap(x0, x1);
         if (y0 > y1) std::swap(y0, y1);

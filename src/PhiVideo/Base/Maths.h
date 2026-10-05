@@ -71,6 +71,9 @@ namespace PhiVideo {
 
     Vec2 operator+ (const Vec2& left, const Vec2& right);
     Vec2 operator- (const Vec2& left, const Vec2& right);
+    Vec2 operator* (const float left, const Vec2& right);
+    Vec2 operator* (const Vec2& left, const Vec2& right);
+    Vec2 operator/ (const Vec2& left, const Vec2& right);
 
     Vec3 operator+ (const Vec3& left, const Vec3& right);
     Vec3 operator- (const Vec3& left, const Vec3& right);
@@ -100,7 +103,7 @@ namespace PhiVideo {
     unsigned char Float2UChar(const float f);
     float UChar2Float(const unsigned char c);
 
-    float linear(float t, float st, float et, float sv, float ev);
+    float ease(float t, float st, float et, float sv, float ev, int ease = 0);
     float randf(float min, float max);
     float randf(float min, float max, float seed);
     Vec2 rotatePoint(float x, float y, float r, float deg);

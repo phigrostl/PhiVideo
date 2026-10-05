@@ -41,6 +41,7 @@ namespace PhiVideo {
         Texture* TextToTexture(const std::string& text, const Vec4& color, float fontSize);
 
         void DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color);
+        void DrawRect(Vec2 pos, Vec2 size, float rotation, Vec4 color);
         void FillRect(int x0, int y0, int x1, int y1, const Vec4& color);
         void FillSizeRect(int x, int y, int w, int h, const Vec4& color);
 

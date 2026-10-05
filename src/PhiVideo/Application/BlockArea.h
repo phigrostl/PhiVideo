@@ -50,14 +50,12 @@ namespace PhiVideo {
     struct BlockArea {
         BlockArea() = default;
 
-        Vec2 topRightPercentage;
-        Vec2 bottomLeftPercentage;
-        bool isEnabled;
+        Vec2 pos;
+        Vec2 size;
         float rotation;
-        Vec2 rotationAnchor;
-        Vec2 position;
-        Vec2 scale;
-        Vec2 scaleAnchor;
+        bool isEnabled;
+        bool isSubtract;
+        float enableProgress;
     };
 
 }
