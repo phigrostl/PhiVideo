@@ -654,7 +654,7 @@ namespace PhiVideo {
                         fb->SetColor(i, j, Vec4(1.0f, 0.0f, 0.0f, (DEBUG ? (0.75f - pow(0.75f, blockNum[idx]) * 0.75f) : 0.5f)));
                     }
                     else if (blockNum[idx] < 0) {
-                        fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, (DEBUG ? 0.5f : 0.0f)));
+                        fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, (DEBUG ? (0.75f - pow(0.75f, -blockNum[idx]) * 0.75f) : 0.0f)));
                     }
                 }
             }
