@@ -91,7 +91,7 @@ namespace PhiVideo {
                 BlockArea ba;
                 Vec2 bcenter = 0.5f * Vec2(blockArea.topRightPercentage + blockArea.bottomLeftPercentage);
                 Vec2 bpos = ToScreenPos(bcenter, m_Width, m_Height, m_Info.size);
-                Vec2 bsize = blockArea.topRightPercentage - blockArea.bottomLeftPercentage;
+                Vec2 bsize = Vec2(abs(blockArea.topRightPercentage.X - blockArea.bottomLeftPercentage.X), abs(blockArea.topRightPercentage.Y - blockArea.bottomLeftPercentage.Y));
                 Vec2 scale = Vec2(1.0f, 1.0f);
                 Vec2 lastScale = blockArea.scaleEvents.empty() ? Vec2(1.0f, 1.0f) : blockArea.scaleEvents[0].scale;
                 for (int i = 0; i < blockArea.scaleEvents.size(); i++) {
@@ -154,7 +154,7 @@ namespace PhiVideo {
                     float rad = (br - lastr) * PI_OVER_180;
                     float c = cos(rad), s = sin(rad);
                     Vec2 rd = bpos - ToScreenPos(bar, m_Width, m_Height, m_Info.size);
-                    bpos = bpos + Vec2(rd.X * c + rd.Y * s - rd.X, rd.X * s + rd.Y * c - rd.Y);
+                    bpos = bpos + Vec2(rd.X * c + rd.Y * s - rd.X, -rd.X * s + rd.Y * c - rd.Y);
                     lastr = br;
                 }
 
