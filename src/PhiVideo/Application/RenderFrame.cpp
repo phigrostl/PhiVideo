@@ -898,15 +898,6 @@ namespace PhiVideo {
         const float PGRW_TIMES_WIDTH = PGRW * m_Width * m_Info.size;
         std::vector<std::string> noteStrs;
         std::vector<float> alphas;
-
-        std::sort(
-            m_Info.chart.data.clickCollection.begin(), m_Info.chart.data.clickCollection.end(),
-            [](const HitFx& a, const HitFx& b) {
-            if (a.note.secTime != b.note.secTime) return a.note.secTime < b.note.secTime;
-            if (a.note.positionX != b.note.positionX) return a.note.positionX < b.note.positionX;
-            return a.note.line < b.note.line;
-        });
-
         int n = 0;
         for (int i = 0; i < m_Info.chart.data.clickCollection.size(); i++) {
             HitFx& nm = m_Info.chart.data.clickCollection[i];
@@ -1050,6 +1041,13 @@ namespace PhiVideo {
         size_t ERotate = 0, ARotate = 0;
         size_t EDisappear = 0, ADisappear = 0;
         size_t ESpeed = 0, ASpeed = 0;
+        size_t EBlock = 0, ABlock = 0;
+        ABlock = m_Info.chart.data.blockAreas.size();
+        for (int i = 0; i < m_Info.chart.data.blockAreas.size(); i++) {
+            if (m_Info.chart.data.blockAreas[i].appearTime <= t) {
+                EBlock++;
+            }
+        }
         for (int i = 0; i < m_Info.chart.data.judgeLines.size(); i++) {
             JudgeLine line = m_Info.chart.data.judgeLines[i];
             An += line.notes.size();
@@ -1073,6 +1071,7 @@ namespace PhiVideo {
             sprintf(Str, "Offset: %.2f", m_Info.chart.data.offset);
         }
         InfoStrs.push_back(Str);
+        if (!m_Info.chart.data.blockAreas.empty()) InfoStrs.push_back("BlockArea : " + std::to_string(EBlock) + " / " + std::to_string(ABlock));
         InfoStrs.push_back("SpeedEvent : " + std::to_string(ESpeed) + " / " + std::to_string(ASpeed));
         InfoStrs.push_back("DisappearEvent : " + std::to_string(EDisappear) + " / " + std::to_string(ADisappear));
         InfoStrs.push_back("RotateEvent : " + std::to_string(ERotate) + " / " + std::to_string(ARotate));
