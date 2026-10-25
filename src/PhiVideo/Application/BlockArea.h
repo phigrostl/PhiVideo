@@ -55,6 +55,7 @@ namespace PhiVideo {
         float rotation;
         bool isEnabled;
         bool isSubtract;
+        float appearProgress;
         float enableProgress;
         float warningProgress;
     };

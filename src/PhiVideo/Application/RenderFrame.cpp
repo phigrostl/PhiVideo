@@ -193,6 +193,9 @@ namespace PhiVideo {
                 else if (t >= blockArea.enableTime - 0.5f && t < blockArea.disableTime) ba.warningProgress = 3.0f;
                 else if (t >= blockArea.appearTime + 0.5f || t >= blockArea.disableTime) ba.warningProgress = 1.0f;
                 else ba.warningProgress = (t - blockArea.appearTime) / 0.5f;
+
+                if (t < blockArea.appearTime + 0.5f) ba.appearProgress = (t - blockArea.appearTime) / 0.5f;
+                else ba.appearProgress = 1.0f;
                 ba.isSubtract = blockArea.isSubtract;
                 blockAreas.push_back(ba);
             }
@@ -638,7 +641,7 @@ namespace PhiVideo {
                     if (!ba.isEnabled) {
                         fb->DrawRect(
                             ba.pos, ba.size, ba.rotation,
-                            Vec4(HSV2RGB(Vec3((1.0f - ba.enableProgress) / 3.0f, ((ba.warningProgress >= 1.0f) ? (0.25 * abs(6 * fmod(ba.warningProgress, 1.0f / 3.0f) - 1.0f) + 0.25f) : 1.0f), 1.0f)), ((ba.warningProgress < 1.0f) ? (ba.warningProgress * 0.25f) : 0.25f))
+                            Vec4(HSV2RGB(Vec3((1.0f - ba.enableProgress) / 3.0f, ((ba.warningProgress >= 2.0f) ? (0.25 * abs(6 * fmod(ba.warningProgress, 1.0f / 3.0f) - 1.0f) + 0.25f) : 1.0f), 1.0f)), ba.appearProgress * 0.25f)
                         );
                     }
                 }
@@ -677,7 +680,7 @@ namespace PhiVideo {
                 float* blockNum = new float[m_Width * m_Height];
                 memset(blockNum, 0, sizeof(float)* m_Width* m_Height);
                 for (const auto& ba : blockAreas) {
-                    if (!ba.isEnabled && ba.warningProgress >= 1.0f) {
+                    if (!ba.isEnabled && ba.appearProgress == 1.0f) {
                         float warningProgress = ba.warningProgress;
                         DrawRect(
                             blockNum, m_Width, m_Height,
@@ -699,10 +702,10 @@ namespace PhiVideo {
                     }
                 }
                 for (const auto& ba : blockAreas) {
-                    if (!ba.isEnabled && ba.warningProgress < 1.0f) {
+                    if (!ba.isEnabled && ba.appearProgress < 1.0f) {
                         fb->DrawRect(
                             ba.pos, ba.size, ba.rotation,
-                            Vec4(1.0f, 0.4f, 0.4f, ba.warningProgress * 0.5f)
+                            Vec4(1.0f, 0.4f, 0.4f, ba.appearProgress * 0.5f)
                         );
                     }
                 }
