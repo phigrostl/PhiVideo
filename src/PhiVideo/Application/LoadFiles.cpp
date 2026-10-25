@@ -356,10 +356,10 @@ namespace PhiVideo {
                 event = cJSON_GetObjectItem(blockArea, "bottomLeftPercentage");
                 ba.bottomLeftPercentage.X = (float)cJSON_GetArrayItem(event, 0)->valuedouble;
                 ba.bottomLeftPercentage.Y = (float)cJSON_GetArrayItem(event, 1)->valuedouble;
-                ba.appearTime = (float)cJSON_GetObjectItem(blockArea, "appearTime")->valuedouble;
-                ba.disappearTime = (float)cJSON_GetObjectItem(blockArea, "disappearTime")->valuedouble;
-                ba.enableTime = (float)cJSON_GetObjectItem(blockArea, "enableTime")->valuedouble;
-                ba.disableTime = (float)cJSON_GetObjectItem(blockArea, "disableTime")->valuedouble;
+                ba.appearTime = (float)cJSON_GetObjectItem(blockArea, "appearTime")->valuedouble + m_Info.chart.data.offset;
+                ba.disappearTime = (float)cJSON_GetObjectItem(blockArea, "disappearTime")->valuedouble + m_Info.chart.data.offset;
+                ba.enableTime = (float)cJSON_GetObjectItem(blockArea, "enableTime")->valuedouble + m_Info.chart.data.offset;
+                ba.disableTime = (float)cJSON_GetObjectItem(blockArea, "disableTime")->valuedouble + m_Info.chart.data.offset;
                 ba.isSubtract = cJSON_GetObjectItem(blockArea, "isSubtract")->valueint != 0;
 
                 events = cJSON_GetObjectItem(blockArea, "rotateEvents");
@@ -369,7 +369,7 @@ namespace PhiVideo {
                     line = cJSON_GetObjectItem(event, "anchor");
                     e.anchor.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
                     e.anchor.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
-                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble;
+                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble + m_Info.chart.data.offset;
                     e.easeType = cJSON_GetObjectItem(event, "easeType")->valueint;
                     e.rotation = (float)cJSON_GetObjectItem(event, "rotation")->valuedouble;
                     ba.rotateEvents.push_back(e);
@@ -382,7 +382,7 @@ namespace PhiVideo {
                     line = cJSON_GetObjectItem(event, "endPosition");
                     e.endPosition.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
                     e.endPosition.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
-                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble;
+                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble + m_Info.chart.data.offset;
                     e.easeTypeX = cJSON_GetObjectItem(event, "easeTypeX")->valueint;
                     e.easeTypeY = cJSON_GetObjectItem(event, "easeTypeY")->valueint;
                     ba.moveEvents.push_back(e);
@@ -396,7 +396,7 @@ namespace PhiVideo {
                     line = cJSON_GetObjectItem(event, "anchor");
                     e.anchor.X = (float)cJSON_GetObjectItem(line, "x")->valuedouble;
                     e.anchor.Y = (float)cJSON_GetObjectItem(line, "y")->valuedouble;
-                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble;
+                    e.time = (float)cJSON_GetObjectItem(event, "time")->valuedouble + m_Info.chart.data.offset;
                     e.easeTypeX = cJSON_GetObjectItem(event, "easeTypeX")->valueint;
                     e.easeTypeY = cJSON_GetObjectItem(event, "easeTypeY")->valueint;
                     line = cJSON_GetObjectItem(event, "scale");
