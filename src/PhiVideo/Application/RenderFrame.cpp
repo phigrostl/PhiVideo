@@ -188,6 +188,11 @@ namespace PhiVideo {
                 if (ba.isEnabled) ba.enableProgress = 1.0f;
                 else if (t < blockArea.enableTime) ba.enableProgress = (t - blockArea.appearTime) / (blockArea.enableTime - blockArea.appearTime);
                 else if (t >= blockArea.disableTime) ba.enableProgress = (blockArea.disappearTime - t) / (blockArea.disappearTime - blockArea.disableTime);
+
+                if (t >= blockArea.enableTime - 0.5f && t < blockArea.enableTime) ba.warningProgress = (t - (blockArea.enableTime - 0.5f)) / 0.5f + 2.0f;
+                else if (t >= blockArea.enableTime - 0.5f && t < blockArea.disableTime) ba.warningProgress = 3.0f;
+                else if (t >= blockArea.appearTime + 0.5f || t >= blockArea.disableTime) ba.warningProgress = 1.0f;
+                else ba.warningProgress = (t - blockArea.appearTime) / 0.5f;
                 ba.isSubtract = blockArea.isSubtract;
                 blockAreas.push_back(ba);
             }
@@ -505,7 +510,7 @@ namespace PhiVideo {
         }
     }
 
-    void DrawRect(int* buffer, int width, int height, Vec2 pos, Vec2 size, float rotation, int num) {
+    void DrawRect(float* buffer, int width, int height, Vec2 pos, Vec2 size, float rotation, std::function<float(float)> num) {
         size = Vec2(abs(size.X), abs(size.Y));
 
         const float halfW = size.X * 0.5f;
@@ -515,7 +520,6 @@ namespace PhiVideo {
         const float cosA = cosf(rad);
         const float sinA = sinf(rad);
 
-        // compute axis-aligned bounding box of rotated rectangle
         float minXf = FLT_MAX, minYf = FLT_MAX, maxXf = -FLT_MAX, maxYf = -FLT_MAX;
         float corners[4][2] = {
             { -halfW, -halfH },
@@ -552,8 +556,7 @@ namespace PhiVideo {
                 const float localY = -sx * sinA + sy * cosA;
                 if (fabsf(localX) <= halfW && fabsf(localY) <= halfH) {
                     int idx = py * width + px;
-                    if (num < 0 && buffer[idx] != 0) buffer[idx] = -buffer[idx] + (buffer[idx] > 0 ? -1 : 1);
-                    else buffer[idx] += abs(num);
+                    buffer[idx] = num(buffer[idx]);
                 }
             }
         }
@@ -630,44 +633,108 @@ namespace PhiVideo {
         }
 
         if (blockAreas.size() > 0) {
-            int* blockNum = new int[m_Width * m_Height];
-            memset(blockNum, 0, sizeof(int) * m_Width * m_Height);
-            for (const auto& ba : blockAreas) {
-                if (ba.isEnabled && !ba.isSubtract) {
-                    DrawRect(
-                        blockNum, m_Width, m_Height,
-                        ba.pos, ba.size, ba.rotation, 1
-                    );
-                }
-                else if (ba.isSubtract && ba.isEnabled) {
-                    DrawRect(
-                        blockNum, m_Width, m_Height,
-                        ba.pos, ba.size, ba.rotation, -1
-                    );
-                }
-            }
-
-            for (int j = 0; j < m_Height; j++) {
-                for (int i = 0; i < m_Width; i++) {
-                    int idx = j * m_Width + i;
-                    if (blockNum[idx] > 0) {
-                        fb->SetColor(i, j, Vec4(1.0f, 0.0f, 0.0f, (DEBUG ? (0.75f - pow(0.75f, blockNum[idx]) * 0.75f) : 0.5f)));
-                    }
-                    else if (blockNum[idx] < 0) {
-                        fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, (DEBUG ? (0.75f - pow(0.75f, -blockNum[idx]) * 0.75f) : 0.0f)));
+            if (DEBUG) {
+                for (const auto& ba : blockAreas) {
+                    if (!ba.isEnabled) {
+                        fb->DrawRect(
+                            ba.pos, ba.size, ba.rotation,
+                            Vec4(HSV2RGB(Vec3((1.0f - ba.enableProgress) / 3.0f, ((ba.warningProgress >= 2.0f) ? (0.25 * abs(6 * fmod(ba.warningProgress, 1.0f / 3.0f) - 1.0f) + 0.25f) : 1.0f), 1.0f)), ((ba.warningProgress < 2.0f) ? (ba.warningProgress * 0.25f) : 0.25f))
+                        );
                     }
                 }
-            }
 
-            for (const auto& ba : blockAreas) {
-                if (!ba.isEnabled) {
-                    fb->DrawRect(
-                        ba.pos, ba.size, ba.rotation,
-                        Vec4(HSV2RGB(Vec3((1.0f - ba.enableProgress) / 3.0f, 1.0f, 1.0f)), DEBUG ? 0.25f : 0.5f)
-                    );
+                float* blockNum = new float[m_Width * m_Height];
+                memset(blockNum, 0, sizeof(float) * m_Width * m_Height);
+                for (const auto& ba : blockAreas) {
+                    if (ba.isEnabled && !ba.isSubtract) {
+                        DrawRect(
+                            blockNum, m_Width, m_Height,
+                            ba.pos, ba.size, ba.rotation, [](float a) {return a + 1.0f; }
+                        );
+                    }
+                    else if (ba.isSubtract && ba.isEnabled) {
+                        DrawRect(
+                            blockNum, m_Width, m_Height,
+                            ba.pos, ba.size, ba.rotation, [](float a) {return (a == 0.0f) ? 1.0f : (-a + (a > 0.0f ? -1.0f : 1.0f)); }
+                        );
+                    }
                 }
+
+                for (int j = 0; j < m_Height; j++) {
+                    for (int i = 0; i < m_Width; i++) {
+                        int idx = j * m_Width + i;
+                        if (blockNum[idx] > 0) {
+                            fb->SetColor(i, j, Vec4(1.0f, 0.0f, 0.0f, 0.75f - pow(0.75f, blockNum[idx]) * 0.75f));
+                        }
+                        else if (blockNum[idx] < 0) {
+                            fb->SetColor(i, j, Vec4(0.0f, 0.0f, 1.0f, 0.75f - pow(0.75f, -blockNum[idx]) * 0.75f));
+                        }
+                    }
+                }
+                delete[] blockNum;
             }
-            delete[] blockNum;
+            else {
+                float* blockNum = new float[m_Width * m_Height];
+                memset(blockNum, 0, sizeof(float)* m_Width* m_Height);
+                for (const auto& ba : blockAreas) {
+                    if (!ba.isEnabled && ba.warningProgress >= 2.0f) {
+                        float warningProgress = ba.warningProgress;
+                        DrawRect(
+                            blockNum, m_Width, m_Height,
+                            ba.pos, ba.size, ba.rotation,
+                            [warningProgress](float a) {return Max(a, warningProgress); }
+                        );
+                    }
+                }
+
+                for (int j = 0; j < m_Height; j++) {
+                    for (int i = 0; i < m_Width; i++) {
+                        int idx = j * m_Width + i;
+                        float a = blockNum[idx];
+                        if (a > 0.0f) {
+                            float l = 0.0f;
+                            if (a < 3.0f) l = (0.25 * abs(6 * fmod(a, 1.0f / 3.0f) - 1.0f) + 0.25f);
+                            fb->SetColor(i, j, Vec4(1.0f, l, l, 0.5f));
+                        }
+                    }
+                }
+                for (const auto& ba : blockAreas) {
+                    if (!ba.isEnabled && ba.warningProgress < 2.0f) {
+                        fb->DrawRect(
+                            ba.pos, ba.size, ba.rotation,
+                            Vec4(1.0f, 0.4f, 0.4f, ba.warningProgress * 0.5f)
+                        );
+                    }
+                }
+                delete[] blockNum;
+
+                blockNum = new float[m_Width * m_Height];
+                memset(blockNum, 0, sizeof(int)* m_Width* m_Height);
+                for (const auto& ba : blockAreas) {
+                    if (ba.isEnabled && !ba.isSubtract) {
+                        DrawRect(
+                            blockNum, m_Width, m_Height,
+                            ba.pos, ba.size, ba.rotation, [](float a) {return 1.0f; }
+                        );
+                    }
+                    else if (ba.isSubtract && ba.isEnabled) {
+                        DrawRect(
+                            blockNum, m_Width, m_Height,
+                            ba.pos, ba.size, ba.rotation, [](float a) {return (a == 0.0f) ? 1.0f : -a; }
+                        );
+                    }
+                }
+
+                for (int j = 0; j < m_Height; j++) {
+                    for (int i = 0; i < m_Width; i++) {
+                        int idx = j * m_Width + i;
+                        if (blockNum[idx] > 0) {
+                            fb->SetColor(i, j, Vec4(1.0f, 0.0f, 0.0f, 0.5f));
+                        }
+                    }
+                }
+                delete[] blockNum;
+            }
         }
     }
 
