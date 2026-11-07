@@ -119,8 +119,8 @@ namespace PhiVideo {
                         }
                         bascale = e1.anchor;
                         Vec2 l = Vec2(
-                            abs(lastScale.X) > 1e-6 ? (bscale.X - lastScale.X) / lastScale.X : 1.0f,
-                            abs(lastScale.Y) > 1e-6 ? (bscale.Y - lastScale.Y) / lastScale.Y : 1.0f
+                            abs(lastScale.X) > 1e-6 ? (bscale.X - lastScale.X) / lastScale.X : 0.0f,
+                            abs(lastScale.Y) > 1e-6 ? (bscale.Y - lastScale.Y) / lastScale.Y : 0.0f
                         );
                         bpos = bpos + (bpos - ToScreenPos(bascale, m_Width, m_Height, m_Info.size)) * l;
                         lastScale = bscale;
