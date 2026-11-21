@@ -20,20 +20,20 @@ namespace PhiVideo {
         y = m_Height / 2.0f - h / 2.0f;
 
         fb->DrawTexture(
-            (int)(x + 0.5f), (int)(y + 0.5f),
+            x, y,
             m_Info.chart.imageBlur,
-            (int)(w + 0.5f), (int)(h + 0.5f)
+            w, h
         );
 
         fb->FillRect(
-            (int)(m_Width / 2.0f - m_Width / 2.0 * m_Info.size + 0.5f),
-            (int)(m_Height / 2.0f - m_Height / 2.0f * m_Info.size + 0.5f),
-            (int)(m_Width / 2.0f + m_Width / 2.0f * m_Info.size + 0.5f),
-            (int)(m_Height / 2.0f + m_Height / 2.0f * m_Info.size + 0.5f),
+            m_Width / 2.0f - m_Width / 2.0 * m_Info.size + 0.5f,
+            m_Height / 2.0f - m_Height / 2.0f * m_Info.size + 0.5f,
+            m_Width / 2.0f + m_Width / 2.0f * m_Info.size + 0.5f,
+            m_Height / 2.0f + m_Height / 2.0f * m_Info.size + 0.5f,
             Vec4(0.0f, 0.0f, 0.0f, 0.2f)
         );
 
-        fb->FillRect(0, 0, m_Width, m_Height, Vec4(0.0f, 0.0f, 0.0f, 0.3f));
+        fb->FillRect(0.0f, 0.0f, m_Width, m_Height, Vec4(0.0f, 0.0f, 0.0f, 0.3f));
     }
 
     static inline float ToScreenX(float x, int width, float size) {
@@ -223,8 +223,8 @@ namespace PhiVideo {
             };
 
             fb->DrawLine(
-                (int)(linePos[0].X + 0.5f), (int)(linePos[0].Y + 0.5f),
-                (int)(linePos[1].X + 0.5f), (int)(linePos[1].Y + 0.5f),
+                linePos[0].X, linePos[0].Y + 0.5f,
+                linePos[1].X, linePos[1].Y + 0.5f,
                 m_Height * LINEW * m_Info.size + 0.5f,
                 Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f))
             );
@@ -240,8 +240,8 @@ namespace PhiVideo {
 
                 float offsetH = m_Width * (0.004f * m_Info.size + 0.0055f);
                 fb->DrawRotatedTextTTF(
-                    (int)(ev.x + sinEvRotate * offsetH + 0.5f),
-                    (int)(ev.y + cosEvRotate * offsetH + 0.5f),
+                    ev.x + sinEvRotate * offsetH,
+                    ev.y + cosEvRotate * offsetH,
                     lineStr,
                     Vec4(PCOLOR, Max(DEBUG ? ev.alpha * 0.8f + 0.2f : ev.alpha, 0.0f)),
                     m_Width * 0.01f, ev.rotate
@@ -343,7 +343,7 @@ namespace PhiVideo {
                 }
 
                 const Texture* textures[3] = { noteHeadImg, noteBodyImg, noteTailImg };
-                const int heights[3] = { (int)noteHeadHeight,(int)noteBodyHeight,(int)noteTillHeight };
+                const float heights[3] = { noteHeadHeight, noteBodyHeight, noteTillHeight };
 
                 float drawX = 0.0f;
                 float drawY = 0.0f;
@@ -359,10 +359,10 @@ namespace PhiVideo {
                 }
 
                 fb->DrawTexture(
-                    (int)(drawX + 0.5f),
-                    (int)(drawY + 0.5f),
+                    drawX,
+                    drawY,
                     textures,
-                    (int)(thisNoteWidth * m_Width), heights,
+                    thisNoteWidth * m_Width, heights,
                     noteDrawRotate + 180.0f, isHide ? 0.5f : 1.0f
                 );
 
@@ -387,8 +387,8 @@ namespace PhiVideo {
                         + cosDrawRad * (m_Width * (0.005f * m_Info.size + 0.005f));
 
                     fb->DrawRotatedTextTTF(
-                        (int)(debugX + 0.5f),
-                        (int)(debugY + 0.5f),
+                        debugX,
+                        debugY,
                         noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f),
                         m_Width * 0.0066f, noteDrawRotate
                     );
@@ -475,10 +475,10 @@ namespace PhiVideo {
 
                 if (drawHead) {
                     fb->DrawTexture(
-                        (int)(drawX + 0.5f),
-                        (int)(drawY + 0.5f),
+                        drawX,
+                        drawY,
                         noteHeadImg,
-                        (int)(thisNoteWidth * m_Width + 0.5f),
+                        thisNoteWidth * m_Width,
                         -1,
                         noteDrawRotate,
                         isHide ? 0.5f : 1.0f
@@ -503,8 +503,8 @@ namespace PhiVideo {
                         + cosDrawRad * (m_Width * (0.005f * m_Info.size + 0.005f));
 
                     fb->DrawRotatedTextTTF(
-                        (int)(debugX + 0.5f),
-                        (int)(debugY + 0.5f),
+                        debugX,
+                        debugY,
                         noteStr, Vec4(1.0f, isHide ? 0.25f : 0.5f),
                         m_Width * 0.0066f, noteDrawRotate
                     );
@@ -604,8 +604,8 @@ namespace PhiVideo {
             float finalY = posY - offsetX * sinRot;
 
             fb->DrawTexture(
-                (int)(finalX - effectWidth * 0.5f + 0.5f),
-                (int)(finalY - effectHeight * 0.5f + 0.5f),
+                finalX - effectWidth * 0.5f,
+                finalY - effectHeight * 0.5f,
                 img, (int)effectWidth
             );
 
@@ -628,8 +628,8 @@ namespace PhiVideo {
                 float y1 = pScaledCenterY + finalY;
 
                 fb->FillSizeRect(
-                    (int)(x1 + 0.5f), (int)(y1 + 0.5f),
-                    (int)(parItem.Y * size * s + 0.5f), (int)(parItem.Y * size * s + 0.5f),
+                    x1, y1,
+                    parItem.Y * size * s,parItem.Y * size * s,
                     Vec4(PCOLOR, alpha)
                 );
             }
@@ -742,22 +742,22 @@ namespace PhiVideo {
     }
 
     void Application::RenderUI(float t, Framebuffer* fb, int combo, float size) const {
-        int progressWidth = (int)(m_Width * (Min(t, m_Info.chart.data.time) / m_Info.chart.data.time));
-        int barHeight = (int)(m_Height * 12.0f / 1080.0f);
+        float progressWidth = m_Width * (Min(t, m_Info.chart.data.time) / m_Info.chart.data.time);
+        float barHeight = m_Height * 12.0f / 1080.0f;
 
-        fb->FillRect(0, 0, progressWidth, barHeight, Vec4(0.45f, DEBUG ? 0.75f : 1.0f));
+        fb->FillRect(0.0f, 0.0f, progressWidth, barHeight, Vec4(0.45f, DEBUG ? 0.75f : 1.0f));
         fb->FillRect(
-            (int)(progressWidth - 0.5f), 0,
-            (int)(progressWidth + 0.5f), barHeight,
+            progressWidth, 0.0f,
+            progressWidth, barHeight,
             Vec4(1.0f, DEBUG ? 0.75f : 1.0f)
         );
 
-        int comboIndicatorX1 = (int)(m_Width * 36.0f / 1920.0f);
-        int comboIndicatorX2 = (int)(m_Width * 46.0f / 1920.0f);
-        int comboIndicatorX3 = (int)(m_Width * 57.0f / 1920.0f);
-        int comboIndicatorX4 = (int)(m_Width * 67.0f / 1920.0f);
-        int comboIndicatorY1 = (int)(m_Height * 39.0f / 1080.0f);
-        int comboIndicatorY2 = (int)(m_Height * 76.0f / 1080.0f);
+        float comboIndicatorX1 = m_Width * 36.0f / 1920.0f;
+        float comboIndicatorX2 = m_Width * 46.0f / 1920.0f;
+        float comboIndicatorX3 = m_Width * 57.0f / 1920.0f;
+        float comboIndicatorX4 = m_Width * 67.0f / 1920.0f;
+        float comboIndicatorY1 = m_Height * 39.0f / 1080.0f;
+        float comboIndicatorY2 = m_Height * 76.0f / 1080.0f;
 
         fb->FillRect(
             comboIndicatorX1, comboIndicatorY1, comboIndicatorX2, comboIndicatorY2,
@@ -770,8 +770,8 @@ namespace PhiVideo {
 
         if (combo >= 3) {
             fb->DrawTextTTF(
-                (int)(m_Width * 0.5f),
-                (int)(m_Height * 10.0f / 1080.0f),
+                m_Width * 0.5f,
+                m_Height * 10.0f / 1080.0f,
                 std::to_string(combo),
                 Vec4(1.0f, DEBUG ? 0.75f : 1.0f),
                 (m_Width * 76.0f / 1920.0f),
@@ -779,8 +779,8 @@ namespace PhiVideo {
             );
 
             fb->DrawTextTTF(
-                (int)(m_Width * 0.5f),
-                (int)(m_Height * 94.0f / 1080.0f),
+                m_Width * 0.5f,
+                m_Height * 94.0f / 1080.0f,
                 m_UI.combo,
                 Vec4(1.0f, DEBUG ? 0.75f : 1.0f),
                 (m_Width * 26.0f / 1920.0f),
@@ -795,8 +795,8 @@ namespace PhiVideo {
         sprintf(scoreStr, "%07d", (int)score);
 
         fb->DrawTextTTF(
-            (int)(m_Width * 1881.0f / 1920.0f),
-            (int)(m_Height * 27.0f / 1080.0f),
+            m_Width * 1881.0f / 1920.0f,
+            m_Height * 27.0f / 1080.0f,
             scoreStr,
             Vec4(1.0f, DEBUG ? 0.75f : 1.0f),
             m_Width * 56.0f / 1920.0f,
@@ -810,9 +810,9 @@ namespace PhiVideo {
 
         fb->GetTextSize(m_Info.chart.info.name, baseFontSize, &textWidth, &textHeight);
 
-        int songNameX = (int)(m_Width * 45.0f / 1920.0f);
-        int levelX = (int)(m_Width * 1876.0f / 1920.0f);
-        int baseY = (int)(m_Height * 1010.0f / 1080.0f);
+        float songNameX = m_Width * 45.0f / 1920.0f;
+        float levelX = m_Width * 1876.0f / 1920.0f;
+        float baseY = m_Height * 1010.0f / 1080.0f;
 
         if (textWidth <= m_Width * 0.5f) {
             fb->DrawTextTTF(
@@ -842,7 +842,7 @@ namespace PhiVideo {
 
             fb->DrawTextTTF(
                 songNameX,
-                (int)(baseY + yOff),
+                baseY + yOff,
                 m_Info.chart.info.name,
                 Vec4(1.0f, DEBUG ? 0.75f : 1.0f),
                 scaledFontSize
@@ -850,7 +850,7 @@ namespace PhiVideo {
 
             fb->DrawTextTTF(
                 levelX,
-                (int)(baseY + yOff),
+                baseY + yOff,
                 m_Info.chart.info.level,
                 Vec4(1.0f, DEBUG ? 0.75f : 1.0f),
                 scaledFontSize,
@@ -862,7 +862,7 @@ namespace PhiVideo {
     void Application::RenderSubInfo(float t, Framebuffer* fb) const {
         if (m_Info.chart.info.composer != "") {
             fb->DrawTextTTF(
-                0, (int)(m_Height * 1054.0f / 1080.0f),
+                0.0f, m_Height * 1054.0f / 1080.0f,
                 "Composer: " + m_Info.chart.info.composer,
                 Vec4(1.0f, 0.5f), m_Width * 18.0f / 1920.0f
             );
@@ -870,7 +870,7 @@ namespace PhiVideo {
 
         if (m_Info.chart.info.charter != "") {
             fb->DrawTextTTF(
-                m_Width, (int)(m_Height * 1054.0f / 1080.0f),
+                m_Width, m_Height * 1054.0f / 1080.0f,
                 "Charter: " + m_Info.chart.info.charter,
                 Vec4(1.0f, 0.5f), m_Width * 18.0f / 1920.0f, 1.0f
             );
@@ -878,7 +878,7 @@ namespace PhiVideo {
 
         if (m_Info.chart.info.illustrator != "") {
             fb->DrawTextTTF(
-                m_Width, (int)(m_Height * 13.0f / 1080.0f),
+                m_Width, m_Height * 13.0f / 1080.0f,
                 "Illustrator: " + m_Info.chart.info.illustrator,
                 Vec4(1.0f, 0.5f), m_Width * 18.0f / 1920.0f, 1.0f
             );
@@ -929,25 +929,25 @@ namespace PhiVideo {
         int w;
         fb->GetTextSize(timeStr, m_Width * 0.01f, &w, NULL);
         if (w >= m_Width * 0.5f) {
-            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr.c_str(),
+            fb->DrawTextTTF(0, m_Height * 12.0f / 1080.0f, timeStr.c_str(),
                 Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f / (w / (m_Width * 0.5f))
             );
         } else {
-            fb->DrawTextTTF(0, (int)(m_Height * 12.0f / 1080.0f), timeStr.c_str(),
+            fb->DrawTextTTF(0, m_Height * 12.0f / 1080.0f, timeStr.c_str(),
                 Vec4(1.0f, 1.0f, 1.0f, 0.75f), m_Width * 0.01f
             );
         }
 
         fb->DrawTextTTF(
-            m_Width / 2, (int)(m_Height * 1054.0f / 1080.0f), m_UI.info,
+            m_Width / 2, m_Height * 1054.0f / 1080.0f, m_UI.info,
             Vec4(1.0f, 0.5f), m_Width * 20.0f / 1920.0f, 0.5f
         );
 
         if (m_Info.size < 1.0f) {
-            int x1 = (int)((m_Width - m_Width * m_Info.size) / 2.0f);
-            int y1 = (int)((m_Height - m_Height * m_Info.size) / 2.0f);
-            int x2 = m_Width - x1;
-            int y2 = m_Height - y1;
+            float x1 = (m_Width - m_Width * m_Info.size) / 2.0f;
+            float y1 = (m_Height - m_Height * m_Info.size) / 2.0f;
+            float x2 = m_Width - x1;
+            float y2 = m_Height - y1;
             fb->DrawLine(x1, y1, x1, y2, 1.0f, Vec4(1.0f, 0.5f));
             fb->DrawLine(x1, y1, x2, y1, 1.0f, Vec4(1.0f, 0.5f));
             fb->DrawLine(x2, y2, x1, y2, 1.0f, Vec4(1.0f, 0.5f));
@@ -1047,7 +1047,7 @@ namespace PhiVideo {
             alphas.push_back(alpha);
 
             fb->DrawTextTTF(
-                (int)(finalX + 0.5f), (int)(finalY + 0.5f),
+                finalX, finalY,
                 std::to_string(n), Vec4(1.0f, 1.0f, 1.0f, alpha), m_Width * 0.01f, 0.5f, 0.5f
             );
             n++;
@@ -1063,7 +1063,7 @@ namespace PhiVideo {
 
         for (int i = 0; i < noteStrs.size(); i++) {
             fb->DrawTextTTF(
-                m_Width, (int)(Ny + 0.5f),
+                m_Width, Ny,
                 noteStrs[i],
                 Vec4(Vec3(1.0f), 0.5f * alphas[i]), NSize, 1.0f
             );
@@ -1099,7 +1099,7 @@ namespace PhiVideo {
             Ly -= Lo;
 
             fb->DrawTextTTF(
-                0, (int)(Ly + 0.5f),
+                0.0f, Ly,
                 LineStrs[i],
                 Vec4(Vec3(1.0f), 0.5f), LSize
             );
@@ -1160,7 +1160,7 @@ namespace PhiVideo {
             Iy -= Io;
 
             fb->DrawTextTTF(
-                m_Width, (int)(Iy + 0.5f),
+                m_Width, Iy,
                 InfoStrs[i],
                 Vec4(Vec3(1.0f), 0.5f), ISize, 1.0f
             );
@@ -1208,7 +1208,7 @@ namespace PhiVideo {
             }
 
             fb->DrawTextTTF(
-                0, (int)Sy,
+                0, Sy,
                 Sbuf,
                 Vec4(Vec3(1.0f), a * 0.5f),
                 SSize
@@ -1224,11 +1224,11 @@ namespace PhiVideo {
         m_Info.size = tmp;
 
         fb->DrawTexture(
-            (int)(m_Width / 4.0f + 0.5f), (int)(m_Height * 138.0f / 1080.0f),
-            m_Info.chart.image, (int)(m_Width / 2.0f)
+            m_Width / 4.0f, m_Height * 138.0f / 1080.0f,
+            m_Info.chart.image, m_Width / 2.0f
         );
         fb->DrawTextTTF(
-            (int)(m_Width / 2.0f + 0.5f), (int)(m_Height * 828.0f / 1080.0f),
+            m_Width / 2.0f, m_Height * 828.0f / 1080.0f,
             m_UI.title, Vec4(PCOLOR, 1.0f), m_Height * 0.15f, 0.5f, 0.5f
         );
     }

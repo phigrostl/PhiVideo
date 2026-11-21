@@ -108,7 +108,7 @@ namespace PhiVideo {
     }
 
 
-    void Framebuffer::DrawCharTTF(int x, int y, wchar_t c, const Vec4& color, float fontSize) {
+    void Framebuffer::DrawCharTTF(float x, float y, wchar_t c, const Vec4& color, float fontSize) {
         if (fontSize <= 0.0f) return;
 
         int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
@@ -123,12 +123,34 @@ namespace PhiVideo {
         unsigned char* bitmap;
         bitmap = stbtt_GetCodepointBitmap(fontToUse, 0, scale, c, &w, &h, &xoff, &yoff);
 
-        for (int j = 0; j < h; j++) {
-            for (int i = 0; i < w; i++) {
-                float alpha = (float)bitmap[i + j * w] / 255.0f;
-                int px = x + i + xoff;
-                int py = y + j + yoff;
-                if (px >= 0 && px < m_Width && py >= 0 && py < m_Height) {
+        const float glyphX = x + (float)xoff;
+        const float glyphY = y + (float)yoff;
+        const int minX = Max((int)floorf(glyphX), 0);
+        const int maxX = Min((int)ceilf(glyphX + (float)w), m_Width - 1);
+        const int minY = Max((int)floorf(glyphY), 0);
+        const int maxY = Min((int)ceilf(glyphY + (float)h), m_Height - 1);
+
+        for (int py = minY; py <= maxY; ++py) {
+            const float v = (float)py + 0.5f - glyphY;
+            for (int px = minX; px <= maxX; ++px) {
+                const float u = (float)px + 0.5f - glyphX;
+
+                int x0 = (int)floorf(u);
+                int y0 = (int)floorf(v);
+                float fx = u - (float)x0;
+                float fy = v - (float)y0;
+
+                float alpha = 0.0f;
+                if (x0 >= 0 && x0 < w && y0 >= 0 && y0 < h) {
+                    const float a00 = (float)bitmap[x0 + y0 * w] / 255.0f;
+                    const float a10 = (x0 + 1 < w) ? (float)bitmap[x0 + 1 + y0 * w] / 255.0f : 0.0f;
+                    const float a01 = (y0 + 1 < h) ? (float)bitmap[x0 + (y0 + 1) * w] / 255.0f : 0.0f;
+                    const float a11 = (x0 + 1 < w && y0 + 1 < h) ? (float)bitmap[x0 + 1 + (y0 + 1) * w] / 255.0f : 0.0f;
+                    alpha = (a00 * (1.0f - fx) + a10 * fx) * (1.0f - fy)
+                        + (a01 * (1.0f - fx) + a11 * fx) * fy;
+                }
+
+                if (alpha > 0.0f) {
                     SetColor(px, py, Vec4(color, alpha * color.W));
                 }
             }
@@ -136,17 +158,17 @@ namespace PhiVideo {
         stbtt_FreeBitmap(bitmap, nullptr);
     }
 
-    void Framebuffer::DrawTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float xOffset, float yOffset) {
+    void Framebuffer::DrawTextTTF(float x, float y, const std::string& text, const Vec4& color, float fontSize, float xOffset, float yOffset) {
         std::wstring wstr = str2wstr(text);
 
         float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
         float DScale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
-        int xpos = x;
+        float xpos = x;
         int ascent, descent, lineGap, Dascent;
         stbtt_GetFontVMetrics(m_FontInfo, &ascent, &descent, &lineGap);
         stbtt_GetFontVMetrics(m_DefaultFontInfo, &Dascent, &descent, &lineGap);
-        int baseline = int(ascent * scale);
-        int Dbaseline = int(Dascent * DScale);
+        float baseline = (float)ascent * scale;
+        float Dbaseline = (float)Dascent * DScale;
 
         int w, h;
         GetTextSize(text, fontSize, &w, &h);
@@ -161,19 +183,19 @@ namespace PhiVideo {
 
             if (glyphIndex == 0) {
                 stbtt_GetCodepointHMetrics(m_DefaultFontInfo, c, &ax, &lsb);
-                DrawCharTTF(xpos - ox, y - oy + Dbaseline, c, color, fontSize);
+                DrawCharTTF(xpos - (float)ox, y - (float)oy + Dbaseline, c, color, fontSize);
                 int kern = stbtt_GetCodepointKernAdvance(m_DefaultFontInfo, 0, c);
-                xpos += int(ax * DScale) + kern;
+                xpos += (float)ax * DScale + (float)kern;
             } else {
                 stbtt_GetCodepointHMetrics(m_FontInfo, c, &ax, &lsb);
-                DrawCharTTF(xpos - ox, y - oy + baseline, c, color, fontSize);
+                DrawCharTTF(xpos - (float)ox, y - (float)oy + baseline, c, color, fontSize);
                 int kern = stbtt_GetCodepointKernAdvance(m_FontInfo, 0, c);
-                xpos += int(ax * scale) + kern;
+                xpos += (float)ax * scale + (float)kern;
             }
         }
     }
 
-    void Framebuffer::DrawRotatedTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float rotation) {
+    void Framebuffer::DrawRotatedTextTTF(float x, float y, const std::string& text, const Vec4& color, float fontSize, float rotation) {
         Texture* texture = TextToTexture(text, color, fontSize);
 
         int w = texture->GetWidth();
@@ -182,10 +204,10 @@ namespace PhiVideo {
         float c = cos(rotation * PI_OVER_180);
         float s = sin(rotation * PI_OVER_180);
 
-        x = (int)(x - w / 2.0f * c - h / 2.0f * s);
-        y = (int)(y - h / 2.0f * c + w / 2.0f * s);
+        x = x - (float)w * 0.5f * c - (float)h * 0.5f * s;
+        y = y - (float)h * 0.5f * c + (float)w * 0.5f * s;
 
-        DrawTexture(x, y, texture, -1, -1, rotation);
+        DrawTexture(x, y, texture, -1.0f, -1.0f, rotation);
         delete texture;
     }
 
@@ -200,12 +222,12 @@ namespace PhiVideo {
         std::wstring wstr = str2wstr(text);
         float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
         float DScale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
-        int xpos = 0;
+        float xpos = 0.0f;
         int ascent, descent, lineGap, Dascent;
         stbtt_GetFontVMetrics(m_FontInfo, &ascent, &descent, &lineGap);
         stbtt_GetFontVMetrics(m_DefaultFontInfo, &Dascent, &descent, &lineGap);
-        int baseline = int(ascent * scale);
-        int Dbaseline = int(Dascent * DScale);
+        float baseline = (float)ascent * scale;
+        float Dbaseline = (float)Dascent * DScale;
 
         for (wchar_t c : wstr) {
             if (c == L'\0') break;
@@ -219,22 +241,22 @@ namespace PhiVideo {
                 int w, h, xoff, yoff;
                 unsigned char* bitmap = stbtt_GetCodepointBitmap(m_DefaultFontInfo, 0, scale, c, &w, &h, &xoff, &yoff);
 
-                int px = xpos + w + xoff;
-                int py = h + yoff + baseline;
+                int px = (int)floorf(xpos) + w + xoff;
+                int py = h + yoff + (int)floorf(baseline);
 
                 if (px > MaxX) MaxX = (float)px;
                 if (py > MaxY) MaxY = (float)py;
                 if (px < MinX) MinX = (float)px;
                 if (py < MinY) MinY = (float)py;
 
-                px = xpos + xoff, py = yoff + baseline;
+                px = (int)floorf(xpos) + xoff, py = yoff + (int)floorf(baseline);
                 if (px > MaxX) MaxX = (float)px;
                 if (py > MaxY) MaxY = (float)py;
                 if (px < MinX) MinX = (float)px;
                 if (py < MinY) MinY = (float)py;
 
                 int kern = stbtt_GetCodepointKernAdvance(m_DefaultFontInfo, 0, c);
-                xpos += int(ax * DScale) + kern;
+                xpos += (float)ax * DScale + (float)kern;
 
                 delete[] bitmap;
             } else {
@@ -244,22 +266,22 @@ namespace PhiVideo {
                 int w, h, xoff, yoff;
                 unsigned char* bitmap = stbtt_GetCodepointBitmap(m_FontInfo, 0, scale, c, &w, &h, &xoff, &yoff);
 
-                int px = xpos + w + xoff;
-                int py = h + yoff + baseline;
+                int px = (int)floorf(xpos) + w + xoff;
+                int py = h + yoff + (int)floorf(baseline);
 
                 if (px > MaxX) MaxX = (float)px;
                 if (py > MaxY) MaxY = (float)py;
                 if (px < MinX) MinX = (float)px;
                 if (py < MinY) MinY = (float)py;
 
-                px = xpos + xoff, py = yoff + baseline;
+                px = (int)floorf(xpos) + xoff, py = yoff + (int)floorf(baseline);
                 if (px > MaxX) MaxX = (float)px;
                 if (py > MaxY) MaxY = (float)py;
                 if (px < MinX) MinX = (float)px;
                 if (py < MinY) MinY = (float)py;
 
                 int kern = stbtt_GetCodepointKernAdvance(m_FontInfo, 0, c);
-                xpos += int(ax * scale) + kern;
+                xpos += (float)ax * scale + (float)kern;
 
                 delete[] bitmap;
             }
@@ -286,12 +308,12 @@ namespace PhiVideo {
         std::wstring wstr = str2wstr(text);
         float scale = stbtt_ScaleForPixelHeight(m_FontInfo, fontSize);
         float DScale = stbtt_ScaleForPixelHeight(m_DefaultFontInfo, fontSize);
-        int xpos = 0;
+        float xpos = 0.0f;
         int ascent, descent, lineGap, Dascent;
         stbtt_GetFontVMetrics(m_FontInfo, &ascent, &descent, &lineGap);
         stbtt_GetFontVMetrics(m_DefaultFontInfo, &Dascent, &descent, &lineGap);
-        int baseline = int(ascent * scale);
-        int Dbaseline = int(Dascent * DScale);
+        float baseline = (float)ascent * scale;
+        float Dbaseline = (float)Dascent * DScale;
 
         for (wchar_t c : wstr) {
             if (c == L'\0') break;
@@ -299,7 +321,7 @@ namespace PhiVideo {
             int glyphIndex = stbtt_FindGlyphIndex(m_FontInfo, c);
             stbtt_fontinfo* fontToUse = m_FontInfo;
             float currentScale = scale;
-            int currentBaseline = baseline;
+            float currentBaseline = baseline;
 
             if (glyphIndex == 0) {
                 fontToUse = m_DefaultFontInfo;
@@ -314,8 +336,8 @@ namespace PhiVideo {
                 for (int j = 0; j < h; j++) {
                     for (int i = 0; i < w; i++) {
                         float alpha = (float)bitmap[i + j * w] / 255.0f;
-                        int px = xpos + i + xoff;
-                        int py = currentBaseline + j + yoff;
+                        int px = (int)floorf(xpos) + i + xoff;
+                        int py = (int)floorf(currentBaseline) + j + yoff;
                         if (px >= 0 && px < textWidth && py >= 0 && py < textHeight) {
                             Vec4 texColor(color.X, color.Y, color.Z, alpha * color.W);
                             texture->SetColor(px, texture->GetHeight() - py - 1, texColor);
@@ -328,16 +350,16 @@ namespace PhiVideo {
             int ax, lsb;
             stbtt_GetCodepointHMetrics(fontToUse, c, &ax, &lsb);
             int kern = stbtt_GetCodepointKernAdvance(fontToUse, 0, c);
-            xpos += int(ax * currentScale) + kern;
+            xpos += (float)ax * currentScale + (float)kern;
         }
 
         return texture;
     }
 
 
-    void Framebuffer::DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color) {
-        const float dx = (float)(x1 - x0);
-        const float dy = (float)(y1 - y0);
+    void Framebuffer::DrawLine(float x0, float y0, float x1, float y1, float w, const Vec4& color) {
+        const float dx = x1 - x0;
+        const float dy = y1 - y0;
         const float lenSq = dx * dx + dy * dy;
         if (lenSq < 1e-6f) return;
 
@@ -352,10 +374,10 @@ namespace PhiVideo {
         const float outerRadius = halfWidth + aaWidth;
         const float invAaWidth = 1.0f / aaWidth;
 
-        float minXf = Min((float)(x0), (float)(x1)) - outerRadius;
-        float maxXf = Max((float)(x0), (float)(x1)) + outerRadius;
-        float minYf = Min((float)(y0), (float)(y1)) - outerRadius;
-        float maxYf = Max((float)(y0), (float)(y1)) + outerRadius;
+        float minXf = Min(x0, x1) - outerRadius;
+        float maxXf = Max(x0, x1) + outerRadius;
+        float minYf = Min(y0, y1) - outerRadius;
+        float maxYf = Max(y0, y1) + outerRadius;
 
         int minX = Max((int)(floor(minXf)), 0);
         int maxX = Min((int)(ceil(maxXf)), m_Width - 1);
@@ -365,9 +387,9 @@ namespace PhiVideo {
         if (minX > maxX || minY > maxY) return;
 
         for (int y = minY; y <= maxY; ++y) {
-            const float py = (float)(y - y0) + 0.5f;
+            const float py = (float)y + 0.5f - y0;
             for (int x = minX; x <= maxX; ++x) {
-                const float px = (float)(x - x0) + 0.5f;
+                const float px = (float)x + 0.5f - x0;
                 const float dotN = px * nx + py * ny;
                 const float n = fabs(dotN);
                 if (n > outerRadius) continue;
@@ -445,31 +467,55 @@ namespace PhiVideo {
                 const float localX = sx * cosA + sy * sinA;
                 const float localY = -sx * sinA + sy * cosA;
 
-                if (fabsf(localX) <= halfW && fabsf(localY) <= halfH) {
-                    SetColor(
-                        px, py,
-                        Vec4(color.X, color.Y, color.Z, color.W)
-                    );
+                const float outsideX = fabsf(localX) - halfW;
+                const float outsideY = fabsf(localY) - halfH;
+                if (outsideX <= 1.0f && outsideY <= 1.0f) {
+                    float coverage = 1.0f;
+                    if (outsideX > 0.0f) coverage = Min(coverage, 1.0f - outsideX);
+                    if (outsideY > 0.0f) coverage = Min(coverage, 1.0f - outsideY);
+                    coverage = Clamp(coverage, 0.0f, 1.0f);
+                    if (coverage > 0.0f) {
+                        SetColor(px, py, Vec4(color.X, color.Y, color.Z, color.W * coverage));
+                    }
                 }
             }
         }
     }
 
-    void Framebuffer::FillRect(int x0, int y0, int x1, int y1, const Vec4& color) {
+    void Framebuffer::FillRect(float x0, float y0, float x1, float y1, const Vec4& color) {
         if (x0 > x1) std::swap(x0, x1);
         if (y0 > y1) std::swap(y0, y1);
 
-        for (int y = y0; y <= y1; ++y) {
-            if (y < 0 || y >= m_Height) continue;
-            for (int x = x0; x <= x1; ++x) {
-                if (x < 0 || x >= m_Width) continue;
-                SetColor(x, y, color);
+        const int minX = Max((int)floorf(x0) - 1, 0);
+        const int maxX = Min((int)ceilf(x1) + 1, m_Width - 1);
+        const int minY = Max((int)floorf(y0) - 1, 0);
+        const int maxY = Min((int)ceilf(y1) + 1, m_Height - 1);
+
+        for (int y = minY; y <= maxY; ++y) {
+            const float cy = (float)y + 0.5f;
+            float coverageY = 1.0f;
+            if (cy < y0) coverageY = 1.0f - (y0 - cy);
+            else if (cy > y1) coverageY = 1.0f - (cy - y1);
+            coverageY = Clamp(coverageY, 0.0f, 1.0f);
+            if (coverageY <= 0.0f) continue;
+
+            for (int x = minX; x <= maxX; ++x) {
+                const float cx = (float)x + 0.5f;
+                float coverageX = 1.0f;
+                if (cx < x0) coverageX = 1.0f - (x0 - cx);
+                else if (cx > x1) coverageX = 1.0f - (cx - x1);
+                coverageX = Clamp(coverageX, 0.0f, 1.0f);
+
+                const float coverage = Min(coverageX, coverageY);
+                if (coverage > 0.0f) {
+                    SetColor(x, y, Vec4(color.X, color.Y, color.Z, color.W * coverage));
+                }
             }
         }
     }
 
-    void Framebuffer::FillSizeRect(int x, int y, int w, int h, const Vec4& color) {
-        FillRect(x - w / 2, y - h / 2, x + w / 2, y + h / 2, color);
+    void Framebuffer::FillSizeRect(float x, float y, float w, float h, const Vec4& color) {
+        FillRect(x - w * 0.5f, y - h * 0.5f, x + w * 0.5f, y + h * 0.5f, color);
     }
 
     int sampleNum = 1;
@@ -499,11 +545,11 @@ namespace PhiVideo {
         }
     }
 
-    void Framebuffer::DrawTexture(int x, int y, const Texture* texture, int w, int h, float rotation, const float alpha) {
+    void Framebuffer::DrawTexture(float x, float y, const Texture* texture, float w, float h, float rotation, const float alpha) {
         if (!texture || alpha <= 0.0f) return;
 
-        if (w == -1) w = (int)(texture->GetWidth());
-        if (h == -1) h = (int)(w * texture->GetHeight() / texture->GetWidth());
+        if (w == -1.0f) w = (float)texture->GetWidth();
+        if (h == -1.0f) h = w * (float)texture->GetHeight() / (float)texture->GetWidth();
 
         const float sx = (float)w / texture->GetWidth();
         const float sy = (float)h / texture->GetHeight();
@@ -525,10 +571,10 @@ namespace PhiVideo {
         else if (sinA < 0.001f && sinA > -0.001f) sinA = 0.0f;
 
         float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
-        int corners[4][2] = { {0, 0}, {w, 0}, {0, h}, {w, h} };
+        float corners[4][2] = { {0.0f, 0.0f}, {w, 0.0f}, {0.0f, h}, {w, h} };
         for (int k = 0; k < 4; ++k) {
-            float rx = (float)corners[k][0] * cosA - (float)corners[k][1] * sinA;
-            float ry = (float)corners[k][0] * sinA + (float)corners[k][1] * cosA;
+            float rx = corners[k][0] * cosA - corners[k][1] * sinA;
+            float ry = corners[k][0] * sinA + corners[k][1] * cosA;
             minX = Min(minX, rx);
             minY = Min(minY, ry);
             maxX = Max(maxX, rx);
@@ -553,10 +599,10 @@ namespace PhiVideo {
         const float negSinAInvSy = -sinA * invSy;
         const float cosAInvSy = cosA * invSy;
 
-        const int yStart = std::clamp(y + startY, 0, windowHeight - 1);
-        const int yEnd = std::clamp(y + endY, 0, windowHeight - 1);
-        const int xStart = std::clamp(x + startX, 0, windowWidth - 1);
-        const int xEnd = std::clamp(x + endX, 0, windowWidth - 1);
+        const int yStart = std::clamp((int)floorf(y + (float)startY), 0, windowHeight - 1);
+        const int yEnd = std::clamp((int)ceilf(y + (float)endY), 0, windowHeight - 1);
+        const int xStart = std::clamp((int)floorf(x + (float)startX), 0, windowWidth - 1);
+        const int xEnd = std::clamp((int)ceilf(x + (float)endX), 0, windowWidth - 1);
 
         const int numSamples = Max(1, sampleNum);
         const int totalSamples = numSamples * numSamples;
@@ -564,10 +610,10 @@ namespace PhiVideo {
         const float tyBase = texHeight - 1;
 
         for (int dstY = yStart; dstY <= yEnd; ++dstY) {
-            const int dstYOffset = dstY - y;
+            const float dstYOffset = (float)dstY - y;
 
             for (int dstX = xStart; dstX <= xEnd; ++dstX) {
-                const int dstXOffset = dstX - x;
+                const float dstXOffset = (float)dstX - x;
 
                 float totalR = 0.0f, totalG = 0.0f, totalB = 0.0f, totalA = 0.0f;
 
@@ -614,13 +660,13 @@ namespace PhiVideo {
         }
     }
 
-    void Framebuffer::DrawTexture(int x, int y, const Texture* textures[3], int w, const int h[3], float rotation, const float alpha) {
+    void Framebuffer::DrawTexture(float x, float y, const Texture* textures[3], float w, const float h[3], float rotation, const float alpha) {
         if (alpha <= 0.0f) return;
-        const int totalH = h[0] + h[1] + h[2];
-        if (totalH <= 0 || w <= 0) return;
-        const float h0 = (float)h[0];
-        const float h01 = (float)(h[0] + h[1]);
-        const float totalHf = (float)totalH;
+        const float totalH = h[0] + h[1] + h[2];
+        if (totalH <= 0.0f || w <= 0.0f) return;
+        const float h0 = h[0];
+        const float h01 = h[0] + h[1];
+        const float totalHf = totalH;
         const float texWidth0 = (float)textures[0]->GetWidth();
         const float texHeight0 = (float)textures[0]->GetHeight();
         const float texHeight1 = (float)textures[1]->GetHeight();
@@ -647,7 +693,7 @@ namespace PhiVideo {
         else if (fabsf(sinA) < kZeroThreshold)
             sinA = 0.0f;
         float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
-        int corners[4][2] = { {0, 0}, {w, 0}, {0, totalH}, {w, totalH} };
+        float corners[4][2] = { {0.0f, 0.0f}, {w, 0.0f}, {0.0f, totalH}, {w, totalH} };
         for (int k = 0; k < 4; ++k) {
             float cx = (float)corners[k][0];
             float cy = (float)corners[k][1];
@@ -677,17 +723,17 @@ namespace PhiVideo {
         const float h01_blendStart = h01 - blendHalf;
         const float h01_blendEnd = h01 + blendHalf;
 
-        const float fh0 = (float)h[2];
-        const float fh01 = (float)(h[2] + h[1]);
+        const float fh0 = h[2];
+        const float fh01 = h[2] + h[1];
         const float fh0_blendStart = fh0 - blendHalf;
         const float fh0_blendEnd = fh0 + blendHalf;
         const float fh01_blendStart = fh01 - blendHalf;
         const float fh01_blendEnd = fh01 + blendHalf;
 
-        const int yStart = std::clamp(y + startY, 0, windowHeight - 1);
-        const int yEnd = std::clamp(y + endY, 0, windowHeight - 1);
-        const int xStart = std::clamp(x + startX, 0, windowWidth - 1);
-        const int xEnd = std::clamp(x + endX, 0, windowWidth - 1);
+        const int yStart = std::clamp((int)floorf(y + (float)startY), 0, windowHeight - 1);
+        const int yEnd = std::clamp((int)ceilf(y + (float)endY), 0, windowHeight - 1);
+        const int xStart = std::clamp((int)floorf(x + (float)startX), 0, windowWidth - 1);
+        const int xEnd = std::clamp((int)ceilf(x + (float)endX), 0, windowWidth - 1);
         const int numSamples = Max(1, sampleNum);
         const int totalSamples = numSamples * numSamples;
         const float invTotalSamples = 1.0f / totalSamples;
@@ -713,9 +759,9 @@ namespace PhiVideo {
         const float invSy0Rev = invSy2;
 
         for (int dstY = yStart; dstY <= yEnd; ++dstY) {
-            const float j = (float)(dstY - y);
+            const float j = (float)dstY - y;
             for (int dstX = xStart; dstX <= xEnd; ++dstX) {
-                const float i = (float)(dstX - x);
+                const float i = (float)dstX - x;
                 float totalR = 0.0f, totalG = 0.0f, totalB = 0.0f, totalA = 0.0f;
                 float errR = 0.0f, errG = 0.0f, errB = 0.0f, errA = 0.0f;
                 for (int syIdx = 0; syIdx < numSamples; ++syIdx) {

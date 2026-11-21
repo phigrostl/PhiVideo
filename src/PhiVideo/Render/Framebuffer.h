@@ -34,21 +34,21 @@ namespace PhiVideo {
         void LoadFontTTF(stbtt_fontinfo* fontInfo);
         void LoadFontTTF(const std::string& fontPath);
 
-        void DrawCharTTF(int x, int y, wchar_t c, const Vec4& color, float fontSize);
-        void DrawTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float xOffset = 0.0f, float yOffset = 0.0f);
-        void DrawRotatedTextTTF(int x, int y, const std::string& text, const Vec4& color, float fontSize, float rotation);
+        void DrawCharTTF(float x, float y, wchar_t c, const Vec4& color, float fontSize);
+        void DrawTextTTF(float x, float y, const std::string& text, const Vec4& color, float fontSize, float xOffset = 0.0f, float yOffset = 0.0f);
+        void DrawRotatedTextTTF(float x, float y, const std::string& text, const Vec4& color, float fontSize, float rotation);
         void GetTextSize(const std::string& text, float fontSize, int* width, int* height) const;
         Texture* TextToTexture(const std::string& text, const Vec4& color, float fontSize);
 
-        void DrawLine(int x0, int y0, int x1, int y1, float w, const Vec4& color);
+        void DrawLine(float x0, float y0, float x1, float y1, float w, const Vec4& color);
         void DrawRect(Vec2 pos, Vec2 size, float rotation, Vec4 color);
-        void FillRect(int x0, int y0, int x1, int y1, const Vec4& color);
-        void FillSizeRect(int x, int y, int w, int h, const Vec4& color);
+        void FillRect(float x0, float y0, float x1, float y1, const Vec4& color);
+        void FillSizeRect(float x, float y, float w, float h, const Vec4& color);
 
         int GetSampleNum() const;
         void SetSampleNum(int num);
-        void DrawTexture(int x, int y, const Texture* texture, int w = -1.0f, int h = -1.0f, float rotation = 0.0f, const float alpha = 1.0f);
-        void DrawTexture(int x, int y, const Texture* textures[3], int w, const int h[3], float rotation = 0.0f, const float alpha = 1.0f);
+        void DrawTexture(float x, float y, const Texture* texture, float w = -1.0f, float h = -1.0f, float rotation = 0.0f, const float alpha = 1.0f);
+        void DrawTexture(float x, float y, const Texture* textures[3], float w, const float h[3], float rotation = 0.0f, const float alpha = 1.0f);
 
         void ToPNG(const std::string& path);
 
